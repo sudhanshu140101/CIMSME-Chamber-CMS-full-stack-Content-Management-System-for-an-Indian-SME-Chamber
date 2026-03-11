@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Committee - CIMSME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/api-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'cimsme-blue': '#3B82F6', 'cimsme-green': '#10B981', 'cimsme-orange': '#F59E0B' },
+                    fontFamily: { sans: ['Lora', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        html { min-height: 100%; background-color: #fff; }
+        body { font-family: 'Lora', serif; overflow-x: hidden; min-height: 100%;
+            background-image: url('/assets/climpek.png'); background-attachment: fixed; background-repeat: repeat; }
+        .section-over-texture { background-color: transparent; }
+        .btn-primary {
+            background: linear-gradient(135deg, #e28940, #e9853e);
+            font-family: 'Lora', serif; font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(226, 137, 64, 0.3); }
+        .committee-tab { transition: all 0.2s ease; }
+        .committee-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .loading { width: 3rem; height: 3rem; border: 4px solid rgba(59,130,246,0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .footer-pdf-bar { background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%); border-top: 1px solid rgba(255,255,255,0.1); }
+        .footer-pdf-btn { background: linear-gradient(135deg, #e28940, #e9853e); color: #fff; box-shadow: 0 4px 14px rgba(226, 137, 64, 0.35); }
+        .footer-pdf-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(226, 137, 64, 0.45); }
+        .hero-overlay { background: linear-gradient(135deg, rgba(30,58,95,0.75) 0%, rgba(59,130,246,0.6) 100%); }
+        .hero-bg-full { background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .leadership-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .leadership-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+        .leadership-leader-photo { width: 100%; aspect-ratio: 1; object-fit: cover; }
+        .leadership-subleader-photo { width: 100%; aspect-ratio: 1; object-fit: cover; }
+        img { max-width: 100%; height: auto; }
+        @media (max-width: 640px) {
+            .committee-tab { min-height: 44px; min-width: 44px; }
+            #leadersGrid { gap: 1.5rem; }
+            #subleadersGrid { gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body class="section-over-texture min-h-screen">
+    <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <a href="/" class="inline-flex items-center text-gray-700 hover:text-cimsme-blue font-semibold text-base">
+                <span class="mr-2">←</span> Home
+            </a>
+        </div>
+    </header>
+
+    <div id="pageLoading" class="flex justify-center py-24">
+        <div class="text-center">
+            <div class="loading mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading...</p>
+        </div>
+    </div>
+    <div id="pageError" class="hidden max-w-2xl mx-auto px-4 py-16 text-center text-red-600 font-medium"></div>
+
+    <div id="committeePage" class="hidden">
+        <!-- Hero: full-width, full committee photo -->
+        <section class="relative w-full min-h-[45vh] md:min-h-[55vh] flex items-end">
+            <div id="heroBg" class="absolute inset-0 bg-gray-300 hero-bg-full"></div>
+            <div class="hero-overlay absolute inset-0"></div>
+            <div class="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-12 pt-8">
+                <div class="max-w-7xl mx-auto">
+                    <h1 id="committeeTitle" class="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg mb-2"></h1>
+                    <p class="text-blue-100 text-lg md:text-xl">Committee</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs: full width -->
+        <div class="w-full px-4 sm:px-6 lg:px-8 -mt-6 relative z-20">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-wrap justify-center gap-2 p-1.5 bg-white rounded-2xl shadow-lg border border-gray-100">
+                    <button type="button" data-tab="overview" class="committee-tab active px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Overview</button>
+                    <button type="button" data-tab="leadership" class="committee-tab px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Leadership</button>
+                    <button type="button" data-tab="apply" class="committee-tab px-6 py-3 rounded-xl font-semibold text-gray-700 hover:bg-gray-100">Apply Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content: full width -->
+        <main class="w-full px-4 sm:px-6 lg:px-8 py-10">
+            <div class="max-w-7xl mx-auto">
+                <div id="tabOverview" class="tab-panel bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-10">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Overview</h2>
+                    <div id="overviewContent" class="prose prose-lg max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap"></div>
+                </div>
+                <div id="tabLeadership" class="tab-panel hidden">
+                    <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                        <div class="p-6 md:p-10">
+                            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Leadership</h2>
+                            <p class="text-gray-600 mb-8">Meet the leaders and team driving this committee.</p>
+                            <div id="leadersSection" class="mb-12">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                                    <span class="w-1 h-6 bg-cimsme-blue rounded-full mr-3"></span>Chairman
+                                </h3>
+                                <div id="leadersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                            </div>
+                            <div id="subleadersSection" class="hidden">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+                                    <span class="w-1 h-6 bg-gray-400 rounded-full mr-3"></span>Members
+                                </h3>
+                                <div id="subleadersGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tabApply" class="tab-panel hidden bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-10">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Apply for Membership</h2>
+                    <p class="text-gray-600 mb-6 text-lg">Join this committee by applying for membership. Complete the application form to get started.</p>
+                    <a id="applyLink" href="/membership" class="btn-primary inline-block px-8 py-4 rounded-xl text-white font-semibold">
+                        Apply for Membership →
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer id="footerPdfBar" class="footer-pdf-bar py-4 mt-12 hidden">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <a id="footerPdfLink" href="#" target="_blank" rel="noopener" class="footer-pdf-btn inline-block px-6 py-3 rounded-xl font-semibold transition-all">Download CIMSME Presentation</a>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            const API_BASE = typeof window.API_BASE_URL !== 'undefined' ? window.API_BASE_URL : '';
+            function getApiUrl(path) { return (API_BASE + path).replace(/\/+/g, '/'); }
+            function getQueryParam(name) {
+                var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+                return m ? decodeURIComponent(m[1]) : '';
+            }
+
+            var currentCommittee = null;
+
+            function escapeHtml(s) {
+                if (s == null) return '';
+                var div = document.createElement('div');
+                div.textContent = s;
+                return div.innerHTML;
+            }
+
+            function safePhotoUrl(url) {
+                if (!url || typeof url !== 'string') return '';
+                var u = url.trim();
+                if (u.length > 500) return '';
+                if (u.indexOf('"') !== -1 || u.indexOf("'") !== -1) return '';
+                if (u.startsWith('/') || u.startsWith('http://') || u.startsWith('https://')) return u;
+                return '';
+            }
+
+            function setTab(activeTab) {
+                document.querySelectorAll('.committee-tab').forEach(function(btn) {
+                    btn.classList.toggle('active', btn.getAttribute('data-tab') === activeTab);
+                });
+                document.getElementById('tabOverview').classList.toggle('hidden', activeTab !== 'overview');
+                document.getElementById('tabLeadership').classList.toggle('hidden', activeTab !== 'leadership');
+                document.getElementById('tabApply').classList.toggle('hidden', activeTab !== 'apply');
+            }
+
+            function renderLeader(l, large) {
+                var rawPhoto = (l.photo_url && l.photo_url.trim()) ? l.photo_url : '';
+                var photo = safePhotoUrl(rawPhoto) || '/assets/logo.png';
+                var name = escapeHtml(l.name || '');
+                var pos = escapeHtml(l.position || '');
+                if (large) {
+                    return '<div class="leadership-card bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-md">' +
+                        '<div class="aspect-square overflow-hidden bg-gray-100">' +
+                        '<img src="' + photo + '" alt="' + name + '" class="leadership-leader-photo" loading="lazy" onerror="this.src=\'/assets/logo.png\'">' +
+                        '</div>' +
+                        '<div class="p-5 text-center">' +
+                        '<h4 class="font-bold text-gray-900 text-lg">' + name + '</h4>' +
+                        '<p class="text-sm text-gray-600 mt-1">' + pos + '</p>' +
+                        '</div></div>';
+                }
+                return '<div class="leadership-card bg-white rounded-xl overflow-hidden border border-gray-100 shadow-md">' +
+                    '<div class="aspect-square overflow-hidden bg-gray-100">' +
+                    '<img src="' + photo + '" alt="' + name + '" class="leadership-subleader-photo" loading="lazy" onerror="this.src=\'/assets/logo.png\'">' +
+                    '</div>' +
+                    '<div class="p-3 text-center">' +
+                    '<h4 class="font-semibold text-gray-900 text-sm">' + name + '</h4>' +
+                    '<p class="text-xs text-gray-600 mt-0.5">' + pos + '</p>' +
+                    '</div></div>';
+            }
+
+            function loadCommittee() {
+                var idStr = getQueryParam('id');
+                var id = (idStr && /^\d+$/.test(idStr)) ? parseInt(idStr, 10) : 0;
+                if (!id || id < 1) {
+                    document.getElementById('pageLoading').classList.add('hidden');
+                    document.getElementById('pageError').textContent = 'Committee not specified.';
+                    document.getElementById('pageError').classList.remove('hidden');
+                    return;
+                }
+                fetch(getApiUrl('/api/committees/' + id))
+                    .then(function(r) { return r.json(); })
+                    .then(function(json) {
+                        document.getElementById('pageLoading').classList.add('hidden');
+                        if (!json.success || !json.data) {
+                            document.getElementById('pageError').textContent = json.message || 'Committee not found.';
+                            document.getElementById('pageError').classList.remove('hidden');
+                            return;
+                        }
+                        currentCommittee = json.data;
+                        var c = currentCommittee;
+                        document.getElementById('committeePage').classList.remove('hidden');
+                        document.getElementById('committeeTitle').textContent = c.name || 'Committee';
+                        var heroBg = document.getElementById('heroBg');
+                        heroBg.classList.add('hero-bg-full');
+                        if (c.photo_url && c.photo_url.trim()) {
+                            var safeUrl = safePhotoUrl(c.photo_url);
+                            if (safeUrl) heroBg.style.backgroundImage = 'url(' + safeUrl + ')';
+                            else heroBg.style.backgroundImage = '';
+                        } else {
+                            heroBg.style.backgroundImage = '';
+                        }
+                        document.getElementById('overviewContent').textContent = (c.overview && c.overview.trim()) ? c.overview : 'No overview available.';
+                        var applyLink = (c.apply_link && c.apply_link.trim()) ? c.apply_link : '/membership';
+                        if (!/^https?:\/\//i.test(applyLink) && !applyLink.startsWith('/')) applyLink = '/' + applyLink.replace(/^\/+/, '');
+                        if (/^javascript:|data:/i.test(applyLink)) applyLink = '/membership';
+                        document.getElementById('applyLink').href = applyLink;
+
+                        var leaders = c.leaders || [];
+                        var subleaders = c.subleaders || [];
+                        document.getElementById('leadersGrid').innerHTML = leaders.length
+                            ? leaders.map(function(l) { return renderLeader(l, true); }).join('')
+                            : '<div class="col-span-full text-center py-12 rounded-2xl bg-gray-50 border border-gray-100"><p class="text-gray-500">No leaders listed.</p></div>';
+                        if (subleaders.length) {
+                            document.getElementById('subleadersSection').classList.remove('hidden');
+                            document.getElementById('subleadersGrid').innerHTML = subleaders.map(function(l) { return renderLeader(l, false); }).join('');
+                        } else {
+                            document.getElementById('subleadersSection').classList.add('hidden');
+                        }
+
+                        document.querySelectorAll('.committee-tab').forEach(function(btn) {
+                            btn.addEventListener('click', function() { setTab(btn.getAttribute('data-tab')); });
+                        });
+                    })
+                    .catch(function() {
+                        document.getElementById('pageLoading').classList.add('hidden');
+                        document.getElementById('pageError').textContent = 'Unable to load committee. Please try again.';
+                        document.getElementById('pageError').classList.remove('hidden');
+                    });
+            }
+
+            function loadFooterPdf() {
+                fetch(getApiUrl('/api/footer-pdf')).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data && data.pdf_url) {
+                        var bar = document.getElementById('footerPdfBar');
+                        var link = document.getElementById('footerPdfLink');
+                        if (bar && link) { link.href = data.pdf_url; bar.classList.remove('hidden'); }
+                    }
+                }).catch(function() {});
+            }
+
+            loadCommittee();
+            loadFooterPdf();
+        })();
+    </script>
+</body>
+</html>

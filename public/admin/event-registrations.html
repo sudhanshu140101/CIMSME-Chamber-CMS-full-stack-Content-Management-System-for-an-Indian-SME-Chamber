@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registrations - CIMSME Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .payment-free { background: #e7f3ff; color: #0066cc; }
+        .payment-paid { background: #d4edda; color: #155724; }
+        .payment-pending { background: #fff3cd; color: #856404; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; }
+        .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-600">📋 Event Registrations</h1>
+                    <p class="text-sm text-gray-600">Manage all event registrations and attendees</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/admin/dashboard.html" class="text-gray-600 hover:text-blue-600 font-medium">← Dashboard</a>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+      
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">🔍 Filters & Search</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Filter by Event</label>
+                    <select id="filterEvent" onchange="applyFilters()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">📅 All Events</option>
+                    </select>
+                </div>
+
+             
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Search Member</label>
+                    <input type="text" id="searchInput" placeholder="Name or Email" onkeyup="applyFilters()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                
+                <div class="flex items-end">
+                    <button onclick="loadRegistrations()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold">🔄 Refresh Data</button>
+                </div>
+
+                <div class="flex items-end">
+                    <button onclick="exportToCSV()" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold">📥 Export CSV</button>
+                </div>
+            </div>
+        </div>
+
+      
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">📋 Bulk Actions</h3>
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="toggleSelectAll()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold">
+                    ☑️ Select All
+                </button>
+                <button onclick="confirmSelectedPayments()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
+                    ✓ Confirm Selected
+                </button>
+                <button onclick="clearSelection()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold">
+                    ✕ Clear Selection
+                </button>
+                <span id="selectionCount" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold">0 Selected</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-blue-100 rounded-lg shadow p-4 text-center border-l-4 border-blue-600">
+                <p class="text-gray-600 text-sm font-semibold">Total Registrations</p>
+                <p class="text-3xl font-bold text-blue-600" id="statTotal">0</p>
+            </div>
+            <div class="bg-indigo-100 rounded-lg shadow p-4 text-center border-l-4 border-indigo-600">
+                <p class="text-gray-600 text-sm font-semibold">Total Events</p>
+                <p class="text-3xl font-bold text-indigo-600" id="statEvents">0</p>
+            </div>
+            <div class="bg-green-100 rounded-lg shadow p-4 text-center border-l-4 border-green-600">
+                <p class="text-gray-600 text-sm font-semibold">Confirmed</p>
+                <p class="text-3xl font-bold text-green-600" id="statConfirmed">0</p>
+            </div>
+            <div class="bg-yellow-100 rounded-lg shadow p-4 text-center border-l-4 border-yellow-600">
+                <p class="text-gray-600 text-sm font-semibold">Pending</p>
+                <p class="text-3xl font-bold text-yellow-600" id="statPending">0</p>
+            </div>
+        </div>
+
+        <!-- REGISTRATIONS TABLE -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-6 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">📊 Event Registrations</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-gray-100 border-b-2 border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" class="w-4 h-4 cursor-pointer">
+                            </th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Reg ID</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Event Name</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Member Name</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Email</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Phone</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Company</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Participants</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Registered</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrationsTable" class="divide-y divide-gray-200">
+                        <tr><td colspan="11" class="px-6 py-12 text-center"><div class="loading mx-auto"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" class="modal-overlay">
+        <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Registration Details</h3>
+                <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600 text-3xl">×</button>
+            </div>
+            <div id="detailsContent" class="space-y-4"></div>
+            <div class="flex justify-end space-x-4 mt-8">
+                <button onclick="closeDetailsModal()" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('adminToken');
+        let allRegistrations = [];
+        let allEvents = [];
+
+        // LOAD ON PAGE LOAD
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!authToken) {
+                alert('Please login first');
+                window.location.href = '/admin';
+                return;
+            }
+            loadEvents();
+            loadRegistrations();
+        });
+
+        // API CALL HELPER
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    ...options
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                if (error.message.includes('401')) {
+                    alert('Session expired');
+                    logout();
+                }
+                throw error;
+            }
+        }
+
+        // LOAD EVENTS FOR FILTER DROPDOWN
+        async function loadEvents() {
+            try {
+                const response = await apiCall(`/events/admin/all?_=${Date.now()}`);
+
+                allEvents = response.data || [];
+                
+                // POPULATE FILTER DROPDOWN
+                const select = document.getElementById('filterEvent');
+                allEvents.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.id;
+                    option.textContent = `📅 ${event.title}`;
+                    select.appendChild(option);
+                });
+                
+                document.getElementById('statEvents').textContent = allEvents.length;
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+  async function loadRegistrations() {
+  try {
+    const response = await apiCall('/admin/all-event-registrations');
+    console.log('  Registrations fetched:', response);
+    
+    //   Handle both array and nested object responses
+    if (Array.isArray(response.data)) {
+      allRegistrations = response.data;
+    } else if (response.data && response.data.allRegistrations) {
+      // Fallback for old nested structure
+      allRegistrations = response.data.allRegistrations;
+    } else {
+      allRegistrations = [];
+    }
+    
+    console.log(`📊 Loaded ${allRegistrations.length} registrations`);
+    
+    updateStatistics();
+    displayRegistrations(allRegistrations);
+    
+  } catch (error) {
+    console.error('  Error loading registrations:', error);
+    document.getElementById('registrationsTable').innerHTML = `
+      <tr>
+        <td colspan="11" class="px-6 py-12 text-center">
+          <p class="text-red-600 font-bold mb-4">  Failed to load registrations</p>
+          <p class="text-gray-600 text-sm mb-4">${error.message}</p>
+          <button onclick="loadRegistrations()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
+            🔄 Retry
+          </button>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+
+        // UPDATE STATISTICS
+        function updateStatistics() {
+            const total = allRegistrations.length;
+            const confirmed = allRegistrations.filter(r => r.payment_confirmed).length;
+            const pending = total - confirmed;
+            
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statConfirmed').textContent = confirmed;
+            document.getElementById('statPending').textContent = pending;
+        }
+
+        // APPLY FILTERS
+        function applyFilters() {
+            const eventFilter = document.getElementById('filterEvent').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allRegistrations;
+
+            if (eventFilter) {
+                filtered = filtered.filter(r => String(r.event_id) === String(eventFilter));
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(r =>
+                    (r.full_name || '').toLowerCase().includes(searchTerm) ||
+                    (r.email || '').toLowerCase().includes(searchTerm)
+                );
+            }
+
+            displayRegistrations(filtered);
+        }
+
+        // DISPLAY REGISTRATIONS TABLE
+        function displayRegistrations(registrations) {
+            const tbody = document.getElementById('registrationsTable');
+
+            if (!registrations || registrations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-12 text-center text-gray-500">📭 No registrations found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            registrations.forEach(reg => {
+                const regId = (reg.registration_id || '').replace(/'/g, "\\'");
+                const statusBadge = reg.payment_confirmed 
+                    ? '<span class="px-3 py-1 bg-green-100 text-green-700 rounded text-xs font-bold"> Confirmed</span>'
+                    : `<button onclick="confirmPayment('${regId}')" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-bold transition">✓ Confirm</button>`;
+
+               //  IMPROVED: Show member badge and payment status
+const memberBadge = reg.is_member 
+    ? '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">👤 Member</span>'
+    : '<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold">Guest</span>';
+
+const paymentBadge = reg.payment_status === 'free' || reg.registration_fee === 0
+    ? '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">🆓 Free</span>'
+    : (reg.payment_confirmed
+        ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">💰 Paid</span>'
+        : '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">⏳ Pending</span>');
+
+html += `
+    <tr class="hover:bg-blue-50 transition">
+        <td class="px-4 py-3">
+            <input type="checkbox" class="memberCheckbox w-4 h-4 cursor-pointer" value="${reg.registration_id}" onchange="updateSelectionCount()">
+        </td>
+        <td class="px-4 py-3 font-mono text-xs font-bold text-blue-600">${reg.registration_id || '-'}</td>
+        <td class="px-4 py-3">
+            <p class="font-semibold text-gray-900">📅 ${reg.event_title || '-'}</p>
+            <div class="flex gap-1 mt-1">${memberBadge} ${paymentBadge}</div>
+        </td>
+        <td class="px-4 py-3 font-semibold text-gray-900">${reg.full_name || '-'}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${reg.email || '-'}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${reg.phone || '-'}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${reg.company_name || '-'}</td>
+        <td class="px-4 py-3 text-center font-bold">${reg.num_participants || 1}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${reg.registered_at ? new Date(reg.registered_at).toLocaleDateString() : '-'}</td>
+        <td class="px-4 py-3">
+            <div class="flex gap-2 items-center flex-wrap">
+                <button onclick="viewDetails(${reg.id})" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-bold transition">👁️ View</button>
+                ${statusBadge}
+            </div>
+        </td>
+    </tr>
+`;
+
+            });
+            tbody.innerHTML = html;
+        }
+
+        //   VIEW DETAILS
+      
+function viewDetails(id) {
+    const reg = allRegistrations.find(r => String(r.id) === String(id));
+    if (!reg) {
+        alert('Registration not found');
+        return;
+    }
+
+    const memberStatus = reg.is_member 
+        ? '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded font-bold">👤 Member</span>'
+        : '<span class="px-3 py-1 bg-gray-100 text-gray-600 rounded font-bold">Guest</span>';
+
+    const paymentStatus = reg.payment_confirmed 
+        ? '<span class="px-3 py-1 bg-green-100 text-green-700 rounded font-bold">  Confirmed</span>'
+        : '<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded font-bold">⏳ Pending</span>';
+
+    const content = document.getElementById('detailsContent');
+    content.innerHTML = `
+        <!-- Registration Status -->
+        <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div>
+                <p class="text-xs text-gray-600 mb-1">Registration ID</p>
+                <p class="font-mono font-bold text-blue-600">${reg.registration_id}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-600 mb-1">Event</p>
+                <p class="font-bold">${reg.event_title}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-600 mb-1">Payment Status</p>
+                <div>${paymentStatus}</div>
+            </div>
+            <div>
+                <p class="text-xs text-gray-600 mb-1">Member Type</p>
+                <div>${memberStatus}</div>
+            </div>
+            <div>
+                <p class="text-xs text-gray-600 mb-1">Registered On</p>
+                <p class="font-bold">${new Date(reg.registered_at).toLocaleString()}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-600 mb-1">Participants</p>
+                <p class="font-bold">${reg.num_participants || 1} person(s)</p>
+            </div>
+        </div>
+
+        <!-- Member Information -->
+        <div class="border-t-2 pt-4 mt-4">
+            <p class="font-bold text-lg mb-3 text-gray-800">👤 Member Information</p>
+            <div class="space-y-2">
+                <p><strong>Full Name:</strong> ${reg.full_name}</p>
+                <p><strong>Email:</strong> <a href="mailto:${reg.email}" class="text-blue-600 hover:underline">${reg.email}</a></p>
+                <p><strong>Phone:</strong> <a href="tel:${reg.phone}" class="text-blue-600 hover:underline">${reg.phone}</a></p>
+                <p><strong>Company:</strong> ${reg.company_name || '-'}</p>
+                <p><strong>Designation:</strong> ${reg.designation || '-'}</p>
+                ${reg.special_requirements ? `<p><strong>Special Requirements:</strong> ${reg.special_requirements}</p>` : ''}
+            </div>
+        </div>
+
+        <!-- QR Code for Check-in -->
+        ${reg.qr_code ? `
+        <div class="border-t-2 pt-4 mt-4 text-center">
+            <p class="font-bold text-lg mb-3 text-gray-800">📱 QR Code for Event Check-in</p>
+            <img src="${reg.qr_code}" alt="QR Code" class="mx-auto border-4 border-gray-200 rounded-lg shadow-lg" style="width: 200px; height: 200px;">
+            <p class="text-sm text-gray-600 mt-2">Scan this QR code at event entrance</p>
+        </div>
+        ` : ''}
+
+        <!-- Payment Confirmation Button (if pending) -->
+        ${!reg.payment_confirmed ? `
+        <div class="border-t-2 pt-4 mt-4">
+            <button onclick="confirmPayment('${reg.registration_id}')" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-bold">
+                ✓ Confirm Payment & Send Email
+            </button>
+        </div>
+        ` : ''}
+    `;
+    document.getElementById('detailsModal').classList.add('active');
+}
+
+
+        // EXPORT CSV
+        function exportToCSV() {
+            if (allRegistrations.length === 0) {
+                alert('No registrations to export');
+                return;
+            }
+
+            let csv = 'Reg ID,Event,Member,Email,Phone,Company,Participants,Status,Registered\n';
+
+            allRegistrations.forEach(reg => {
+                csv += `"${reg.registration_id}","${reg.event_title}","${reg.full_name}","${reg.email}","${reg.phone}","${reg.company_name}",${reg.num_participants},"${reg.payment_confirmed ? 'Confirmed' : 'Pending'}","${new Date(reg.registered_at).toLocaleDateString()}"\n`;
+            });
+
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            link.download = `registrations-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // MODAL FUNCTIONS
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'detailsModal') closeDetailsModal();
+        });
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/admin';
+        }
+
+        //  TOGGLE SELECT ALL CHECKBOXES
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            const checkboxes = document.querySelectorAll('.memberCheckbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+            updateSelectionCount();
+        }
+
+        //  UPDATE SELECTION COUNT
+        function updateSelectionCount() {
+            const checked = document.querySelectorAll('.memberCheckbox:checked').length;
+            document.getElementById('selectionCount').textContent = `${checked} Selected`;
+        }
+
+        //  CLEAR SELECTION
+        function clearSelection() {
+            document.getElementById('selectAll').checked = false;
+            document.querySelectorAll('.memberCheckbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectionCount();
+        }
+
+        //  GET SELECTED REGISTRATIONS
+        function getSelectedRegistrations() {
+            const checkboxes = document.querySelectorAll('.memberCheckbox:checked');
+            const selected = [];
+            checkboxes.forEach(checkbox => {
+                const regId = checkbox.value;
+                const reg = allRegistrations.find(r => r.registration_id === regId);
+                if (reg) selected.push(reg);
+            });
+            return selected;
+        }
+
+        //  CONFIRM SELECTED PAYMENTS (BULK)
+        async function confirmSelectedPayments() {
+            const selected = getSelectedRegistrations();
+            
+            if (selected.length === 0) {
+                alert('  Please select at least one registration');
+                return;
+            }
+            
+            if (!confirm(`  Confirm payment for ${selected.length} registrations? Emails will be sent.`)) {
+                return;
+            }
+            
+            console.log('📧 Confirming', selected.length, 'registrations...');
+            
+            let confirmedCount = 0;
+            let errorCount = 0;
+            
+            for (const reg of selected) {
+                try {
+                    const response = await fetch(`/api/admin/event-registrations/${reg.registration_id}/confirm`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        reg.payment_confirmed = true;
+                        confirmedCount++;
+                        console.log('  Confirmed:', reg.registration_id);
+                    } else {
+                        errorCount++;
+                        console.error('  Failed:', reg.registration_id);
+                    }
+                } catch (error) {
+                    errorCount++;
+                    console.error('Error confirming:', error);
+                }
+            }
+            
+            //  SHOW RESULT
+            const message = confirmedCount > 0 ? `  ${confirmedCount} payments confirmed!` : `    No payments confirmed`;
+            showSuccessAlert(message);
+            
+            //  RELOAD
+            setTimeout(() => {
+                loadRegistrations();
+                clearSelection();
+            }, 1000);
+        }
+
+        //  CONFIRM PAYMENT 
+        async function confirmPayment(registrationId) {
+            if (!confirm('  Confirm payment and send email to member?')) return;
+            
+            try {
+                const response = await fetch(`/api/admin/event-registrations/${registrationId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const reg = allRegistrations.find(r => r.registration_id === registrationId);
+                    if (reg) reg.payment_confirmed = true;
+                    
+                    showSuccessAlert('  Payment confirmed! Email sent.');
+                    setTimeout(() => {
+                        displayRegistrations(allRegistrations);
+                    }, 500);
+                } else {
+                    alert('  Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('  Failed to confirm payment');
+            }
+        }
+
+        // SUCCESS ALERT FUNCTION
+        function showSuccessAlert(message) {
+            const alert = document.createElement('div');
+            alert.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-pulse';
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

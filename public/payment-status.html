@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Status - CIMSME</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f4f6;
+      padding: 16px;
+    }
+
+    .card {
+      background: #ffffff;
+      max-width: 420px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+      padding: 20px 18px;
+      text-align: center;
+    }
+
+    .status-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 26px;
+    }
+
+    .status-icon.loading {
+      border: 3px solid #e5e7eb;
+      border-top-color: #2563eb;
+      animation: spin 1s linear infinite;
+    }
+
+    .status-icon.success {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .status-icon.error {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin-bottom: 4px;
+    }
+
+    .order-id {
+      font-size: 0.8rem;
+      color: #6b7280;
+      background: #f9fafb;
+      border-radius: 999px;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin: 10px 0 14px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: #111827;
+      border-color: #e5e7eb;
+    }
+
+    .btn-outline:hover {
+      background: #f9fafb;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="statusIcon" class="status-icon loading"></div>
+
+    <h1 id="title">Verifying your payment...</h1>
+    <p id="message">Please wait a moment while we confirm your payment.</p>
+
+    <div id="orderInfo" style="display:none;" class="order-id">
+      <strong>Order:</strong>
+      <span id="orderIdText"></span>
+    </div>
+
+    <div id="actions" class="actions" style="display:none;">
+      <a href="/" class="btn btn-primary">Go to Home Page </a>
+      <a href="/membership" class="btn btn-outline">Back to Membership Page </a>
+    </div>
+
+    <p id="hint" class="hint">Do not refresh or close this page until the verification is complete.</p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('orderId');
+
+    const titleEl = document.getElementById('title');
+    const messageEl = document.getElementById('message');
+    const orderInfoWrapper = document.getElementById('orderInfo');
+    const orderIdText = document.getElementById('orderIdText');
+    const actionsEl = document.getElementById('actions');
+    const hintEl = document.getElementById('hint');
+    const statusIcon = document.getElementById('statusIcon');
+
+    const MAX_VERIFY_ATTEMPTS = 6;
+    const VERIFY_RETRY_DELAY_MS = 2500;
+
+    function setStatus(type, title, message) {
+      statusIcon.className = 'status-icon ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : 'loading');
+      statusIcon.textContent =
+        type === 'success' ? '✔' :
+        type === 'error' ? '✕' : '';
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+    }
+
+    function sleep(ms) {
+      return new Promise(function(resolve) { setTimeout(resolve, ms); });
+    }
+
+    async function verifyPayment(orderId) {
+      try {
+        for (var attempt = 1; attempt <= MAX_VERIFY_ATTEMPTS; attempt++) {
+          if (attempt > 1) {
+            messageEl.textContent = 'Payment may take a few seconds. Checking again... (attempt ' + attempt + ' of ' + MAX_VERIFY_ATTEMPTS + ')';
+            await sleep(VERIFY_RETRY_DELAY_MS);
+          }
+          var res = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+          });
+          var text = await res.text();
+          var result = null;
+          try {
+            result = (text && text.trim()) ? JSON.parse(text) : {};
+          } catch (_) {
+            result = {};
+          }
+          if (!result || typeof result !== 'object') result = {};
+
+          if (result.success && result.status === 'SUCCESS') {
+            setStatus(
+              'success',
+              'Payment Successful!',
+              'Your membership has been activated. A confirmation email will be sent shortly.'
+            );
+            hintEl.textContent = 'Redirecting to success page...';
+            actionsEl.style.display = 'flex';
+            setTimeout(function() {
+              window.location.href = '/payment-success.html?orderId=' + encodeURIComponent(orderId);
+            }, 2000);
+            return;
+          }
+          if (result.status === 'FAILED') {
+            setStatus(
+              'error',
+              'Payment Failed',
+              'Your payment could not be completed or was cancelled. If the amount was debited, it may be auto-reversed.'
+            );
+            hintEl.textContent = 'Redirecting... Quote your Order ID to support if needed.';
+            actionsEl.style.display = 'flex';
+            setTimeout(function() {
+              window.location.href = '/payment-failed.html?orderId=' + encodeURIComponent(orderId);
+            }, 3000);
+            return;
+          }
+        }
+        setStatus(
+          'error',
+          'Payment Not Completed',
+          'Your payment is still processing. If you completed the payment, it will reflect shortly. Otherwise, please try again or contact support with your Order ID.'
+        );
+        hintEl.textContent = 'If you were charged, please contact support with your order ID.';
+        actionsEl.style.display = 'flex';
+        setTimeout(function() {
+          window.location.href = '/payment-failed.html?orderId=' + encodeURIComponent(orderId);
+        }, 5000);
+      } catch (e) {
+        console.error('Verification error:', e);
+        setStatus(
+          'error',
+          'Verification Error',
+          'We could not verify your payment due to a technical issue. Please check your email or contact support.'
+        );
+        hintEl.textContent = 'You may wait a few minutes and then check your email or member dashboard.';
+        actionsEl.style.display = 'flex';
+      }
+    }
+
+    if (!orderId) {
+      setStatus(
+        'error',
+        'Invalid payment link',
+        'Order ID is missing. Please return to the membership page and try again.'
+      );
+      hintEl.textContent = 'You can safely close this tab and start again from the membership page.';
+      actionsEl.style.display = 'flex';
+    } else {
+      orderIdText.textContent = orderId;
+      orderInfoWrapper.style.display = 'inline-flex';
+      verifyPayment(orderId);
+    }
+  </script>
+</body>
+</html>

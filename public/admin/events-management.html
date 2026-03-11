@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Management - CIMSME Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading { 
+            display: inline-block; width: 20px; height: 20px; 
+            border: 3px solid #f3f3f3; border-top: 3px solid #3498db; 
+            border-radius: 50%; animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-600">Events Management</h1>
+                    <p class="text-sm text-gray-600">Manage events, agenda, speakers, and photos</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/admin/dashboard.html" class="text-gray-600 hover:text-blue-600">← Dashboard</a>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Action Bar -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800">Events</h2>
+                <p class="text-gray-600 mt-2">Create and manage events with full details</p>
+            </div>
+            <button onclick="showAddEventModal()" class="bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors">
+                 Add New Event
+            </button>
+        </div>
+
+        <!-- Events List -->
+        <div id="eventsContainer" class="space-y-6">
+            <!-- Loading -->
+            <div class="flex justify-center py-12">
+                <div class="loading"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-2xl font-bold text-gray-800">Add New Event</h3>
+                <button onclick="closeEventModal()" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+            </div>
+
+            <form id="eventForm" onsubmit="saveEvent(event)" enctype="multipart/form-data">
+                <input type="hidden" id="eventId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Event Title *</label>
+                        <input type="text" id="eventTitle" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
+                        <textarea id="eventDescription" required rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Event Date *</label>
+                        <input type="date" id="eventDate" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Event Time *</label>
+                        <input type="time" id="eventTime" value="09:00" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Location *</label>
+                        <input type="text" id="eventLocation" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Event Type *</label>
+                        <select id="eventType" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                            <option value="summit">Summit</option>
+                            <option value="workshop">Workshop</option>
+                            <option value="networking">Networking</option>
+                            <option value="conference">Conference</option>
+                            <option value="webinar">Webinar</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Registration Fee (₹)</label>
+                        <input type="number" id="eventFee" value="0" min="0" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Max Participants</label>
+                        <input type="number" id="eventMaxParticipants" value="0" min="0" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Event Image</label>
+                        <input type="file" id="eventImage" accept="image/*" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">Optional - Upload event banner/cover image</p>
+                    </div>
+
+                    <div class="flex items-center space-x-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="eventFeatured" class="rounded mr-2">
+                            <span class="text-sm text-gray-700">Featured Event</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="eventActive" checked class="rounded mr-2">
+                            <span class="text-sm text-gray-700">Active</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" onclick="closeEventModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50">Cancel</button>
+                    <button type="submit" id="saveBtn" class="px-8 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600">
+                        <span id="saveText">💾 Save Event</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Event Details Management Modal -->
+    <div id="eventDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-6xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="detailsTitle" class="text-2xl font-bold text-gray-800">Manage Event Details</h3>
+                <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex space-x-2 mb-8 border-b border-gray-200">
+                <button onclick="showDetailsTab('agenda')" id="agendaTabBtn" class="tab-btn px-6 py-3 font-semibold active">Agenda</button>
+                <button onclick="showDetailsTab('speakers')" id="speakersTabBtn" class="tab-btn px-6 py-3 font-semibold">Speakers</button>
+                <button onclick="showDetailsTab('photos')" id="photosTabBtn" class="tab-btn px-6 py-3 font-semibold">Photos</button>
+            </div>
+
+            <!-- Agenda Tab -->
+            <div id="agendaTab" class="details-tab">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="text-xl font-bold">Event Agenda</h4>
+                    <button onclick="showAddAgendaModal()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">+ Add Agenda Item</button>
+                </div>
+                <div id="agendaList" class="space-y-4">
+                    <p class="text-gray-500 text-center py-8">No agenda items yet</p>
+                </div>
+            </div>
+
+            <!-- Speakers Tab -->
+            <div id="speakersTab" class="details-tab hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="text-xl font-bold">Event Speakers</h4>
+                    <button onclick="showAddSpeakerModal()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600">+ Add Speaker</button>
+                </div>
+                <div id="speakersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="text-gray-500 text-center py-8 col-span-full">No speakers yet</p>
+                </div>
+            </div>
+
+            <!-- Photos Tab -->
+            <div id="photosTab" class="details-tab hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="text-xl font-bold">Event Photos</h4>
+                    <button onclick="showAddPhotoModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">+ Upload Photos</button>
+                </div>
+                <div id="photosList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <p class="text-gray-500 text-center py-8 col-span-full">No photos yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agenda Modal -->
+    <div id="agendaModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8">
+            <h3 class="text-2xl font-bold mb-6">Add Agenda Item</h3>
+            <form id="agendaForm" onsubmit="saveAgenda(event)">
+                <input type="hidden" id="agendaId">
+                <input type="hidden" id="agendaEventId">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Time *</label>
+                        <input type="text" id="agendaTime" required placeholder="e.g., 09:00 AM - 10:00 AM" class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Title *</label>
+                        <input type="text" id="agendaTitle" required class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Description</label>
+                        <textarea id="agendaDescription" rows="3" class="w-full px-4 py-3 border rounded-xl"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Speaker</label>
+                        <input type="text" id="agendaSpeaker" class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Order</label>
+                        <input type="number" id="agendaOrder" value="0" min="0" class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="closeAgendaModal()" class="px-6 py-3 border rounded-xl">Cancel</button>
+                    <button type="submit" class="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Speaker Modal -->
+    <div id="speakerModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8">
+            <h3 class="text-2xl font-bold mb-6">Add Speaker</h3>
+            <form id="speakerForm" onsubmit="saveSpeaker(event)" enctype="multipart/form-data">
+                <input type="hidden" id="speakerId">
+                <input type="hidden" id="speakerEventId">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Name *</label>
+                        <input type="text" id="speakerName" required class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Designation *</label>
+                        <input type="text" id="speakerDesignation" required class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Bio</label>
+                        <textarea id="speakerBio" rows="3" class="w-full px-4 py-3 border rounded-xl"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Photo</label>
+                        <input type="file" id="speakerPhoto" accept="image/*" class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Order</label>
+                        <input type="number" id="speakerOrder" value="0" min="0" class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="closeSpeakerModal()" class="px-6 py-3 border rounded-xl">Cancel</button>
+                    <button type="submit" class="px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8">
+            <h3 class="text-2xl font-bold mb-6">Upload Event Photo</h3>
+            <form id="photoForm" onsubmit="savePhoto(event)" enctype="multipart/form-data">
+                <input type="hidden" id="photoEventId">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Photo *</label>
+                        <input type="file" id="photoFile" accept="image/*" required class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Caption</label>
+                        <input type="text" id="photoCaption" class="w-full px-4 py-3 border rounded-xl">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="closePhotoModal()" class="px-6 py-3 border rounded-xl">Cancel</button>
+                    <button type="submit" class="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('adminToken');
+        let currentEvents = [];
+        let currentEventId = null;
+        let currentEditingId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!authToken) {
+                alert('Please login first');
+                window.location.href = '/admin';
+                return;
+            }
+            loadEvents();
+        });
+
+        // API helper
+        async function apiCall(endpoint, options = {}) {
+            const config = {
+                headers: { 'Authorization': `Bearer ${authToken}` },
+                ...options
+            };
+
+            if (!(options.body instanceof FormData)) {
+                config.headers['Content-Type'] = 'application/json';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, config);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                if (error.message.includes('401')) {
+                    alert('Session expired');
+                    logout();
+                }
+                throw error;
+            }
+        }
+
+        // Load events
+        async function loadEvents() {
+            try {
+                const response = await apiCall(`/events/admin/all?_=${Date.now()}`);
+
+                currentEvents = response.data || [];
+                displayEvents();
+            } catch (error) {
+                document.getElementById('eventsContainer').innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-red-500 mb-4">Failed to load events: ${error.message}</p>
+                        <button onclick="loadEvents()" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Display events
+        function displayEvents() {
+            const container = document.getElementById('eventsContainer');
+            
+            if (currentEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 mb-4">No events found</p>
+                        <button onclick="showAddEventModal()" class="bg-blue-500 text-white px-6 py-3 rounded-xl">Create First Event</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = currentEvents.map(event => {
+                const eventDate = new Date(event.event_date);
+                const isPast = eventDate < new Date();
+                const statusColor = isPast ? 'bg-gray-500' : 'bg-green-500';
+                const statusText = isPast ? 'Past' : 'Upcoming';
+
+                return `
+                    <div class="bg-white rounded-2xl p-6 shadow-lg">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <span class="${statusColor} text-white px-3 py-1 rounded-full text-xs font-bold">${statusText}</span>
+                                    ${event.is_featured ? '<span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">Featured</span>' : ''}
+                                    ${!event.is_active ? '<span class="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">Inactive</span>' : ''}
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">${event.title}</h3>
+                                <p class="text-gray-600 text-sm mt-1">📅 ${eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • 📍 ${event.location}</p>
+                                <p class="text-gray-700 mt-2">${event.description}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                            <div class="flex space-x-2">
+                                <button onclick="editEvent(${event.id})" class="text-blue-600 hover:bg-blue-50 px-3 py-2 rounded font-medium">✏️ Edit</button>
+                                <button onclick="manageDetails(${event.id})" class="text-purple-600 hover:bg-purple-50 px-3 py-2 rounded font-medium">📋 Details</button>
+                                <button onclick="toggleFeatured(${event.id})" class="text-yellow-600 hover:bg-yellow-50 px-3 py-2 rounded font-medium">${event.is_featured ? '⭐' : '☆'}</button>
+                            </div>
+                            <button onclick="deleteEvent(${event.id}, '${event.title}')" class="text-red-600 hover:bg-red-50 px-3 py-2 rounded font-medium">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Event CRUD operations
+        function showAddEventModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Event';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('eventActive').checked = true;
+            document.getElementById('eventModal').classList.add('active');
+            currentEditingId = null;
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('active');
+        }
+
+        function editEvent(id) {
+            const event = currentEvents.find(e => e.id === id);
+            if (!event) return;
+
+            currentEditingId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Event';
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventTitle').value = event.title;
+            document.getElementById('eventDescription').value = event.description;
+            document.getElementById('eventDate').value = event.event_date;
+            document.getElementById('eventTime').value = event.event_time || '09:00';
+            document.getElementById('eventLocation').value = event.location;
+            document.getElementById('eventType').value = event.event_type || 'summit';
+            document.getElementById('eventFee').value = event.registration_fee || 0;
+            document.getElementById('eventMaxParticipants').value = event.max_participants || 0;
+            document.getElementById('eventFeatured').checked = event.is_featured == 1;
+            document.getElementById('eventActive').checked = event.is_active == 1;
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        async function saveEvent(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('title', document.getElementById('eventTitle').value);
+            formData.append('description', document.getElementById('eventDescription').value);
+            formData.append('event_date', document.getElementById('eventDate').value);
+            formData.append('event_time', document.getElementById('eventTime').value);
+            formData.append('location', document.getElementById('eventLocation').value);
+            formData.append('event_type', document.getElementById('eventType').value);
+            formData.append('registration_fee', document.getElementById('eventFee').value);
+            formData.append('max_participants', document.getElementById('eventMaxParticipants').value);
+            formData.append('is_featured', document.getElementById('eventFeatured').checked);
+            formData.append('is_active', document.getElementById('eventActive').checked);
+
+            const imageFile = document.getElementById('eventImage').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            const saveBtn = document.getElementById('saveBtn');
+            const saveText = document.getElementById('saveText');
+            const originalText = saveText.textContent;
+
+            try {
+                saveBtn.disabled = true;
+                saveText.innerHTML = '<div class="loading mx-auto"></div>';
+
+                const isEdit = currentEditingId;
+                const endpoint = isEdit ? `/events/update/${currentEditingId}` : '/events/create';
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method,
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`  Event ${isEdit ? 'updated' : 'created'} successfully!`);
+                    closeEventModal();
+                    loadEvents();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            } finally {
+                saveBtn.disabled = false;
+                saveText.textContent = originalText;
+            }
+        }
+
+        async function deleteEvent(id, name) {
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+            try {
+                await apiCall(`/events/delete/${id}`, { method: 'DELETE' });
+                alert('  Event deleted successfully!');
+                loadEvents();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        async function toggleFeatured(id) {
+            try {
+                await apiCall(`/events/toggle-featured/${id}`, { method: 'PATCH' });
+                loadEvents();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        // Manage event details (agenda, speakers, photos)
+        async function manageDetails(eventId) {
+            currentEventId = eventId;
+            const event = currentEvents.find(e => e.id === eventId);
+            document.getElementById('detailsTitle').textContent = `Manage: ${event.title}`;
+            document.getElementById('eventDetailsModal').classList.add('active');
+            showDetailsTab('agenda');
+            loadAgendaItems();
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('eventDetailsModal').classList.remove('active');
+            currentEventId = null;
+        }
+
+        function showDetailsTab(tab) {
+            document.querySelectorAll('.details-tab').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`${tab}Tab`).classList.remove('hidden');
+            document.getElementById(`${tab}TabBtn`).classList.add('active');
+
+            if (tab === 'agenda') loadAgendaItems();
+            if (tab === 'speakers') loadSpeakers();
+            if (tab === 'photos') loadPhotos();
+        }
+
+        // AGENDA MANAGEMENT
+        async function loadAgendaItems() {
+            try {
+                const response = await apiCall(`/events/${currentEventId}/agenda`);
+                const items = response.data || [];
+                const container = document.getElementById('agendaList');
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">No agenda items yet</p>';
+                    return;
+                }
+
+                container.innerHTML = items.map(item => `
+                    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-bold text-blue-600 mb-2">${item.time}</div>
+                                <h4 class="font-bold text-lg mb-1">${item.title}</h4>
+                                <p class="text-gray-600">${item.description}</p>
+                                ${item.speaker ? `<p class="text-sm text-gray-500 mt-2"><strong>Speaker:</strong> ${item.speaker}</p>` : ''}
+                            </div>
+                            <button onclick="deleteAgendaItem(${item.id})" class="text-red-600 hover:text-red-800">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Load agenda error:', error);
+            }
+        }
+
+        function showAddAgendaModal() {
+            document.getElementById('agendaForm').reset();
+            document.getElementById('agendaEventId').value = currentEventId;
+            document.getElementById('agendaModal').classList.add('active');
+        }
+
+        function closeAgendaModal() {
+            document.getElementById('agendaModal').classList.remove('active');
+        }
+
+        async function saveAgenda(e) {
+            e.preventDefault();
+
+            const data = {
+                time: document.getElementById('agendaTime').value,
+                title: document.getElementById('agendaTitle').value,
+                description: document.getElementById('agendaDescription').value,
+                speaker: document.getElementById('agendaSpeaker').value,
+                order_index: parseInt(document.getElementById('agendaOrder').value)
+            };
+
+            try {
+                await apiCall(`/events/${currentEventId}/agenda`, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                alert('  Agenda item added!');
+                closeAgendaModal();
+                loadAgendaItems();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        async function deleteAgendaItem(id) {
+            if (!confirm('Delete this agenda item?')) return;
+            
+            try {
+                await apiCall(`/events/agenda/${id}`, { method: 'DELETE' });
+                loadAgendaItems();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        // SPEAKERS MANAGEMENT
+        async function loadSpeakers() {
+            try {
+                const response = await apiCall(`/events/${currentEventId}/speakers`);
+                const speakers = response.data || [];
+                const container = document.getElementById('speakersList');
+
+                if (speakers.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-full">No speakers yet</p>';
+                    return;
+                }
+
+                container.innerHTML = speakers.map(speaker => `
+                    <div class="bg-white border rounded-xl p-4 text-center">
+                        ${speaker.photo_url ? `<img src="${speaker.photo_url}" class="w-24 h-24 rounded-full mx-auto mb-4 object-cover">` : `<div class="w-24 h-24 rounded-full mx-auto mb-4 bg-purple-500 text-white flex items-center justify-center text-2xl font-bold">${speaker.name.charAt(0)}</div>`}
+                        <h4 class="font-bold">${speaker.name}</h4>
+                        <p class="text-sm text-purple-600">${speaker.designation}</p>
+                        <p class="text-sm text-gray-600 mt-2">${speaker.bio}</p>
+                        <button onclick="deleteSpeaker(${speaker.id})" class="mt-3 text-red-600 hover:text-red-800 text-sm">Delete</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Load speakers error:', error);
+            }
+        }
+            
+        function showAddSpeakerModal() {
+            document.getElementById('speakerForm').reset();
+            document.getElementById('speakerEventId').value = currentEventId;
+            document.getElementById('speakerModal').classList.add('active');
+        }
+
+        function closeSpeakerModal() {
+            document.getElementById('speakerModal').classList.remove('active');
+        }
+
+        async function saveSpeaker(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('speakerName').value);
+            formData.append('designation', document.getElementById('speakerDesignation').value);
+            formData.append('bio', document.getElementById('speakerBio').value);
+            formData.append('order_index', document.getElementById('speakerOrder').value);
+
+            const photo = document.getElementById('speakerPhoto').files[0];
+            if (photo) formData.append('photo', photo);
+
+            try {
+                await fetch(`${API_BASE}/events/${currentEventId}/speakers`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+                alert('  Speaker added!');
+                closeSpeakerModal();
+                loadSpeakers();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        async function deleteSpeaker(id) {
+            if (!confirm('Delete this speaker?')) return;
+            
+            try {
+                await apiCall(`/events/speakers/${id}`, { method: 'DELETE' });
+                loadSpeakers();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        // PHOTOS MANAGEMENT
+        async function loadPhotos() {
+            try {
+                const response = await apiCall(`/events/${currentEventId}/photos`);
+                const photos = response.data || [];
+                const container = document.getElementById('photosList');
+
+                if (photos.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-full">No photos yet</p>';
+                    return;
+                }
+
+                container.innerHTML = photos.map(photo => `
+                    <div class="bg-white border rounded-xl overflow-hidden">
+                        <img src="${photo.photo_url}" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <p class="text-sm text-gray-700">${photo.caption || 'No caption'}</p>
+                            <button onclick="deletePhoto(${photo.id})" class="mt-2 text-red-600 hover:text-red-800 text-sm">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Load photos error:', error);
+            }
+        }
+
+        function showAddPhotoModal() {
+            document.getElementById('photoForm').reset();
+            document.getElementById('photoEventId').value = currentEventId;
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+
+        async function savePhoto(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const photoFile = document.getElementById('photoFile').files[0];
+            formData.append('photo', photoFile);
+            formData.append('caption', document.getElementById('photoCaption').value);
+
+            try {
+                await fetch(`${API_BASE}/events/${currentEventId}/photos`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formData
+                });
+                alert('  Photo uploaded!');
+                closePhotoModal();
+                loadPhotos();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        async function deletePhoto(id) {
+            if (!confirm('Delete this photo?')) return;
+            
+            try {
+                await apiCall(`/events/photos/${id}`, { method: 'DELETE' });
+                loadPhotos();
+            } catch (error) {
+                alert(`  Error: ${error.message}`);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            window.location.href = '/admin';
+        }
+    </script>
+</body>
+</html>

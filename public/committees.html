@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Committees - CIMSME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/api-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'cimsme-blue': '#3B82F6', 'cimsme-green': '#10B981', 'cimsme-orange': '#F59E0B' },
+                    fontFamily: { sans: ['Lora', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        html { min-height: 100%; background-color: #fff; }
+        body {
+            font-family: 'Lora', serif;
+            overflow-x: hidden;
+            min-height: 100%;
+            background-image: url('/assets/climpek.png');
+            background-attachment: fixed;
+            background-repeat: repeat;
+        }
+        .section-over-texture { background-color: transparent; }
+        .btn-primary {
+            background: linear-gradient(135deg, #e28940, #e9853e);
+            font-family: 'Lora', serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(226, 137, 64, 0.3); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .committee-card { transition: all 0.3s ease; }
+        .committee-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+        .committee-search-wrap { width: 100%; }
+        .committee-search-input {
+            text-align: center;
+            min-height: 3rem;
+            line-height: 1.5;
+        }
+        .committee-search-input::placeholder {
+            text-align: center;
+        }
+        .committee-search-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
+        .loading {
+            width: 3rem; height: 3rem;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .footer-pdf-bar { background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%); border-top: 1px solid rgba(255,255,255,0.1); }
+        .footer-pdf-btn { background: linear-gradient(135deg, #e28940, #e9853e); color: #fff; box-shadow: 0 4px 14px rgba(226, 137, 64, 0.35); }
+        .footer-pdf-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(226, 137, 64, 0.45); }
+        @media (max-width: 640px) {
+            #committeeGrid { gap: 1rem; }
+        }
+    </style>
+</head>
+<body class="section-over-texture min-h-screen">
+    <header class="bg-gradient-to-r from-cimsme-blue to-blue-700 text-white py-5 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <a href="/" class="inline-flex items-center text-white hover:text-blue-200 font-semibold text-base mb-3">
+                <span class="mr-2">←</span> Back to Home
+            </a>
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">Our Committees</h1>
+            <p class="text-lg md:text-xl text-blue-100">Explore committees driving CIMSME initiatives</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <div id="committeeLoading" class="flex justify-center py-16">
+            <div class="text-center">
+                <div class="loading mx-auto mb-4"></div>
+                <p class="text-gray-600">Loading committees...</p>
+            </div>
+        </div>
+        <div id="committeeError" class="hidden text-center py-12 text-red-600 font-medium"></div>
+        <div id="committeeSearchWrap" class="hidden mb-8 w-full">
+            <label for="committeeSearch" class="sr-only">Search committees by name</label>
+            <div class="relative committee-search-wrap">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">🔍</span>
+                <input type="search" id="committeeSearch" placeholder="Search committees by name..." autocomplete="off"
+                    class="committee-search-input w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-base text-gray-800 placeholder-gray-500 focus:border-cimsme-blue transition-colors">
+            </div>
+        </div>
+        <div id="committeeGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+          
+        </div>
+        <div id="showMoreWrap" class="hidden text-center mt-8 max-w-6xl mx-auto">
+            <button type="button" id="showMoreBtn" class="btn-primary px-8 py-3 rounded-xl font-semibold text-white" aria-label="Load more committees">
+                Show more committees
+            </button>
+        </div>
+        <p id="committeeNoResults" class="hidden text-center text-gray-500 py-12 max-w-6xl mx-auto">No committees match your search.</p>
+    </main>
+
+    <footer id="footerPdfBar" class="footer-pdf-bar py-4 mt-12 hidden">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <a id="footerPdfLink" href="#" target="_blank" rel="noopener" class="footer-pdf-btn inline-block px-6 py-3 rounded-xl font-semibold transition-all">
+                Download CIMSME Presentation
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            const API_BASE = typeof window.API_BASE_URL !== 'undefined' ? window.API_BASE_URL : '';
+            function getApiUrl(path) { return (API_BASE + path).replace(/\/+/g, '/'); }
+
+            var allCommittees = [];
+            var visibleCount = 12;
+            var INITIAL_COUNT = 12;
+            var LOAD_MORE_COUNT = 12;
+            var currentFilteredList = [];
+
+            function escapeHtml(s) {
+                if (s == null) return '';
+                const div = document.createElement('div');
+                div.textContent = String(s);
+                return div.innerHTML;
+            }
+
+            function renderCommitteeCard(c) {
+                if (!c || typeof c !== 'object') return '';
+                const name = escapeHtml(c.name != null ? String(c.name) : 'Committee');
+                const photoRaw = (c.photo_url && String(c.photo_url).trim()) ? String(c.photo_url) : '';
+                const photo = (photoRaw && (photoRaw.indexOf('/') === 0 || photoRaw.indexOf('http://') === 0 || photoRaw.indexOf('https://') === 0) && photoRaw.length <= 500) ? photoRaw.replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '/assets/logo.png';
+                const id = c.id != null ? encodeURIComponent(String(c.id)) : '';
+                const url = '/committee?id=' + id;
+                return '<a href="' + url + '" class="committee-card block bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">' +
+                    '<div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">' +
+                    '<img src="' + photo + '" alt="' + name + '" class="w-full h-full object-cover" loading="lazy" onerror="this.src=\'/assets/logo.png\'">' +
+                    '<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>' +
+                    '<div class="absolute bottom-0 left-0 right-0 p-4">' +
+                    '<h2 class="text-xl font-bold text-white drop-shadow">' + name + '</h2>' +
+                    '</div></div>' +
+                    '<div class="p-4 border-t border-gray-100"><p class="text-gray-600 text-sm font-medium">View details →</p></div></a>';
+            }
+
+            function renderCommittees(list, totalFilteredLength) {
+                const grid = document.getElementById('committeeGrid');
+                const noResults = document.getElementById('committeeNoResults');
+                const showMoreWrap = document.getElementById('showMoreWrap');
+                const showMoreBtn = document.getElementById('showMoreBtn');
+                if (!grid) return;
+                if (!Array.isArray(list) || list.length === 0) {
+                    grid.innerHTML = '';
+                    if (showMoreWrap) showMoreWrap.classList.add('hidden');
+                    if (showMoreBtn) showMoreBtn.disabled = false;
+                    if (noResults) {
+                        noResults.classList.remove('hidden');
+                        noResults.textContent = 'No committees match your search.';
+                    }
+                    return;
+                }
+                if (noResults) noResults.classList.add('hidden');
+                grid.innerHTML = list.map(renderCommitteeCard).join('');
+                if (showMoreWrap && showMoreBtn) {
+                    if (typeof totalFilteredLength === 'number' && list.length < totalFilteredLength) {
+                        showMoreWrap.classList.remove('hidden');
+                        showMoreBtn.disabled = false;
+                    } else {
+                        showMoreWrap.classList.add('hidden');
+                        showMoreBtn.disabled = false;
+                    }
+                }
+            }
+
+            function filterCommittees() {
+                var searchEl = document.getElementById('committeeSearch');
+                var query = (searchEl && (searchEl.value || '').trim().toLowerCase()) || '';
+                currentFilteredList = !query ? allCommittees : allCommittees.filter(function(c) {
+                    return (c && (c.name != null ? String(c.name) : '')).toLowerCase().indexOf(query) !== -1;
+                });
+                visibleCount = INITIAL_COUNT;
+                var displayList = currentFilteredList.slice(0, visibleCount);
+                renderCommittees(displayList, currentFilteredList.length);
+            }
+
+            function onShowMoreClick() {
+                var btn = document.getElementById('showMoreBtn');
+                if (btn) btn.disabled = true;
+                try {
+                    visibleCount = Math.min(visibleCount + LOAD_MORE_COUNT, currentFilteredList.length);
+                    var displayList = currentFilteredList.slice(0, visibleCount);
+                    renderCommittees(displayList, currentFilteredList.length);
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            }
+
+            var FETCH_TIMEOUT_MS = 15000;
+
+            async function loadCommittees() {
+                const loading = document.getElementById('committeeLoading');
+                const errorEl = document.getElementById('committeeError');
+                const grid = document.getElementById('committeeGrid');
+                const searchWrap = document.getElementById('committeeSearchWrap');
+                const searchInput = document.getElementById('committeeSearch');
+                const noResults = document.getElementById('committeeNoResults');
+                const showMoreWrap = document.getElementById('showMoreWrap');
+                try {
+                    var controller = new AbortController();
+                    var timeoutId = setTimeout(function() { controller.abort(); }, FETCH_TIMEOUT_MS);
+                    var res = await fetch(getApiUrl('/api/committees'), { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    loading.classList.add('hidden');
+                    var json;
+                    try {
+                        json = await res.json();
+                    } catch (parseErr) {
+                        if (errorEl) {
+                            errorEl.textContent = 'Invalid response from server. Please try again.';
+                            errorEl.classList.remove('hidden');
+                        }
+                        if (showMoreWrap) showMoreWrap.classList.add('hidden');
+                        return;
+                    }
+                    if (!res.ok || !json.success) {
+                        if (errorEl) {
+                            errorEl.textContent = (json && json.message) ? String(json.message) : 'Failed to load committees';
+                            errorEl.classList.remove('hidden');
+                        }
+                        if (showMoreWrap) showMoreWrap.classList.add('hidden');
+                        return;
+                    }
+                    var list = Array.isArray(json.data) ? json.data : [];
+                    allCommittees = list;
+                    if (list.length === 0) {
+                        if (grid) grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No committees yet. Check back later.</p>';
+                        if (noResults) noResults.classList.add('hidden');
+                        if (showMoreWrap) showMoreWrap.classList.add('hidden');
+                        return;
+                    }
+                    if (errorEl) errorEl.classList.add('hidden');
+                    if (searchWrap) searchWrap.classList.remove('hidden');
+                    visibleCount = INITIAL_COUNT;
+                    currentFilteredList = allCommittees;
+                    var displayList = currentFilteredList.slice(0, visibleCount);
+                    renderCommittees(displayList, currentFilteredList.length);
+                    var showMoreBtn = document.getElementById('showMoreBtn');
+                    if (showMoreBtn) showMoreBtn.onclick = onShowMoreClick;
+                    if (searchInput) {
+                        searchInput.addEventListener('input', filterCommittees);
+                        searchInput.addEventListener('search', filterCommittees);
+                    }
+                } catch (e) {
+                    loading.classList.add('hidden');
+                    if (showMoreWrap) showMoreWrap.classList.add('hidden');
+                    if (errorEl) {
+                        errorEl.textContent = e && e.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Unable to load committees. Please try again.';
+                        errorEl.classList.remove('hidden');
+                    }
+                }
+            }
+
+            function loadFooterPdf() {
+                fetch(getApiUrl('/api/footer-pdf'))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data.pdf_url) {
+                            var bar = document.getElementById('footerPdfBar');
+                            var link = document.getElementById('footerPdfLink');
+                            if (bar && link) {
+                                link.href = data.pdf_url;
+                                bar.classList.remove('hidden');
+                            }
+                        }
+                    })
+                    .catch(function() {});
+            }
+
+            loadCommittees();
+            loadFooterPdf();
+        })();
+    </script>
+</body>
+</html>
