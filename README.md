@@ -54,12 +54,3 @@ A complete CMS built for chamber/organization management — membership, events,
 ├── admin/ # Admin dashboard & login
 ├── js/
 └── assets/
-## ⚙️ Setup & Run
-### Prerequisites
--Node.js (>= 16)
-- MySQL
-- npm
-### 1. Clone the repository
-
-git clone https://github.com/sudhanshu140101/CIMSME-Chamber-CMS-full-stack-Content-Management-System-for-an-Indian-SME-Chamber.git
-cd CIMSME-Chamber-CMS-full-stack-Content-Management-System-for-an-Indian-SME-Chamber
