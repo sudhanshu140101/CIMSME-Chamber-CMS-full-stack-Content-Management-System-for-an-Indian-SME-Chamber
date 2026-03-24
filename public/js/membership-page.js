@@ -1,6 +1,5 @@
 /**
- * Membership application page - form validation, fee calculation, submit, Cashfree, benefits & stories.
- * Used by /membership route only.
+
  */
 (function () {
     'use strict';
