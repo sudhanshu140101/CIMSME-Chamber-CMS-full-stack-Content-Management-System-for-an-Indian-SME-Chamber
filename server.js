@@ -406,9 +406,11 @@ app.get('/signature/:filename', (req, res) => {
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
 
+app.set('trust proxy', 1);
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 200, 
+  windowMs: 15 * 60 * 1000,
+  max: 600, 
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
