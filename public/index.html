@@ -12,6 +12,8 @@
     
      <script src="/js/api-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+  
     <script>
         tailwind.config = {
             theme: {
@@ -195,6 +197,16 @@ img {
 #aboutUs.section-padding {
     padding-top: 0.65rem;
     padding-bottom: 0.9rem;
+}
+
+/* Offset anchor scroll so sticky nav doesn't hide section headers (desktop + mobile) */
+#home,
+#events,
+#news,
+#aboutUs,
+#advisory,
+#testimonials {
+    scroll-margin-top: 80px;
 }
 
 .footer-pdf-bar {
@@ -1079,7 +1091,7 @@ textarea:focus-visible {
 }
 
 .mobile-menu-visible {
-    max-height: 500px;
+    max-height: 100vh;
     opacity: 1;
     visibility: visible;
 }
@@ -1256,6 +1268,18 @@ nav .max-w-7xl > div {
         padding-right: 0.75rem;
         font-size: 0.9rem;
     }
+}
+
+/* Make mobile nav list scrollable on small screens */
+#mobileMenu {
+    /* Container follows height animation but never exceeds viewport */
+    max-height: 100vh;
+}
+
+.mobile-menu-content {
+    max-height: calc(100vh - 64px); /* leave space for nav/header */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 </style>
@@ -2599,16 +2623,17 @@ nav .max-w-7xl > div {
             <!-- Services -->
             <div>
                 <h4 class="text-lg md:text-xl font-bold mb-5 text-white">Our Services</h4>
-                <ul class="space-y-3">
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Finance Assistance</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Legal Support</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Business Advisory</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Training Programs</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Networking Events</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Export Assistance</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Digital Services</a></li>
+               <ul class="space-y-3">
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Finance Assistance</li>
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Legal Support</li>
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Business Advisory</li>
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Training Programs</li>
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Networking Events</li>
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Export Assistance</li>
+                <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Digital Services</li>
                 </ul>
             </div>
+
             
 
             <!-- Contact Info -->
@@ -2637,8 +2662,8 @@ nav .max-w-7xl > div {
                     <div class="flex items-center">
                         <span class="text-cimsme-orange text-lg mr-3">✉️</span>
                         <div>
-                            <p class="text-gray-400 text-sm md:text-base">info@msmehelpline.com</p>
-                            <p class="text-gray-400 text-sm md:text-base">support@cimsme.org</p>
+                            <p class="text-gray-400 text-sm md:text-base">info@indiansmechamber.com</p>
+                            
                         </div>
                     </div>
                     
@@ -2739,10 +2764,9 @@ nav .max-w-7xl > div {
                     © 2024 CIMSME - Chamber of Indian Micro, Small and Medium Enterprises. All rights reserved.
                 </div>
                 <div class="flex space-x-6">
-                    <a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Privacy Policy</a>
-                    <a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Terms of Service</a>
-                    <a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Cookie Policy</a>
-                    <a href="#" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Sitemap</a>
+                    <a href="/privacy-policy.html" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Privacy Policy</a>
+                    <a href="/terms-and-conditions.html" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Terms & Conditions</a>
+                    <a href="/cancellation-and-refund-policy.html" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Cancellation and Refund Policy</a>
                 </div>
             </div>
         </div>
@@ -2774,6 +2798,7 @@ nav .max-w-7xl > div {
 // Initialize variables at top to prevent hoisting errors
 let membershipBenefits = [];
 let membershipStories = [];
+let lastViewedEventIdForScroll = null;
 
 // MISSING FUNCTIONS FIX - Event Details Management
 function hideEventDetails() {
@@ -2797,6 +2822,18 @@ function hideEventDetails() {
     if (footer) {
         footer.style.display = 'block';
         footer.classList.remove('hidden');
+    }
+
+    // Scroll back to the event card the user came from (so they don't land on hero)
+    if (lastViewedEventIdForScroll) {
+        const cardEl = document.getElementById('event-card-' + lastViewedEventIdForScroll);
+        if (cardEl) {
+            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            const eventsSection = document.getElementById('events');
+            if (eventsSection) eventsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        lastViewedEventIdForScroll = null;
     }
 }
 
@@ -4536,13 +4573,18 @@ function loadPhotos(photos) {
         if (!url) continue;
         if (url.indexOf('http') !== 0) url = origin + (url.charAt(0) === '/' ? url : '/' + url);
         var srcAttr = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        var caption = photo.caption || photo.title || 'Event photo';
-        var safeCaption = (typeof escapeHtml === 'function' ? escapeHtml(caption) : String(caption).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'));
+        // Only show caption if admin actually entered one (no default caption text)
+        var captionText = (photo.caption || '').trim();
+        var safeCaption = (typeof escapeHtml === 'function' ? escapeHtml(captionText) : String(captionText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'));
+
+        // Keep an alt text for accessibility; doesn't affect whether the caption block renders
+        var altText = captionText || (photo.title || '').trim() || 'Event photo';
+        var safeAlt = (typeof escapeHtml === 'function' ? escapeHtml(altText) : String(altText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'));
         html.push('<div class="event-detail-photo-card bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">' +
             '<div class="event-detail-photo-frame w-full aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden">' +
-            '<img src="' + srcAttr + '" alt="' + safeCaption + '" class="event-detail-photo-img w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.background=\'#f3f4f6\';this.alt=\'Image unavailable\';">' +
+            '<img src="' + srcAttr + '" alt="' + safeAlt + '" class="event-detail-photo-img w-full h-full object-contain" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.background=\'#f3f4f6\';this.alt=\'Image unavailable\';">' +
             '</div>' +
-            (caption ? '<div class="p-4"><p class="text-gray-700 text-sm">' + safeCaption + '</p></div>' : '') +
+            (captionText ? '<div class="p-4"><p class="text-gray-700 text-sm">' + safeCaption + '</p></div>' : '') +
             '</div>');
     }
     container.innerHTML = html.join('');
@@ -6953,6 +6995,7 @@ async function viewEventDetails(eventId) {
       event.photos = (results[3].success && Array.isArray(results[3].data)) ? results[3].data : [];
     }
 
+    lastViewedEventIdForScroll = eventId;
     ['memberDashboard', 'home', 'events', 'advisory', 'testimonials', 'news', 'aboutUs', 'membershipPage'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) { el.style.display = 'none'; el.classList.add('hidden'); }
@@ -7737,7 +7780,7 @@ function createEventCard(event, isUpcoming) {
   const cardKindClass = isUpcoming ? 'event-card-upcoming' : 'event-card-past';
   
   return `
-    <div class="event-card ${cardKindClass} bg-white rounded-3xl shadow-lg overflow-hidden card-hover card-shadow flex flex-col h-full">
+    <div id="event-card-${event.id}" class="event-card ${cardKindClass} bg-white rounded-3xl shadow-lg overflow-hidden card-hover card-shadow flex flex-col h-full">
       <div class="h-40 md:h-44 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden flex-shrink-0">
         ${event.image_url ? 
           `<img src="${event.image_url}" alt="${escapeHtml(event.title)}" class="w-full h-full object-cover" loading="lazy">` : 
@@ -7782,7 +7825,9 @@ function handleDateFilterChange() {
   applyFilters();
 }
 
-function applyFilters() {
+function applyFilters(options) {
+  const opts = options || {};
+  const preservePastPagination = Boolean(opts.preservePastPagination);
   const dateInput = document.getElementById('eventDateFilter');
   const searchInput = document.getElementById('eventSearchFilter');
   
@@ -7845,7 +7890,9 @@ function applyFilters() {
   const pastFiltered = filtered.filter(e => new Date(e.event_date) < now)
     .sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
 
-  pastEventsToShowCount = PAST_EVENTS_INITIAL;
+  if (!preservePastPagination) {
+    pastEventsToShowCount = PAST_EVENTS_INITIAL;
+  }
   renderUnifiedEvents(upcomingFiltered, pastFiltered);
 }
 
@@ -7863,7 +7910,7 @@ function toggleShowMorePastEvents() {
   }
 
   if (hasFilter) {
-    applyFilters();
+    applyFilters({ preservePastPagination: true });
   } else {
     renderUnifiedEvents(upcomingEvents, pastEvents);
   }
@@ -7935,7 +7982,7 @@ window.toggleShowMorePastEvents = toggleShowMorePastEvents;
         console.error('❌ No event ID provided');
         return;
     }
-    
+    lastViewedEventIdForScroll = eventId;
     try {
         const cacheKey = `event_${eventId}`;
         // Always fetch fresh event details so newly uploaded photos and registration_enabled show up
