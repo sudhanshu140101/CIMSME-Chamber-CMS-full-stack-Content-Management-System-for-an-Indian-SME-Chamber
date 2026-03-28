@@ -77,7 +77,7 @@ const verifyAdmin = verifyAdminToken;
 
 
 function getBaseUrl(req) {
-  return 'https://test.indiansmechamber.com';
+  return 'https://indiansmechamber.com';
 }
 
 
