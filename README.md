@@ -7,7 +7,6 @@ A complete CMS built for chamber/organization management — membership, events,
 🔗 **Live Website:** [https://indiansmechamber.com/](https://indiansmechamber.com/)
 
 
-
 ## 🚀 Features
 
 - **Admin Panel** — Dashboard, event management, membership applications, content management
@@ -19,7 +18,7 @@ A complete CMS built for chamber/organization management — membership, events,
 - **Security** — JWT authentication, bcrypt passwords, rate limiting, Helmet
 - **Member Services** — Certificate download, profile, finance/legal/advisory service requests
 
----
+
 
 ## 🛠️ Tech Stack
 
