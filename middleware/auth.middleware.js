@@ -281,7 +281,8 @@ async function verifyAdminToken(req, res, next) {
 }
 
 
-// MEMBER TOKEN FUNCTIONS
+// MEMBER TOKEN FUNCTION
+
 
 
 function generateMemberToken(memberData) {
