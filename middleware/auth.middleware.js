@@ -153,7 +153,7 @@ function validateTokenPayload(decoded, expectedType) {
 }
 
 
-// ADMIN TOKEN FUNCTIONS
+// ADMIN TOKEN FUNCTION
 
 
 function generateAdminToken(adminData) {
