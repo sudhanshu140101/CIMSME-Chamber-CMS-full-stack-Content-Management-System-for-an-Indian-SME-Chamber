@@ -108,7 +108,7 @@ class Database {
 
         
         try {
-            // Check which columns exist
+         
             const columns = await this.query(`
                 SELECT COLUMN_NAME 
                 FROM INFORMATION_SCHEMA.COLUMNS 
