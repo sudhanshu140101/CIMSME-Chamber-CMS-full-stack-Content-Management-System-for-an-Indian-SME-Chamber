@@ -125,7 +125,7 @@ CREATE TABLE event_videos (
 COMMENT='Event videos gallery';
 
 
---  EVENT REGISTRATIONS
+
 
 CREATE TABLE event_registrations (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -163,7 +163,7 @@ CREATE TABLE event_registrations (
 COMMENT='Event registration records';
 
 
---  ADVISORS 
+
 
 CREATE TABLE advisors (
     id INT AUTO_INCREMENT PRIMARY KEY,
