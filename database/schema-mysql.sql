@@ -360,7 +360,7 @@ CREATE TABLE membership_stories (
 COMMENT='Member success stories/testimonials';
 
 
---  MEMBER SERVICES (Support Requests)
+--  MEMBER SERVICES 
 
 CREATE TABLE member_services (
     id INT AUTO_INCREMENT PRIMARY KEY,
