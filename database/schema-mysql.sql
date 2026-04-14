@@ -92,7 +92,7 @@ CREATE TABLE event_speakers (
 COMMENT='Speakers for each event';
 
 
---  EVENT PHOTOS 
+
 
 CREATE TABLE event_photos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,7 +108,7 @@ CREATE TABLE event_photos (
 COMMENT='Event photo gallery';
 
 
---  EVENT VIDEOS 
+
 
 CREATE TABLE event_videos (
     id INT AUTO_INCREMENT PRIMARY KEY,
