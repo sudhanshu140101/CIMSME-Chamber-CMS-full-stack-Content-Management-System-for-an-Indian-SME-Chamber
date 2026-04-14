@@ -4,7 +4,7 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 
 
 
--- . HERO SLIDES 
+
 
 CREATE TABLE hero (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -25,7 +25,7 @@ CREATE TABLE hero (
 COMMENT='Homepage hero/carousel slides';
 
 
---  EVENTS (Conferences, Webinars, etc.)
+
 
 CREATE TABLE events (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,7 +54,7 @@ CREATE TABLE events (
 COMMENT='Event management system';
 
 
---  EVENT AGENDA 
+
 
 CREATE TABLE event_agenda (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -73,7 +73,7 @@ CREATE TABLE event_agenda (
 COMMENT='Event schedule/agenda items';
 
 
---  EVENT SPEAKERS
+
 
 CREATE TABLE event_speakers (
     id INT AUTO_INCREMENT PRIMARY KEY,
