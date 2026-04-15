@@ -7,9 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
-
 const nodemailer = require('nodemailer');
-
+const { SendMailClient } = require("zeptomail");
 
 const axios = require("axios");
 const crypto = require('crypto');
@@ -877,6 +876,15 @@ app.get('/payment-failed', (req, res) => {
 // Membership application page (dedicated route for production-ready URL)
 app.get('/membership', (req, res) => {
   const file = path.join(__dirname, 'public', 'membership.html');
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else {
+    res.status(404).send('Page not found');
+  }
+});
+
+app.get('/sme-assurance', (req, res) => {
+  const file = path.join(__dirname, 'public', 'sme-assurance.html');
   if (fs.existsSync(file)) {
     res.sendFile(file);
   } else {
