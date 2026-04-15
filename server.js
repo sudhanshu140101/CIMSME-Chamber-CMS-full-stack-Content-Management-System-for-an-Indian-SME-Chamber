@@ -4776,18 +4776,12 @@ app.get('/api/admin/dashboard/stats', verifyAdmin, async (req, res) => {
   }
 });
 
-
-
-
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ success: false, message: err.message });
 });
 
 
-
-
-// DATABASE HEALTH CHECK
 async function checkDatabaseHealth() {
     try {
         const applications = await Database.getAll('membership_applications');  
@@ -4809,8 +4803,4 @@ async function checkDatabaseHealth() {
     return false;
   }
 }
-
-
-
-
 module.exports = app;
