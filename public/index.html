@@ -35,7 +35,7 @@
     
     <style>
   
-
+   /* GLOBAL RESPONSIVE FOUNDATION */
      
 * {
     box-sizing: border-box;
@@ -76,7 +76,7 @@ img {
     height: auto;
 }
 
-
+/* Event detail description: rich text from admin editor (line breaks, bullets, paragraphs) */
 .event-description-richtext {
     white-space: normal;
 }
@@ -1290,34 +1290,34 @@ nav .max-w-7xl > div {
 <!-- Navigation Header -->
 <nav class="bg-white shadow-lg sticky top-0 z-50 backdrop-blur-lg bg-opacity-95">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-between items-center py-0.5 sm:py-1 lg:py-1.5">
+        <div class="flex justify-between items-center py-0.5 sm:py-1 lg:py-1.5 min-w-0 gap-2">
             
             <!-- Logo Section -->
-            <div class="flex items-center">
+            <div class="flex items-center shrink-0">
                 <img src="/assets/logo.png" alt="CIMSME Logo" 
-                     class="h-10 sm:h-12 md:h-14 lg:h-16 xl:h-20 w-auto object-contain transition-all duration-300 hover:scale-105" />
+                     class="h-10 sm:h-12 md:h-12 lg:h-14 xl:h-16 2xl:h-20 w-auto object-contain transition-all duration-300 hover:scale-105" />
             </div>
 
             <!-- Desktop Navigation Menu -->
-            <div class="hidden md:flex items-center space-x-6">
-                <a href="#home" class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group">
+            <div class="hidden md:flex flex-nowrap items-center justify-end gap-x-0.5 md:gap-x-1 lg:gap-x-2 xl:gap-x-3 min-w-0 flex-1 ml-3 lg:ml-4">
+                <a href="#home" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
                     Home
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
-                <a href="#events" class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group">
+                <a href="#events" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
                     Events
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
-                <a href="#news" class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group">
+                <a href="#news" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
                     News
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
                 <!-- Committee: click = all committees page; hover = dropdown with each committee -->
                 <div class="nav-committee-wrap relative" tabindex="0">
-                    <a href="/committees" class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex">
+                    <a href="/committees" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">
                         Committee
                         <svg class="w-4 h-4 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
@@ -1331,7 +1331,7 @@ nav .max-w-7xl > div {
 
                 <!-- Chapter: click = all chapters page; hover = dropdown with each chapter -->
                 <div class="nav-chapter-wrap relative" tabindex="0">
-                    <a href="/chapters" class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex">
+                    <a href="/chapters" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">
                         Chapter
                         <svg class="w-4 h-4 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
@@ -1345,7 +1345,7 @@ nav .max-w-7xl > div {
 
                 <!-- About dropdown -->
                 <div class="nav-about-wrap relative" tabindex="0">
-                    <span class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group cursor-default flex items-center inline-flex">
+                    <span class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group cursor-default flex items-center inline-flex whitespace-nowrap">
                         About
                         <svg class="w-4 h-4 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
@@ -1359,14 +1359,19 @@ nav .max-w-7xl > div {
                     </div>
                 </div>
 
-                <a href="/membership" class="nav-link text-gray-700 hover:text-cimsme-blue px-3 py-2 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group">
+                <a href="/membership" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
                     Membership
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
+                <a href="/sme-assurance" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
+                    SME Assurance
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
+                </a>
+
                 <!-- Member Login Button -->
-                 <button onclick="showLogin()" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-2xl text-sm md:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                     Member Login
+                 <button onclick="showLogin()" type="button" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 md:px-4 lg:px-6 py-2 md:py-2.5 lg:py-3 rounded-xl lg:rounded-2xl text-xs md:text-sm lg:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap shrink-0 ml-0.5 lg:ml-1">
+                    Member Login
                 </button>
             </div>
 
@@ -1455,6 +1460,11 @@ nav .max-w-7xl > div {
                 <a href="/membership" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
                     <span class="text-xl group-hover:scale-110 transition-transform duration-300">⭐</span>
                     <span>Membership</span>
+                </a>
+
+                <a href="/sme-assurance" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
+                    <span class="text-xl group-hover:scale-110 transition-transform duration-300">🛡️</span>
+                    <span>SME Assurance</span>
                 </a>
                 
                 <!-- Member Login Button -->
@@ -2612,6 +2622,7 @@ nav .max-w-7xl > div {
                 <ul class="space-y-3">
                     <li><a href="#home" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Home</a></li>
                     <li><a href="/membership" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Membership</a></li>
+                    <li><a href="/sme-assurance" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">SME Assurance</a></li>
                     <li><a href="#events" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Events</a></li>
                     <li><a href="#advisory" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Advisory Board</a></li>
                     <li><a href="#testimonials" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Testimonials</a></li>
@@ -3502,7 +3513,7 @@ async function loadCommittees() {
     }
 }
 
-
+// CHAPTERS - Nav dropdown + mobile (same as committees)
 let chaptersList = [];
 var CHAPTER_MULTI_COLUMN_THRESHOLD = 8;
 
