@@ -1123,7 +1123,7 @@ static async createMembershipWithTransaction(memberData, couponCode = null) {
   const connection = await this.beginTransaction();
 
   try {
-    // 1. Insert membership application
+    //  Insert membership application
     const [result] = await connection.execute(
       `INSERT INTO membership_applications (
          memberid, fullname, businessname, email, phone,
@@ -1159,7 +1159,7 @@ static async createMembershipWithTransaction(memberData, couponCode = null) {
       ]
     );
 
-    // 2. Update coupon usage if applicable
+
     if (couponCode) {
       await connection.execute(
         `UPDATE coupons
@@ -1813,7 +1813,7 @@ static async getEventRegistrationsByEmail(email) {
         return await this.delete('committee_subleaders', id);
     }
 
-    // CHAPTERS (same as committees)
+    // CHAPTERS 
     static slugifyChapter(text) {
         return String(text || '')
             .trim()
