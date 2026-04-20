@@ -443,7 +443,7 @@ function viewDetails(id) {
             window.location.href = '/admin';
         }
 
-        //  TOGGLE SELECT ALL CHECKBOXES
+      
         function toggleSelectAll() {
             const selectAll = document.getElementById('selectAll').checked;
             const checkboxes = document.querySelectorAll('.memberCheckbox');
@@ -468,7 +468,7 @@ function viewDetails(id) {
             updateSelectionCount();
         }
 
-        //  GET SELECTED REGISTRATIONS
+     
         function getSelectedRegistrations() {
             const checkboxes = document.querySelectorAll('.memberCheckbox:checked');
             const selected = [];
