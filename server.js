@@ -361,15 +361,10 @@ initDb().then(() => {
 
 
 
-
-
-
-
-
 app.get('/signature/:filename', (req, res) => {
     const filename = req.params.filename;
     const safeName = path.basename(filename);
-    // Security: only allow PNG and prevent path traversal
+    
     if (!safeName || !safeName.endsWith('.png')) {
         console.error('  Invalid file type:', filename);
         return res.status(400).json({ success: false, message: 'Invalid file type' });
@@ -2318,7 +2313,6 @@ app.delete('/api/events/speakers/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// --- EVENT PHOTOS ROUTES ---
 
 // Get event photos
 app.get('/api/events/:id/photos', async (req, res) => {
@@ -2656,7 +2650,6 @@ app.post('/api/admin/event-registrations/:registrationId/confirm', verifyAdmin, 
 
 
 
-
 // EVENT REGISTRATION ROUTES
 
 app.post('/api/event-register', async (req, res) => {
@@ -2904,7 +2897,7 @@ app.get('/api/admin/all-event-registrations', verifyAdmin, async (req, res) => {
 
 
 
-// ADVISORY/ADVISORS ROUTES
+
 
 app.post('/api/advisory/create', verifyAdmin, advisorUpload, async (req, res) => {
   try {
