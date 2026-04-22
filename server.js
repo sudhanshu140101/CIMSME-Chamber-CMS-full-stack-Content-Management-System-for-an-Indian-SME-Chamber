@@ -15,7 +15,6 @@ const crypto = require('crypto');
 
 require('dotenv').config();
 
-
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const cashfreeConfig = {
