@@ -308,9 +308,6 @@ app.use(cors({
         const normalizedOrigin = origin.replace(/\/$/, '');
         
 
-             
-        
-      
         if (normalizedOrigin.includes('ngrok-free.dev') || normalizedOrigin.includes('ngrok-free.app')) {
             return callback(null, true);
         }
@@ -354,10 +351,6 @@ initDb().then(() => {
     }
   });
 });
-
-
-
-
 
 
 
