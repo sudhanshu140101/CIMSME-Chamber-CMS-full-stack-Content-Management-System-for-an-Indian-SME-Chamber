@@ -2248,7 +2248,7 @@ app.delete('/api/events/agenda/:id', verifyAdmin, async (req, res) => {
 
 // EVENT SPEAKERS ROUTES 
 
-// Get event speakers
+
 app.get('/api/events/:id/speakers', async (req, res) => {
   try {
     const { id } = req.params;
@@ -2361,7 +2361,7 @@ app.delete('/api/events/photos/:id', verifyAdmin, async (req, res) => {
 });
 
 
-// --- EVENT VIDEOS ROUTES ---
+//  EVENT VIDEOS ROUTES
 
 // Get event videos
 app.get('/api/events/:id/videos', async (req, res) => {
