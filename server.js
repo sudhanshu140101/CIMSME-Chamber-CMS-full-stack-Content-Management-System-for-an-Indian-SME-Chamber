@@ -860,7 +860,7 @@ app.get('/payment-failed', (req, res) => {
   }
 });
 
-// Membership application page (dedicated route for production-ready URL)
+// Membership application page 
 app.get('/membership', (req, res) => {
   const file = path.join(__dirname, 'public', 'membership.html');
   if (fs.existsSync(file)) {
@@ -909,7 +909,7 @@ app.get('/chapters', (req, res) => {
   }
 });
 
-// Single chapter page (supports ?id=1)
+// Single chapter page
 app.get('/chapter', (req, res) => {
   const file = path.join(__dirname, 'public', 'chapter.html');
   if (fs.existsSync(file)) {
