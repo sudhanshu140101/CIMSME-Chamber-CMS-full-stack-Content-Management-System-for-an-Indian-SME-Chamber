@@ -637,7 +637,7 @@ app.get('/api/auth/accounts', (req, res) => {
 });
 
 
-// HERO ROUTES - COMPLETE
+// HERO ROUTES 
 
 
 
@@ -889,7 +889,7 @@ app.get('/committees', (req, res) => {
   }
 });
 
-// Single committee page (supports ?id=1)
+// Single committee page 
 app.get('/committee', (req, res) => {
   const file = path.join(__dirname, 'public', 'committee.html');
   if (fs.existsSync(file)) {
@@ -1261,7 +1261,7 @@ app.get('/api/services/all', verifyAdmin, async (req, res) => {
     }
 });
 
-// Update service status (for admin)
+// Update service status 
 app.put('/api/services/update/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -1292,7 +1292,7 @@ app.put('/api/services/update/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-// Delete service request (for admin)
+// Delete service request 
 app.delete('/api/services/delete/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -1313,12 +1313,12 @@ app.delete('/api/services/delete/:id', verifyAdmin, async (req, res) => {
 // NEWSLETTER ROUTES 
 
 
-// Get all newsletter subscribers (Admin)
+// Get all newsletter subscribers 
 app.get('/api/admin/newsletter/subscribers', verifyAdmin, async (req, res) => {
   try {
     const subscribers = await Database.getAllNewsletter();
     
-    // Sort by date (newest first)
+    // Sort by date 
     subscribers.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
   
