@@ -8,45 +8,585 @@
     <title>SME Assurance - CIMSME</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-
-    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cimsme-blue': '#3B82F6',
+                        'cimsme-green': '#10B981',
+                        'cimsme-orange': '#F59E0B',
+                        'sae-purple': '#7610BF',
+                        'sae-page': '#f5f5f4'
+                    },
+                    fontFamily: {
+                        'sans': ['Lora', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+                        'lora': ['Lora', 'serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        :root { --sae-purple: #7610BF; }
+        html { min-height: 100%; background-color: #f5f5f4; scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            font-family: "Lora", serif;
+            overflow-x: hidden;
+            max-width: 100vw;
+            min-height: 100%;
+            background-color: #f5f5f4;
+            color: #000;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: "Lora", serif;
+            font-weight: 600;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .nav-link { position: relative; }
+        .nav-link { overflow: hidden; }
+        .top-nav-menu > .nav-link,
+        .top-nav-menu > .nav-committee-wrap,
+        .top-nav-menu > .nav-chapter-wrap,
+        .top-nav-menu > .nav-about-wrap,
+        .top-nav-menu > button {
+            flex-shrink: 0;
+        }
+        .top-nav-menu {
+            width: 100%;
+        }
+        @media (min-width: 1280px) {
+            .top-nav-menu {
+                justify-content: space-between !important;
+                gap: 0 !important;
+            }
+            .top-nav-menu > .nav-link,
+            .top-nav-menu > .nav-committee-wrap,
+            .top-nav-menu > .nav-chapter-wrap {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+            .top-nav-menu > .nav-link,
+            .top-nav-menu > .nav-committee-wrap > a,
+            .top-nav-menu > .nav-chapter-wrap > a {
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                text-align: center;
+            }
+        }
+        @media (min-width: 1280px) {
+            .top-nav-menu .nav-link {
+                font-size: 0.98rem !important;
+                line-height: 1.35;
+                padding-left: 0.65rem !important;
+                padding-right: 0.65rem !important;
+            }
+        }
+        nav {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        nav::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
+            z-index: 10;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.3s ease;
+        }
+        nav:hover::before {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+        nav img:hover {
+            filter: brightness(1.1);
+        }
+        nav .max-w-7xl > div {
+            min-height: 0;
+        }
+        .mobile-menu-item:active {
+            transform: scale(0.98);
+            background-color: #f3f4f6;
+        }
+        .mobile-menu-btn .hamburger {
+            width: 22px;
+            height: 16px;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .mobile-menu-btn .hamburger-line {
+            display: block;
+            width: 100%;
+            height: 2px;
+            border-radius: 999px;
+            background-color: currentColor;
+            transition: transform 0.25s ease, opacity 0.2s ease;
+        }
+        .mobile-menu-btn.active .hamburger-line:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .mobile-menu-btn.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-menu-btn.active .hamburger-line:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+        .nav-about-dropdown,
+        .nav-committee-dropdown,
+        .nav-chapter-dropdown {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: all 0.2s ease;
+            min-width: 220px;
+        }
+        .nav-about-wrap:hover .nav-about-dropdown,
+        .nav-about-wrap:focus-within .nav-about-dropdown,
+        .nav-committee-wrap:hover .nav-committee-dropdown,
+        .nav-committee-wrap:focus-within .nav-committee-dropdown,
+        .nav-chapter-wrap:hover .nav-chapter-dropdown,
+        .nav-chapter-wrap:focus-within .nav-chapter-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .nav-committee-columns,
+        .nav-chapter-columns {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(200px, 1fr));
+            gap: 0;
+            max-height: min(420px, 65vh);
+            overflow: auto;
+        }
+        .nav-committee-item,
+        .nav-chapter-item {
+            display: block;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.95rem;
+            color: #374151;
+            text-decoration: none;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .nav-committee-item:hover,
+        .nav-chapter-item:hover { color: #3B82F6; background: #f9fafb; }
+        .mobile-menu-hidden { max-height: 0; opacity: 0; pointer-events: none; }
+        .mobile-menu-visible { max-height: calc(100vh - 64px); opacity: 1; pointer-events: auto; overflow-y: auto; }
+        .mobile-committee-list-wrap,
+        .mobile-chapter-list-wrap { display: none; }
+        .mobile-committee-list-wrap.mobile-committee-expanded,
+        .mobile-chapter-list-wrap.mobile-chapter-expanded { display: block; }
+        @media (hover: none) {
+            .mobile-menu-btn:active {
+                background-color: rgba(0, 0, 0, 0.05);
+                transform: scale(0.95);
+            }
+        }
+        @media (max-width: 640px) {
+            html, body {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            main.max-w-6xl {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            .sae-plan-actions {
+                grid-template-columns: 1fr;
+                gap: 0.55rem;
+            }
+            .sae-plan-btn {
+                width: 100%;
+            }
+            .sae-highlight-value {
+                white-space: normal;
+                word-break: break-word;
+            }
+            #siteFooter .max-w-6xl {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+        }
+        @media (max-width: 1279px) {
+            nav .max-w-7xl {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            #mobileMenu .mobile-menu-content {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            .mobile-menu-item {
+                min-height: 2.75rem;
+            }
+        }
+        .footer-pdf-bar {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer-pdf-btn {
+            background: linear-gradient(135deg, #e28940, #e9853e);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(226, 137, 64, 0.35);
+        }
+        .sae-section-rule {
+            width: 45%;
+            max-width: 17.5rem;
+            height: 1px;
+            background-color: var(--sae-purple);
+            border: 0;
+            margin: 0;
+        }
+        .sae-body-text {
+            text-align: justify;
+            text-justify: inter-word;
+        }
+        a:focus-visible {
+            outline: 2px solid var(--sae-purple);
+            outline-offset: 3px;
+        }
+        .sae-highlights-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            border: 1.5px solid #a9368e;
+            border-radius: 0.25rem;
+            overflow: hidden;
+            background: #fff;
+        }
+        .sae-highlight-item {
+            text-align: center;
+            min-width: 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .sae-highlight-label {
+            color: #3f2464;
+            font-weight: 700;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            min-height: 3.15rem;
+            padding: 0.625rem 0.5rem;
+            background: #f3eef6;
+            border-bottom: 1.5px solid #a9368e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sae-highlight-value {
+            color: #111;
+            font-weight: 700;
+            font-size: 1.15rem;
+            line-height: 1.15;
+            padding: 0.6rem 0.5rem 0.65rem;
+        }
+        .sae-highlight-item + .sae-highlight-item {
+            border-top: 1.5px solid #a9368e;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .sae-highlight-item:hover {
+                box-shadow: inset 0 0 0 999px rgba(169, 54, 142, 0.05);
+                transform: translateY(-1px);
+            }
+        }
+        .sae-highlight-item:active {
+            transform: scale(0.995);
+        }
+        .sae-promoter-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        .sae-plan-card {
+            background: #fff;
+            border: 1px solid #d2d2d2;
+            border-radius: 0.25rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+            padding: 1.1rem 1.1rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 23.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .sae-plan-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .sae-plan-tag {
+            font-size: 0.62rem;
+            font-weight: 500;
+            color: #4a4a4a;
+            background: #f2f2f2;
+            border-radius: 9999px;
+            padding: 0.24rem 0.62rem;
+        }
+        .sae-plan-title {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+        .sae-plan-subtitle {
+            margin: 0.38rem 0 0.95rem;
+            color: #5f5f5f;
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+        .sae-plan-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 0.48rem;
+        }
+        .sae-plan-list li {
+            position: relative;
+            padding-left: 1.32rem;
+            color: #4a4a4a;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        .sae-plan-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0.02rem;
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid #9f9f9f;
+            border-radius: 9999px;
+            color: #777;
+            font-size: 0.65rem;
+            line-height: 0.95rem;
+            text-align: center;
+            font-weight: 700;
+        }
+        .sae-plan-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: auto;
+            padding-top: 1.2rem;
+        }
+        .sae-plan-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 2.4rem;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+        }
+        .sae-plan-btn-primary {
+            color: #fff;
+            background: #7b1ccf;
+            box-shadow: 0 2px 6px rgba(123, 28, 207, 0.35);
+        }
+        .sae-plan-btn-secondary {
+            color: #7b1ccf;
+            background: #fff;
+            border-color: #cbb6dd;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .sae-plan-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+            }
+            .sae-plan-btn:hover {
+                transform: translateY(-1px);
+                opacity: 0.95;
+            }
+        }
+        .sae-plan-btn:active {
+            transform: scale(0.99);
+        }
+        @media (min-width: 640px) {
+            .sae-highlights-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .sae-highlight-label {
+                font-size: 1rem;
+                min-height: 3.4rem;
+            }
+            .sae-highlight-value {
+                font-size: 1.3rem;
+            }
+            .sae-promoter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .sae-plan-title {
+                font-size: 1.32rem;
+            }
+            .sae-plan-subtitle,
+            .sae-plan-list li {
+                font-size: 0.8rem;
+            }
+            .sae-plan-btn {
+                font-size: 0.82rem;
+            }
+            .sae-plan-card {
+                min-height: 24.25rem;
+            }
+            .sae-highlight-item + .sae-highlight-item {
+                border-top: 0;
+            }
+            .sae-highlight-item:nth-child(n + 3) {
+                border-top: 1.5px solid #a9368e;
+            }
+            .sae-highlight-item:nth-child(2n) {
+                border-left: 1.5px solid #a9368e;
+            }
+        }
+        @media (min-width: 1024px) {
+            .sae-highlights-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .sae-promoter-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1.5rem;
+            }
+            .sae-plan-title {
+                font-size: 1.8rem;
+            }
+            .sae-plan-subtitle,
+            .sae-plan-list li {
+                font-size: 0.9rem;
+            }
+            .sae-plan-btn {
+                font-size: 0.84rem;
+            }
+            .sae-plan-card {
+                min-height: 26rem;
+                padding: 1.2rem 1.2rem 1.25rem;
+            }
+            .sae-highlight-item:nth-child(n + 3) {
+                border-top: 0;
+            }
+            .sae-highlight-item:nth-child(2n) {
+                border-left: 0;
+            }
+            .sae-highlight-item + .sae-highlight-item {
+                border-left: 1.5px solid #a9368e;
+            }
+            .sae-highlight-label {
+                font-size: 0.95rem;
+                min-height: 3rem;
+            }
+            .sae-highlight-value {
+                font-size: 1.45rem;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+            .sae-highlight-item,
+            .sae-highlight-item:hover,
+            .sae-highlight-item:active {
+                transition: none;
+                transform: none;
+            }
+            .sae-plan-btn,
+            .sae-plan-btn:hover,
+            .sae-plan-btn:active {
+                transition: none;
+                transform: none;
+            }
+            .sae-plan-card,
+            .sae-plan-card:hover {
+                transition: none;
+                transform: none;
+            }
+        }
     </style>
 </head>
 <body class="font-sans text-black antialiased">
-    <header class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        <a href="/" class="inline-flex items-center gap-1.5 text-sm font-bold text-sae-purple rounded-md -ml-1 px-2 py-1.5 transition-opacity hover:opacity-90 active:opacity-100">
-            <span aria-hidden="true">←</span> Back to Home
-        </a>
-    </header>
+    <nav class="bg-white shadow-lg sticky top-0 z-50 backdrop-blur-lg bg-opacity-95">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-0.5 sm:py-1 lg:py-1.5 min-w-0 gap-2">
+                <div class="flex items-center shrink-0">
+                    <img src="/assets/logo.png" alt="CIMSME Logo" class="h-10 sm:h-12 md:h-12 lg:h-14 xl:h-16 w-auto object-contain transition-all duration-300 hover:scale-105">
+                </div>
+                <div class="top-nav-menu hidden xl:flex flex-nowrap items-center justify-end gap-x-1 xl:gap-x-1.5 2xl:gap-x-2 min-w-0 flex-1 ml-4">
+                    <a href="/" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">Home<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span></a>
+                    <div class="nav-committee-wrap relative" tabindex="0">
+                        <a href="/committees" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">Committee<svg class="w-4 h-4 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg><span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span></a>
+                        <div class="nav-committee-dropdown absolute left-0 top-full pt-1 z-50">
+                            <div id="navCommitteeDropdownList" class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"><div class="px-4 py-3 text-gray-500 text-sm">Loading...</div></div>
+                        </div>
+                    </div>
+                    <div class="nav-chapter-wrap relative" tabindex="0">
+                        <a href="/chapters" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">Chapter<svg class="w-4 h-4 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg><span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span></a>
+                        <div class="nav-chapter-dropdown absolute left-0 top-full pt-1 z-50">
+                            <div id="navChapterDropdownList" class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"><div class="px-4 py-3 text-gray-500 text-sm">Loading...</div></div>
+                        </div>
+                    </div>
+                    <a href="/membership" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">Membership<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="/sme-assurance" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">SME Assurance<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="assets/Our-Donors.pdf" target="_blank" rel="noopener noreferrer" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">Our Donors<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span></a>
+                </div>
+                <div class="xl:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="mobile-menu-btn text-gray-700 hover:text-cimsme-blue p-3 rounded-lg transition-all duration-300 hover:bg-gray-100 active:bg-gray-200" id="mobileMenuBtn" type="button" aria-label="Toggle mobile menu">
+                        <div class="hamburger"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></div>
+                    </button>
+                </div>
+            </div>
+            <div id="mobileMenu" class="xl:hidden mobile-menu-hidden overflow-hidden transition-all duration-300 ease-in-out hidden">
+                <div class="mobile-menu-content px-4 py-5 space-y-2 bg-gradient-to-b from-white to-gray-50">
+                    <a href="/" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group"><span class="text-xl group-hover:scale-110 transition-transform duration-300">🏠</span><span>Home</span></a>
+                    <div class="px-4 py-2">
+                        <button type="button" onclick="toggleMobileCommitteeList(event)" class="mobile-committee-trigger w-full text-left mb-0 flex items-center justify-between gap-2 py-2 rounded-lg hover:bg-gray-100 transition-colors" aria-expanded="false" aria-controls="mobileCommitteeListWrap" id="mobileCommitteeTrigger">
+                            <p class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Committee</p><span class="mobile-committee-chevron text-gray-500 transition-transform duration-200" aria-hidden="true">▼</span>
+                        </button>
+                        <div class="mobile-committee-list-wrap" id="mobileCommitteeListWrap" role="region" aria-label="Committee list">
+                            <div id="mobileCommitteeList" class="space-y-1 pl-2 border-l-2 border-gray-200"><div class="text-gray-500 text-sm py-2">Loading...</div></div>
+                        </div>
+                    </div>
+                    <div class="px-4 py-2">
+                        <button type="button" onclick="toggleMobileChapterList(event)" class="mobile-chapter-trigger w-full text-left mb-0 flex items-center justify-between gap-2 py-2 rounded-lg hover:bg-gray-100 transition-colors" aria-expanded="false" aria-controls="mobileChapterListWrap" id="mobileChapterTrigger">
+                            <p class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Chapter</p><span class="mobile-chapter-chevron text-gray-500 transition-transform duration-200" aria-hidden="true">▼</span>
+                        </button>
+                        <div class="mobile-chapter-list-wrap" id="mobileChapterListWrap" role="region" aria-label="Chapter list">
+                            <div id="mobileChapterList" class="space-y-1 pl-2 border-l-2 border-gray-200"><div class="text-gray-500 text-sm py-2">Loading...</div></div>
+                        </div>
+                    </div>
+                    <a href="/membership" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group"><span class="text-xl group-hover:scale-110 transition-transform duration-300">⭐</span><span>Membership</span></a>
+                    <a href="/sme-assurance" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group"><span class="text-xl group-hover:scale-110 transition-transform duration-300">🛡️</span><span>SME Assurance</span></a>
+                    <a href="assets/Our-Donors.pdf" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group"><span class="text-xl group-hover:scale-110 transition-transform duration-300">📄</span><span>Our Donors</span></a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 pt-2 sm:pt-4 w-full">
-        <h1 class="text-center text-2xl sm:text-3xl md:text-4xl font-bold text-sae-purple leading-snug px-1 py-6 sm:py-10">
-            Ageas Federal Life Insurance
-        </h1></head>
-<body class="font-sans text-black antialiased">
-    <header class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        <a href="/" class="inline-flex items-center gap-1.5 text-sm font-bold text-sae-purple rounded-md -ml-1 px-2 py-1.5 transition-opacity hover:opacity-90 active:opacity-100">
-            <span aria-hidden="true">←</span> Back to Home
-        </a>
-    </header>
-
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 pt-2 sm:pt-4 w-full">
-        <h1 class="text-center text-2xl sm:text-3xl md:text-4xl font-bold text-sae-purple leading-snug px-1 py-6 sm:py-10">
-            Ageas Federal Life Insurance
-        </h1></head>
-<body class="font-sans text-black antialiased">
-    <header class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        <a href="/" class="inline-flex items-center gap-1.5 text-sm font-bold text-sae-purple rounded-md -ml-1 px-2 py-1.5 transition-opacity hover:opacity-90 active:opacity-100">
-            <span aria-hidden="true">←</span> Back to Home
-        </a>
-    </header>
-
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 pt-2 sm:pt-4 w-full">
-        <h1 class="text-center text-2xl sm:text-3xl md:text-4xl font-bold text-sae-purple leading-snug px-1 py-6 sm:py-10">
-            Ageas Federal Life Insurance
-        </h1>
+        <h1 class="sr-only">Ageas Federal Life Insurance</h1>
+        <section class="w-full py-4 sm:py-6 md:py-8" aria-label="Ageas Federal Life Insurance header">
+            <img
+                src="assets/SME-Assurance-header.jpg"
+                alt="Ageas Federal Life Insurance"
+                class="w-full h-auto object-cover rounded-xl sm:rounded-2xl shadow-sm"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+            >
+        </section>
 
         <section class="mb-8 sm:mb-10" aria-labelledby="about-heading">
             <h2 id="about-heading" class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-lg sm:text-xl font-bold text-sae-purple mb-4 sm:mb-5">
@@ -60,7 +600,30 @@
 
         <hr class="sae-section-rule mb-3 sm:mb-4" aria-hidden="true">
 
-      
+        <section class="mb-8 sm:mb-10" aria-labelledby="highlights-heading">
+            <h2 id="highlights-heading" class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-lg sm:text-xl font-bold text-sae-purple mb-3 sm:mb-4">
+                <span class="select-none shrink-0 text-[1.2em] leading-none" aria-hidden="true">📊</span>
+                <span>Business Highlights</span>
+            </h2>
+            <div class="sae-highlights-grid w-full mb-8 sm:mb-10" role="list" aria-label="Business Highlights">
+                <div class="sae-highlight-item" role="listitem">
+                    <p class="sae-highlight-label">Policies Issued</p>
+                    <p class="sae-highlight-value">19.71+ Lakh</p>
+                </div>
+                <div class="sae-highlight-item" role="listitem">
+                    <p class="sae-highlight-label">Sum Assured</p>
+                    <p class="sae-highlight-value">₹1,87,425+ Cr</p>
+                </div>
+                <div class="sae-highlight-item" role="listitem">
+                    <p class="sae-highlight-label">Assets Under Management</p>
+                    <p class="sae-highlight-value">₹18,956+ Cr</p>
+                </div>
+                <div class="sae-highlight-item" role="listitem">
+                    <p class="sae-highlight-label">Claim Settlement Ratio</p>
+                    <p class="sae-highlight-value">99.46%</p>
+                </div>
+            </div>
+        </section>
 
         <hr class="sae-section-rule mb-3 sm:mb-4" aria-hidden="true">
 
@@ -73,9 +636,6 @@
                 The company offers a diverse portfolio of wealth management, protection, savings, and retirement solutions for both individual and corporate customers. Flagship offerings include Wealth Gain Insurance Plan, Super Protect Plan, and Magic Savings Plan designed to support long-term wealth creation, protection, and guaranteed savings needs across different life stages.
             </p>
         </section>
-        div
-
-        
 
         <hr class="sae-section-rule mb-3 sm:mb-4" aria-hidden="true">
 
@@ -84,10 +644,248 @@
                 <span class="select-none shrink-0 text-[1.2em] leading-none" aria-hidden="true">🤝</span>
                 <span>Promoter Strength</span>
             </h2>
-            <p class="sae-body-text w-full text-sm sm:text-base leading-relaxed font-normal text-black">
+            <p class="w-full text-sm sm:text-base leading-relaxed font-normal text-black mb-4 sm:mb-6">
                 Ageas Federal Life Insurance is backed by two strong promoters combining global expertise and deep domestic trust.
             </p>
+            <div class="sae-promoter-grid" role="list" aria-label="Featured insurance plans">
+                <article class="sae-plan-card" role="listitem">
+                    <div class="sae-plan-tags">
+                        <span class="sae-plan-tag">savings</span>
+                        <span class="sae-plan-tag">online</span>
+                    </div>
+                    <h3 class="sae-plan-title">Magic Savings Plan</h3>
+                    <p class="sae-plan-subtitle">Your Wish<br>Our Guarantee.</p>
+                    <ul class="sae-plan-list">
+                        <li>Life Cover</li>
+                        <li>Flexibility to select plan variants according to your needs</li>
+                        <li>Choose Income Period and Income Payout Frequency as per your choice</li>
+                    </ul>
+                    <div class="sae-plan-actions">
+                        <a href="https://www.ageasfederal.com/savings-plans/magic-savings-plan?utm_source=direct&amp;utm_medium=cpc&amp;utm_campaign=desktop_cimsme&amp;utm_term=organic&amp;utm_platform=msme&amp;utm_campaign_code=mimsmewe_20260330_4293" class="sae-plan-btn sae-plan-btn-primary" aria-label="We'll Reach Out for Magic Savings Plan">We'll Reach Out</a>
+                        <a href="https://www.ageasfederal.com/savings-plans/magic-savings-plan?utm_source=direct&amp;utm_medium=cpc&amp;utm_campaign=desktop_cimsme&amp;utm_term=organic&amp;utm_platform=msme&amp;utm_campaign_code=mimsmewe_20260330_4293" class="sae-plan-btn sae-plan-btn-secondary" aria-label="Get Quote for Magic Savings Plan">Get Quote</a>
+                    </div>
+                </article>
+
+                <article class="sae-plan-card" role="listitem">
+                    <div class="sae-plan-tags">
+                        <span class="sae-plan-tag">online</span>
+                        <span class="sae-plan-tag">savings</span>
+                    </div>
+                    <h3 class="sae-plan-title">Life Advantage Plus Plan</h3>
+                    <p class="sae-plan-subtitle">Save Today.</p>
+                    <ul class="sae-plan-list">
+                        <li>Maturity boosters to enhance your savings</li>
+                        <li>Security for family through life cover</li>
+                        <li>Bonuses when declared help build-up your corpus</li>
+                    </ul>
+                    <div class="sae-plan-actions">
+                        <a href="https://www.ageasfederal.com/term-insurance-plans/super-protect-plan?utm_source=direct&amp;utm_medium=cpc&amp;utm_campaign=desktop_cimsme&amp;utm_term=organic&amp;utm_platform=msme&amp;utm_campaign_code=mimsmewe_20260330_4293" class="sae-plan-btn sae-plan-btn-primary" aria-label="We'll Reach Out for Life Advantage Plus Plan">We'll Reach Out</a>
+                        <a href="https://www.ageasfederal.com/term-insurance-plans/super-protect-plan?utm_source=direct&amp;utm_medium=cpc&amp;utm_campaign=desktop_cimsme&amp;utm_term=organic&amp;utm_platform=msme&amp;utm_campaign_code=mimsmewe_20260330_4293" class="sae-plan-btn sae-plan-btn-secondary" aria-label="Get Quote for Life Advantage Plus Plan">Get Quote</a>
+                    </div>
+                </article>
+
+                <article class="sae-plan-card" role="listitem">
+                    <div class="sae-plan-tags">
+                        <span class="sae-plan-tag">online</span>
+                        <span class="sae-plan-tag">ulip</span>
+                    </div>
+                    <h3 class="sae-plan-title">Wealth Gain Insurance Plan</h3>
+                    <p class="sae-plan-subtitle">Save Today.</p>
+                    <ul class="sae-plan-list">
+                        <li>11 funds to invest</li>
+                        <li>Flexibility of paying premiums monthly or annually</li>
+                        <li>Receive guaranteed loyalty additions</li>
+                    </ul>
+                    <div class="sae-plan-actions">
+                        <a href="https://www.ageasfederal.com/ulip-plans/wealth-gain-insurance-plan?utm_source=direct&amp;utm_medium=cpc&amp;utm_campaign=desktop_cimsme&amp;utm_term=organic&amp;utm_platform=msme&amp;utm_campaign_code=mimsmewe_20260330_4293" class="sae-plan-btn sae-plan-btn-primary" aria-label="We'll Reach Out for Wealth Gain Insurance Plan">We'll Reach Out</a>
+                        <a href="https://www.ageasfederal.com/ulip-plans/wealth-gain-insurance-plan?utm_source=direct&amp;utm_medium=cpc&amp;utm_campaign=desktop_cimsme&amp;utm_term=organic&amp;utm_platform=msme&amp;utm_campaign_code=mimsmewe_20260330_4293" class="sae-plan-btn sae-plan-btn-secondary" aria-label="Get Quote for Wealth Gain Insurance Plan">Get Quote</a>
+                    </div>
+                </article>
+            </div>
         </section>
     </main>
+    <footer id="siteFooter" class="bg-gray-900 text-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-14">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
+                <div class="lg:col-span-1">
+                    <div class="mb-6">
+                        <h3 class="text-2xl md:text-3xl font-bold text-white mb-2.5">CIMSME</h3>
+                        <p class="text-base md:text-lg text-gray-300 font-medium mb-4">Chamber of Indian Micro, Small and Medium Enterprises</p>
+                        <p class="text-gray-400 leading-relaxed text-sm md:text-base">Empowering MSMEs across India with comprehensive support, networking opportunities, and growth-focused solutions since our inception.</p>
+                    </div>
+                    <div class="flex flex-nowrap items-center gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0">
+                        <a href="https://www.facebook.com/MSMEHelpline" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 transform hover:scale-110 p-2"><img src="footer/icons8-facebook.gif" alt="Facebook icon" class="w-full h-full object-contain"></a>
+                        <a href="https://www.youtube.com/@MSMEHelpline" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 transform hover:scale-110 p-2"><img src="footer/icons8-youtube.gif" alt="Youtube icon" class="w-full h-full object-contain"></a>
+                        <a href="https://www.instagram.com/msmehelpline/?hl=en" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 transform hover:scale-110 p-2"><img src="footer/icons8-instagram.gif" alt="Instagram icon" class="w-full h-full object-contain"></a>
+                        <a href="https://x.com/MSME_Helpline" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 transform hover:scale-110 p-2"><img src="footer/icons8-twitter-bird.gif" alt="Twitter icon" class="w-full h-full object-contain"></a>
+                        <a href="https://www.linkedin.com/company/msmehelpline" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 transform hover:scale-110 p-2"><img src="footer/icons8-linkedin.gif" alt="LinkedIn icon" class="w-full h-full object-contain"></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg md:text-xl font-bold mb-5 text-white">Quick Links</h4>
+                    <ul class="space-y-3">
+                        <li><span class="text-gray-400 text-sm md:text-base">Home</span></li>
+                        <li><span class="text-gray-400 text-sm md:text-base">Membership</span></li>
+                        <li><span class="text-gray-400 text-sm md:text-base">SME Assurance</span></li>
+                        <li><span class="text-gray-400 text-sm md:text-base">Events</span></li>
+                        <li><span class="text-gray-400 text-sm md:text-base">Advisory Board</span></li>
+                        <li><span class="text-gray-400 text-sm md:text-base">Testimonials</span></li>
+                        <li><span class="text-gray-400 text-sm md:text-base">News</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg md:text-xl font-bold mb-5 text-white">Our Services</h4>
+                    <ul class="space-y-3">
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Finance Assistance</li>
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Legal Support</li>
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Business Advisory</li>
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Training Programs</li>
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Networking Events</li>
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Export Assistance</li>
+                        <li class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Digital Services</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg md:text-xl font-bold mb-5 text-white">Contact Info</h4>
+                    <div class="space-y-4">
+                        <p class="text-gray-400 text-sm md:text-base leading-relaxed">1106, 11th floor, New Delhi House, Barakhamba Rd, Connaught Place, New Delhi, Delhi 110001</p>
+                        <p class="text-gray-400 text-sm md:text-base">1800 309 2468<br>+91 - 11 - 23722345 - 48</p>
+                        <p class="text-gray-400 text-sm md:text-base">info@indiansmechamber.com</p>
+                        <p class="text-gray-400 text-sm md:text-base">24/7 Support Available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-r from-cimsme-blue to-blue-700">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-7">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div><div class="text-2xl md:text-3xl font-bold text-white mb-1.5">10,000+</div><div class="text-blue-200 text-sm md:text-base">Active Members</div></div>
+                    <div><div class="text-2xl md:text-3xl font-bold text-white mb-1.5">500 Cr</div><div class="text-blue-200 text-sm md:text-base">Funding Facilitated</div></div>
+                    <div><div class="text-2xl md:text-3xl font-bold text-white mb-1.5">200+</div><div class="text-blue-200 text-sm md:text-base">Events Conducted</div></div>
+                    <div><div class="text-2xl md:text-3xl font-bold text-white mb-1.5">25+</div><div class="text-blue-200 text-sm md:text-base">States Covered</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-900 border-t border-gray-800">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="text-gray-400 text-sm md:text-base mb-3 md:mb-0">© 2024 CIMSME - Chamber of Indian Micro, Small and Medium Enterprises. All rights reserved.</div>
+                    <div class="flex flex-wrap justify-center gap-4 md:gap-6">
+                        <a href="/privacy-policy.html" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Privacy Policy</a>
+                        <a href="/terms-and-conditions.html" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Terms & Conditions</a>
+                        <a href="/cancellation-and-refund-policy.html" class="text-gray-400 hover:text-cimsme-orange transition-colors duration-300 text-sm md:text-base">Cancellation and Refund Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function escapeHtmlCommittee(str) {
+            if (str == null) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        async function loadCommittees() {
+            const navEl = document.getElementById('navCommitteeDropdownList');
+            const mobileEl = document.getElementById('mobileCommitteeList');
+            try {
+                const res = await fetch('/api/committees/with-members');
+                const json = await res.json();
+                const list = (json && (json.data || json)) || [];
+                const links = list.length ? list.map(c => `<a href="/committee?id=${encodeURIComponent(c.id)}" class="nav-committee-item nav-link">${escapeHtmlCommittee(c.name || 'Committee')}</a>`).join('') : '<div class="px-4 py-3 text-gray-500 text-sm">No committees yet.</div>';
+                if (navEl) navEl.innerHTML = `<div class="nav-committee-panel bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"><div class="nav-committee-columns">${links}</div></div>`;
+                if (mobileEl) mobileEl.innerHTML = list.length ? list.map(c => `<a href="/committee?id=${encodeURIComponent(c.id)}" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-600 hover:text-cimsme-blue px-3 py-2.5 rounded-lg text-sm font-medium">🏛️ ${escapeHtmlCommittee(c.name || 'Committee')}</a>`).join('') : '<div class="text-gray-500 text-sm py-2">No committees yet.</div>';
+            } catch (e) {
+                if (navEl) navEl.innerHTML = '<div class="px-4 py-3 text-gray-500 text-sm">Unable to load.</div>';
+                if (mobileEl) mobileEl.innerHTML = '<div class="text-gray-500 text-sm py-2">Unable to load.</div>';
+            }
+        }
+        async function loadChapters() {
+            const navEl = document.getElementById('navChapterDropdownList');
+            const mobileEl = document.getElementById('mobileChapterList');
+            try {
+                const res = await fetch('/api/chapters/with-members');
+                const json = await res.json();
+                const list = (json && (json.data || json)) || [];
+                const links = list.length ? list.map(c => `<a href="/chapter?id=${encodeURIComponent(c.id)}" class="nav-chapter-item nav-link">${escapeHtmlCommittee(c.name || 'Chapter')}</a>`).join('') : '<div class="px-4 py-3 text-gray-500 text-sm">No chapters yet.</div>';
+                if (navEl) navEl.innerHTML = `<div class="nav-chapter-panel bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"><div class="nav-chapter-columns">${links}</div></div>`;
+                if (mobileEl) mobileEl.innerHTML = list.length ? list.map(c => `<a href="/chapter?id=${encodeURIComponent(c.id)}" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-600 hover:text-cimsme-blue px-3 py-2.5 rounded-lg text-sm font-medium">📑 ${escapeHtmlCommittee(c.name || 'Chapter')}</a>`).join('') : '<div class="text-gray-500 text-sm py-2">No chapters yet.</div>';
+            } catch (e) {
+                if (navEl) navEl.innerHTML = '<div class="px-4 py-3 text-gray-500 text-sm">Unable to load.</div>';
+                if (mobileEl) mobileEl.innerHTML = '<div class="text-gray-500 text-sm py-2">Unable to load.</div>';
+            }
+        }
+        function toggleMobileCommitteeList() {
+            const wrap = document.getElementById('mobileCommitteeListWrap');
+            const trigger = document.getElementById('mobileCommitteeTrigger');
+            if (!wrap || !trigger) return;
+            const expanded = wrap.classList.toggle('mobile-committee-expanded');
+            trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            const chevron = trigger.querySelector('.mobile-committee-chevron');
+            if (chevron) chevron.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+        function toggleMobileChapterList() {
+            const wrap = document.getElementById('mobileChapterListWrap');
+            const trigger = document.getElementById('mobileChapterTrigger');
+            if (!wrap || !trigger) return;
+            const expanded = wrap.classList.toggle('mobile-chapter-expanded');
+            trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            const chevron = trigger.querySelector('.mobile-chapter-chevron');
+            if (chevron) chevron.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            if (!mobileMenu) return;
+            mobileMenu.classList.remove('mobile-menu-visible');
+            mobileMenu.classList.add('hidden', 'mobile-menu-hidden');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.classList.remove('active');
+                mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            }
+            document.body.style.overflow = '';
+        }
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            if (!mobileMenu) return;
+            const isHidden = mobileMenu.classList.contains('hidden') || mobileMenu.classList.contains('mobile-menu-hidden');
+            if (isHidden) {
+                mobileMenu.classList.remove('hidden', 'mobile-menu-hidden');
+                mobileMenu.classList.add('mobile-menu-visible');
+                if (mobileMenuBtn) {
+                    mobileMenuBtn.classList.add('active');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'true');
+                }
+                document.body.style.overflow = 'hidden';
+            } else {
+                closeMobileMenu();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            loadCommittees();
+            loadChapters();
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') closeMobileMenu();
+            });
+            document.addEventListener('click', function (event) {
+                const menu = document.getElementById('mobileMenu');
+                const btn = document.getElementById('mobileMenuBtn');
+                if (!menu || !btn) return;
+                const isOpen = menu.classList.contains('mobile-menu-visible');
+                if (isOpen && !menu.contains(event.target) && !btn.contains(event.target)) {
+                    closeMobileMenu();
+                }
+            });
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 1280) closeMobileMenu();
+            });
+        });
+    </script>
 </body>
 </html>
