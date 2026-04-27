@@ -4,7 +4,7 @@
 
 A complete CMS built for chamber/organization management — membership, events, committees, chapters, payments (Cashfree), email (Zeptomail), and admin panel.
 
-🔗 **Live Website:** [https://indiansmechamber.com/](https://indiansmechamber.com/)
+🔗 **Live Website:** [https://indiansmechamber.com/](https://indiansmechamber.com)
 
 
 ## 🚀 Features - 
