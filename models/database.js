@@ -428,7 +428,7 @@ console.log('Payment transactions table ready');
         `);
 
      
-        // EVENT SPEAKERS 
+        
       
         await this.query(`
             CREATE TABLE IF NOT EXISTS event_speakers (
