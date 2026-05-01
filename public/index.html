@@ -41,7 +41,7 @@
     box-sizing: border-box;
 }
 
-/* Ensure texture shows full page: html/body are the canvas (win over Tailwind) */
+
 html {
     min-height: 100% !important;
     background-color: #ffffff !important;
@@ -76,7 +76,7 @@ img {
     height: auto;
 }
 
-/* Event detail description: rich text from admin editor (line breaks, bullets, paragraphs) */
+
 .event-description-richtext {
     white-space: normal;
 }
@@ -107,7 +107,7 @@ img {
 }
 
   
-   /* BUTTONS (NO DUPLICATES) */
+
      
 .btn-primary {
     background: linear-gradient(135deg, #e28940, #e9853e);
@@ -134,7 +134,7 @@ img {
 }
 
   
-   /* HERO BACKGROUNDS (NO DUPLICATES) */
+
      
 .hero-bg-1 { background: linear-gradient(135deg, #2466d7 0%, #ea7d10 100%); }
 .hero-bg-2 { background: linear-gradient(135deg, #4fdda4 0%, #138deb 100%); }
@@ -173,7 +173,7 @@ img {
     }
 }
 
-/* Responsive section padding – tighter vertical rhythm */
+
 .section-padding {
     padding: 0.75rem 0;
 }
@@ -199,7 +199,7 @@ img {
     padding-bottom: 0.9rem;
 }
 
-/* Offset anchor scroll so sticky nav doesn't hide section headers (desktop + mobile) */
+
 #home,
 #events,
 #news,
@@ -258,7 +258,7 @@ img {
 
 #events .gap-4.mb-8 { margin-bottom: 0.65rem !important; }
 
-/* Event Details – Photos tab: same ratio, full frame, no crop */
+
 #photosContainer .event-detail-photo-frame {
     aspect-ratio: 4 / 3;
     min-height: 200px;
@@ -281,7 +281,7 @@ img {
     box-sizing: border-box;
     overflow: hidden;
     height: auto !important;
-    /* Semi-transparent so body texture shows through */
+
     background: rgba(255, 255, 255, 0.5);
     border: 1px solid #e5e7eb;
     border-radius: 1rem;
@@ -289,7 +289,7 @@ img {
     width: calc(100% - 1rem);
     max-width: 1600px;
     margin: 0.75rem auto 0.5rem;
-    /* Taller ratio: more photo height */
+
     aspect-ratio: 4 / 3;
     min-height: 260px;
     max-height: 62vh;
@@ -391,7 +391,7 @@ img {
     z-index: 10;
 }
 
-/* Old .active class support (if used in JS) */
+
 .hero-slide.active {
     opacity: 1;
     visibility: visible;
@@ -404,7 +404,7 @@ img {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Cover: photo fills whole frame */
+  
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -432,7 +432,7 @@ img {
     opacity: 1;
 }
 
-/* Slider controls - interactive */
+
 .slide-dot,
 button[onclick*="Slide"] {
     transition: all 0.4s ease-in-out;
@@ -458,7 +458,7 @@ button[onclick*="Slide"] {
     transform: translateY(-50%) scale(0.95);
 }
 
-/* Mobile: 4:3 ratio, taller photo, phone-optimized */
+
 @media (max-width: 639px) {
     #home {
         aspect-ratio: 4 / 3;
@@ -535,12 +535,12 @@ button[onclick*="Slide"] {
     display: none;
 }
 
-/* Make card corners sharper (less rounded) */
+
 #upcomingEventsGrid > div:not(.col-span-full) {
     border-radius: 1rem !important;
 }
 
-/* Optimize image size and ratio in event cards for better visual appeal */
+
 #upcomingEventsGrid > div:not(.col-span-full) > div:first-child {
     height: 200px !important;
     border-radius: 1rem 1rem 0 0 !important;
@@ -558,7 +558,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Reduce padding in card content for more compact cards */
+
 #upcomingEventsGrid > div:not(.col-span-full) > div:last-child {
     padding: 1rem 1rem !important;
 }
@@ -569,7 +569,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Reduce title size and spacing */
+
 #upcomingEventsGrid > div:not(.col-span-full) h3 {
     margin-bottom: 0.5rem !important;
     font-size: 1rem !important;
@@ -582,7 +582,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Reduce spacing for description and other elements */
+
 #upcomingEventsGrid > div:not(.col-span-full) p {
     margin-bottom: 0.5rem !important;
     font-size: 0.875rem !important;
@@ -600,7 +600,7 @@ button[onclick*="Slide"] {
     line-height: 1.5 !important;
 }
 
-/* Reduce button size */
+
 #upcomingEventsGrid > div:not(.col-span-full) button {
     padding: 0.625rem 1rem !important;
     font-size: 0.875rem !important;
@@ -614,7 +614,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Past event cards: consistent height so they look even */
+
 #upcomingEventsGrid > div.event-card-past {
     display: flex !important;
     flex-direction: column !important;
@@ -631,7 +631,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Upcoming event cards: natural height so when there are more upcoming events they don't all match past card height */
+
 #upcomingEventsGrid > div.event-card-upcoming {
     display: flex !important;
     flex-direction: column !important;
@@ -648,7 +648,7 @@ button[onclick*="Slide"] {
     min-height: 0 !important;
 }
 
-/* Past cards: content area flex so button stays at bottom */
+
 #upcomingEventsGrid > div.event-card-past > div:last-child {
     display: flex !important;
     flex-direction: column !important;
@@ -658,8 +658,7 @@ button[onclick*="Slide"] {
     flex: 1 !important;
 }
 
-/* Center single event card in Upcoming Events section */
-/* Target first upcoming event when it's the only one (either alone or before past events section) */
+
 #upcomingEventsGrid > div:not(.col-span-full):first-child:last-child,
 #upcomingEventsGrid > div:not(.col-span-full):first-child:has(+ .col-span-full) {
     grid-column: 1;
@@ -689,7 +688,7 @@ button[onclick*="Slide"] {
     color: #1a4b9a;
 }
 
-/* About dropdown - show on hover */
+
 .nav-about-dropdown {
     visibility: hidden;
     opacity: 0;
@@ -707,7 +706,7 @@ button[onclick*="Slide"] {
     color: #1a4b9a;
 }
 
-/* Committee dropdown - show on hover (same as About); multi-column only when many items */
+
 .nav-committee-dropdown {
     visibility: hidden;
     opacity: 0;
@@ -725,12 +724,12 @@ button[onclick*="Slide"] {
     color: #1a4b9a;
 }
 
-/* Few committees: compact single-column dropdown */
+
 .nav-committee-dropdown .nav-committee-simple {
     min-width: 220px;
 }
 
-/* Many committees: wide multi-column panel (like Sectors example) */
+
 .nav-committee-dropdown .nav-committee-panel {
     min-width: 220px;
     max-width: 920px;
@@ -764,7 +763,7 @@ button[onclick*="Slide"] {
     background: rgba(26, 75, 154, 0.08);
     color: #1a4b9a;
 }
-/* Fewer columns on smaller desktop so it doesn’t overflow */
+
 @media (min-width: 768px) and (max-width: 1023px) {
     .nav-committee-columns {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -777,7 +776,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Chapter dropdown - same as Committee */
+
 .nav-chapter-dropdown {
     visibility: hidden;
     opacity: 0;
@@ -884,7 +883,7 @@ button[onclick*="Slide"] {
     width: 100%;
 }
 
-/* Force single column on mobile */
+
 @media (max-width: 767px) {
     .md\:grid-cols-2,
     .md\:grid-cols-3,
@@ -902,7 +901,7 @@ button[onclick*="Slide"] {
     }
 }
 
-/* Two columns on tablet */
+
 @media (min-width: 768px) and (max-width: 1023px) {
     .lg\:grid-cols-3,
     .lg\:grid-cols-4 {
@@ -911,7 +910,7 @@ button[onclick*="Slide"] {
 }
 
   
-   /* FORMS & INPUTS  */
+
      
 input[type="text"],
 input[type="email"],
@@ -920,11 +919,11 @@ input[type="password"],
 input[type="date"],
 select,
 textarea {
-    font-size: 16px !important; /* Prevents zoom on iOS */
+    font-size: 16px !important;
     width: 100%;
 }
 
-/* Membership form validation: invalid field border and error message */
+
 .membership-input-invalid {
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 1px #dc2626;
@@ -937,14 +936,14 @@ textarea {
 }
 .membership-field-error.hidden { display: none !important; }
 
-/* Touch-friendly buttons on mobile */
+
 @media (max-width: 480px) {
     button,
     .btn-primary,
     .btn-secondary,
     a.btn-primary,
     a.btn-secondary {
-        min-height: 44px; /* iOS touch target */
+        min-height: 44px; 
         font-size: 0.9rem;
         padding-left: 1.25rem;
         padding-right: 1.25rem;
@@ -952,7 +951,7 @@ textarea {
 }
 
   
-   /* TEXT OVERFLOW PREVENTION */
+
      
 p, span, div, a {
     word-wrap: break-word;
@@ -960,7 +959,7 @@ p, span, div, a {
 }
 
   
-   /* RESPONSIVE TABLES */
+
      
 table {
     width: 100%;
@@ -975,7 +974,7 @@ table {
 }
 
   
-   /* LOADING ANIMATION */
+
      
 .loading {
     width: 3rem;
@@ -991,14 +990,14 @@ table {
 }
 
   
-   /* SMOOTH SCROLLING */
+ 
      
 html {
     scroll-behavior: smooth;
 }
 
   
-   /* ACCESSIBILITY */
+
      
 :focus-visible {
     outline: 2px solid #3b82f6;
@@ -1023,7 +1022,7 @@ textarea:focus-visible {
 }
 
   
-   /* PRINT STYLES */
+
      
 @media print {
     .no-print,
@@ -1034,10 +1033,10 @@ textarea:focus-visible {
     }
 }
   
-   /* ENHANCED MOBILE NAVIGATION */
+
      
 
-/* Animated Hamburger Menu */
+
 .mobile-menu-btn {
     position: relative;
     z-index: 9999;
@@ -1069,7 +1068,7 @@ textarea:focus-visible {
     transform-origin: center;
 }
 
-/* Hamburger to X animation */
+
 .mobile-menu-btn.active .hamburger-line:nth-child(1) {
     transform: translateY(7.5px) rotate(45deg);
 }
@@ -1083,7 +1082,7 @@ textarea:focus-visible {
     transform: translateY(-7.5px) rotate(-45deg);
 }
 
-/* Mobile menu animations */
+
 .mobile-menu-hidden {
     max-height: 0;
     opacity: 0;
@@ -1096,7 +1095,7 @@ textarea:focus-visible {
     visibility: visible;
 }
 
-/* Stagger animation for menu items */
+
 @keyframes slideInFromLeft {
     from {
         opacity: 0;
@@ -1118,13 +1117,13 @@ textarea:focus-visible {
 .mobile-menu-item:nth-child(3) { animation-delay: 0.15s; }
 .mobile-menu-item:nth-child(4) { animation-delay: 0.2s; }
 
-/* Desktop nav underline effect */
+
 .nav-link {
     position: relative;
     overflow: hidden;
 }
 
-/* Keep top navigation readable and prevent overlap with many items */
+
 .top-nav-menu > .nav-link,
 .top-nav-menu > .nav-committee-wrap,
 .top-nav-menu > .nav-chapter-wrap,
@@ -1135,20 +1134,20 @@ textarea:focus-visible {
 
 @media (min-width: 1280px) {
     .top-nav-menu .nav-link {
-        font-size: 0.98rem !important; /* normal readable size */
+        font-size: 0.98rem !important; 
         line-height: 1.35;
         padding-left: 0.65rem !important;
         padding-right: 0.65rem !important;
     }
 }
 
-/* Backdrop blur for nav */
+
 nav {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* India tricolor gradient line – top of nav */
+
 nav::before {
     content: '';
     position: absolute;
@@ -1166,23 +1165,23 @@ nav:hover::before {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-/* Smooth scrolling when clicking nav links */
+
 html {
     scroll-behavior: smooth;
 }
 
-/* Active state for mobile menu */
+
 .mobile-menu-item:active {
     transform: scale(0.98);
     background-color: #f3f4f6;
 }
 
-/* Logo hover effect */
+
 nav img:hover {
     filter: brightness(1.1);
 }
 
-/* Compact nav header height – logo and link sizes unchanged */
+
 nav .max-w-7xl > div {
     min-height: 0;
 }
@@ -1195,7 +1194,7 @@ nav .max-w-7xl > div {
     }
 }
 
-/* Mobile: committees list scrollable so nav doesn't grow with many committees */
+
 .mobile-committee-list-wrap {
     max-height: min(50vh, 280px);
     overflow-y: auto;
@@ -1205,7 +1204,7 @@ nav .max-w-7xl > div {
     border: 1px solid rgba(0, 0, 0, 0.06);
     background: rgba(249, 250, 251, 0.8);
 }
-/* Mobile only: hide committee list until user taps "Committee" */
+
 @media (max-width: 767px) {
     .mobile-committee-list-wrap {
         max-height: 0;
@@ -1235,7 +1234,7 @@ nav .max-w-7xl > div {
     }
 }
 
-/* Mobile: chapters list (same as committees) */
+
 .mobile-chapter-list-wrap {
     max-height: min(50vh, 280px);
     overflow-y: auto;
@@ -1274,7 +1273,7 @@ nav .max-w-7xl > div {
     }
 }
 
-/* Prevent menu overflow on very small screens */
+
 @media (max-width: 320px) {
     .mobile-menu-content {
         padding-left: 0.75rem;
@@ -1288,14 +1287,14 @@ nav .max-w-7xl > div {
     }
 }
 
-/* Make mobile nav list scrollable on small screens */
+
 #mobileMenu {
-    /* Container follows height animation but never exceeds viewport */
+   
     max-height: 100vh;
 }
 
 .mobile-menu-content {
-    max-height: calc(100vh - 64px); /* leave space for nav/header */
+    max-height: calc(100vh - 64px); 
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -1333,7 +1332,7 @@ nav .max-w-7xl > div {
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
-                <!-- Committee: click = all committees page; hover = dropdown with each committee -->
+                
                 <div class="nav-committee-wrap relative" tabindex="0">
                     <a href="/committees" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">
                         Committee
