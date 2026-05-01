@@ -1054,7 +1054,7 @@ static async deleteEventVideo(id) {
     return await this.delete('event_videos', id);
 }
 
-// MEMBERSHIP BENEFITS METHODS
+
 
 
 static async getAllBenefits() {
@@ -1123,7 +1123,7 @@ static async createMembershipWithTransaction(memberData, couponCode = null) {
   const connection = await this.beginTransaction();
 
   try {
-    //  Insert membership application
+
     const [result] = await connection.execute(
       `INSERT INTO membership_applications (
          memberid, fullname, businessname, email, phone,
