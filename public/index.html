@@ -35,7 +35,7 @@
     
     <style>
   
-   /* GLOBAL RESPONSIVE FOUNDATION */
+
      
 * {
     box-sizing: border-box;
@@ -76,7 +76,7 @@ img {
     height: auto;
 }
 
-/* Event detail description: rich text from admin editor (line breaks, bullets, paragraphs) */
+
 .event-description-richtext {
     white-space: normal;
 }
@@ -199,7 +199,7 @@ img {
     padding-bottom: 0.9rem;
 }
 
-/* Offset anchor scroll so sticky nav doesn't hide section headers (desktop + mobile) */
+
 #home,
 #events,
 #news,
@@ -258,7 +258,7 @@ img {
 
 #events .gap-4.mb-8 { margin-bottom: 0.65rem !important; }
 
-/* Event Details – Photos tab: same ratio, full frame, no crop */
+
 #photosContainer .event-detail-photo-frame {
     aspect-ratio: 4 / 3;
     min-height: 200px;
@@ -268,7 +268,7 @@ img {
     object-position: center;
 }
 
-/* Hide browser "mm/dd/yyyy" in date filter when empty; show only MM/DD/YYYY hint */
+
 .event-date-filter-wrap.date-filter-empty #eventDateFilter::-webkit-datetime-edit { opacity: 0; }
 .event-date-filter-wrap.date-filter-empty #eventDateFilter::-moz-datetime-edit { opacity: 0; }
 .event-date-filter-wrap:not(.date-filter-empty) .event-date-format-hint { display: none; }
@@ -281,7 +281,7 @@ img {
     box-sizing: border-box;
     overflow: hidden;
     height: auto !important;
-    /* Semi-transparent so body texture shows through */
+
     background: rgba(255, 255, 255, 0.5);
     border: 1px solid #e5e7eb;
     border-radius: 1rem;
@@ -289,7 +289,7 @@ img {
     width: calc(100% - 1rem);
     max-width: 1600px;
     margin: 0.75rem auto 0.5rem;
-    /* Taller ratio: more photo height */
+   
     aspect-ratio: 4 / 3;
     min-height: 260px;
     max-height: 62vh;
@@ -391,7 +391,7 @@ img {
     z-index: 10;
 }
 
-/* Old .active class support (if used in JS) */
+
 .hero-slide.active {
     opacity: 1;
     visibility: visible;
@@ -404,7 +404,7 @@ img {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Cover: photo fills whole frame */
+
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -432,7 +432,7 @@ img {
     opacity: 1;
 }
 
-/* Slider controls - interactive */
+
 .slide-dot,
 button[onclick*="Slide"] {
     transition: all 0.4s ease-in-out;
@@ -458,7 +458,7 @@ button[onclick*="Slide"] {
     transform: translateY(-50%) scale(0.95);
 }
 
-/* Mobile: 4:3 ratio, taller photo, phone-optimized */
+
 @media (max-width: 639px) {
     #home {
         aspect-ratio: 4 / 3;
