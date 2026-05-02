@@ -225,11 +225,11 @@ async function verifyAdminToken(req, res, next) {
     // Validate payload structure
     validateTokenPayload(decoded, 'admin');
     
-    // Check session exists
+
     let session = await getSession(token, 'admin');
     
     if (!session) {
-      // Re-create session from token
+      
       session = {
         email: decoded.email,
         role: decoded.role,
