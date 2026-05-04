@@ -189,7 +189,7 @@ CREATE TABLE advisors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Advisory board members';
 
--- 📰 NEWS TABLE
+-- NEWS TABLE
 
 CREATE TABLE news (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -211,7 +211,7 @@ CREATE TABLE news (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='News and announcements';
 
--- 💬 TESTIMONIALS TABLE
+--  TESTIMONIALS TABLE
 
 CREATE TABLE testimonials (
     id INT AUTO_INCREMENT PRIMARY KEY,
