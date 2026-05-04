@@ -3341,7 +3341,7 @@ async function saveEvent(e) {
             console.log('Event saved successfully, refreshing data...');
             alert(`✅ Event ${isEdit ? 'updated' : 'created'} successfully!`);
             closeEventModal();
-            // Force reload events immediately
+          
             invalidateCache('events');
             await loadEvents(true); // Force refresh after save
             await loadDashboardData();
@@ -3585,7 +3585,6 @@ async function deleteSpeaker(id) {
     }
 }
 
-// PHOTOS MANAGEMENT
 // PHOTOS MANAGEMENT
 async function loadPhotos() {
   try {
