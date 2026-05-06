@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-     <script src="/js/api-config.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     
   
@@ -243,7 +243,7 @@ img {
     }
 }
 
-/* Reduce section header spacing */
+
 #events .text-center.mb-12,
 #advisory .text-center.mb-12,
 #news .text-center.mb-12,
@@ -2919,7 +2919,7 @@ function setCachedData(key, data) {
     }
 }
 
-// ⚡ OPTIMIZED PAGE LOAD - Hero does not block first paint
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('⚡ Loading CIMSME - Optimized Mode...');
     
@@ -2930,7 +2930,7 @@ document.addEventListener('DOMContentLoaded', () => {
             siteFooter.style.display = 'block';
             siteFooter.classList.remove('hidden');
         }
-        // Show hero from cache immediately if available, else keep static/skeleton hero visible
+    
         initHeroFirstPaint();
         // Fetch hero in background; when done, update slides without blocking
         loadHeroInBackground();
