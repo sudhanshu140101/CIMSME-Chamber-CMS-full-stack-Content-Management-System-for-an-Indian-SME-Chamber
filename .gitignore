@@ -1,6 +1,6 @@
+node_modules
 .env
-debug-4f8b76.log
-storage/logs/*.log
-storage/install.lock
-uploads/*
-!uploads/.htaccess
+logs
+uploads
+dist
+build
