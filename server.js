@@ -707,8 +707,6 @@ app.put('/api/hero/:id', verifyAdmin, heroUpload, async (req, res) => {
 });
 
 
-
-
 app.patch('/api/hero/toggle/:id', verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -2551,8 +2549,6 @@ app.delete('/api/events/videos/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-
-
 // Toggle event featured status
 app.patch('/api/events/toggle-featured/:id', verifyAdmin, async (req, res) => {
   try {
@@ -2596,7 +2592,6 @@ app.post('/api/admin/event-registrations/:registrationId/confirm', verifyAdmin, 
     `;
     
     await Database.query(updateSql, [registrationId]);
-    
     // Get registration details for email
     const regSql = `
       SELECT er.*, e.title as event_title, e.event_date, e.location
