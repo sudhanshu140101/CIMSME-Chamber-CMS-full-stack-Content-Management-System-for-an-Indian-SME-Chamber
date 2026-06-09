@@ -635,9 +635,7 @@ app.get('/api/auth/accounts', (req, res) => {
   res.status(404).json({ success: false, message: 'Not found' });
 });
 
-
 // HERO ROUTES 
-
 
 
 app.get('/api/hero', async (req, res) => {
