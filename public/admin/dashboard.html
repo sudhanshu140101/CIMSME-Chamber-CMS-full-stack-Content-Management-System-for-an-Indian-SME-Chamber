@@ -224,6 +224,12 @@
             <button onclick="showSection('news')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
                 📰 News
             </button>
+            <button onclick="showSection('tvInterviews')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
+                📺 TV Interviews
+            </button>
+            <button onclick="showSection('positiveTalk')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
+                🎙️ Positive Talk Show
+            </button>
             <button onclick="showSection('testimonials')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
                 💬 Testimonials
             </button>
@@ -236,6 +242,12 @@
             <button onclick="showSection('services')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
                📋 Member Services
            </button>
+            <button onclick="showSection('loanHelpdesk')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
+                🏦 Loan Response Helpdesk
+            </button>
+            <button onclick="showSection('drive')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
+                📁 Drive
+            </button>
             <button onclick="showSection('footerPdf')" class="sidebar-btn w-full text-left px-4 py-3 rounded-lg font-semibold text-gray-700 hover:bg-gray-100">
                 📄 Footer PDF
             </button>
@@ -563,24 +575,9 @@
         </div>
     </div>
 
-    <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-    </div>
-
-    <div class="mt-6 text-center">
-        <button id="newsViewToggleBtn" onclick="toggleNewsView()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-            Switch to Table View
-        </button>
-    </div>
-
-    <div id="newsTable" class="bg-white rounded-2xl shadow-lg overflow-hidden hidden">
+    <div id="newsTable" class="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div class="p-4 border-b border-gray-200">
-            <div class="flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-gray-800">News Articles</h3>
-                <button onclick="toggleNewsView()" class="text-red-600 hover:text-red-800 font-medium">
-                    Switch to Grid View
-                </button>
-            </div>
+            <h3 class="text-lg font-semibold text-gray-800">News Articles</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -599,6 +596,60 @@
             </table>
         </div>
     </div>
+</div>
+
+<!-- TV INTERVIEWS SECTION -->
+<div id="tvInterviewsSection" class="section-content hidden">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">TV Interviews Management</h2>
+            <p class="text-gray-600">Manage YouTube TV interviews shown on the homepage</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="loadTvInterviews()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                🔄 Refresh
+            </button>
+            <button onclick="showAddTvInterviewModal()" class="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-colors">
+                📺 Add TV Interview
+            </button>
+        </div>
+    </div>
+
+    <div id="tvInterviewsLoading" class="flex justify-center py-12 bg-white rounded-2xl shadow-lg">
+        <div class="text-center">
+            <div class="loading mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading TV interviews...</p>
+        </div>
+    </div>
+
+    <div id="tvInterviewsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+</div>
+
+<!-- POSITIVE TALK SHOW SECTION -->
+<div id="positiveTalkSection" class="section-content hidden">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Positive Talk Show Management</h2>
+            <p class="text-gray-600">Manage promo videos and full episodes for <a href="/positive-talk" target="_blank" rel="noopener" class="text-red-600 hover:underline">/positive-talk</a></p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="loadPositiveTalkVideos(true)" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                🔄 Refresh
+            </button>
+            <button onclick="showAddPositiveTalkModal()" class="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-colors">
+                🎙️ Add Video
+            </button>
+        </div>
+    </div>
+
+    <div id="positiveTalkLoading" class="flex justify-center py-12 bg-white rounded-2xl shadow-lg">
+        <div class="text-center">
+            <div class="loading mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading Positive Talk videos...</p>
+        </div>
+    </div>
+
+    <div id="positiveTalkGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </div>
 
 <!-- TESTIMONIALS SECTION -->
@@ -1212,6 +1263,139 @@
                                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                             </div>
                         </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="loanHelpdeskSection" class="section-content hidden">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Loan Response Helpdesk</h2>
+            <p class="text-gray-600">View and manage loan complaint submissions from the public helpdesk form.</p>
+        </div>
+        <button type="button" onclick="loadLoanHelpdeskCases(true)"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+            Refresh
+        </button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" id="loanHelpdeskSearch" placeholder="Search case ID, name, mobile, bank..."
+                   onkeyup="displayLoanHelpdeskCases()"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <select id="loanHelpdeskStatusFilter" onchange="displayLoanHelpdeskCases()"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                <option value="">All Status</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Representation Sent">Representation Sent</option>
+                <option value="Reply Awaited">Reply Awaited</option>
+                <option value="Escalated">Escalated</option>
+                <option value="Closed">Closed</option>
+            </select>
+            <div id="loanHelpdeskCount" class="flex items-center text-sm font-semibold text-gray-600 px-2"></div>
+        </div>
+    </div>
+
+    <div id="loanHelpdeskLoading" class="hidden text-center py-12 bg-white rounded-2xl shadow-lg">
+        <div class="loading mx-auto mb-4"></div>
+        <p class="text-gray-600">Loading loan helpdesk cases...</p>
+    </div>
+
+    <div id="loanHelpdeskEmpty" class="hidden text-center py-12 bg-white rounded-2xl shadow-lg">
+        <p class="text-gray-600">No loan helpdesk submissions found.</p>
+    </div>
+
+    <div id="loanHelpdeskTableWrap" class="hidden bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[960px]">
+                <thead class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
+                    <tr>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Case ID</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Applicant</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Mobile</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Bank / NBFC</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Amount</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Issue</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Status</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Remark</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Submitted</th>
+                        <th class="px-4 py-4 text-left text-sm font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="loanHelpdeskTableBody" class="divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="loanHelpdeskDetailModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+            <h3 class="text-2xl font-bold text-gray-800">Loan Helpdesk Case Details</h3>
+            <button type="button" onclick="closeLoanHelpdeskDetailModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+        </div>
+        <div id="loanHelpdeskDetailContent" class="p-6"></div>
+    </div>
+</div>
+
+<div id="driveSection" class="section-content hidden">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Drive</h2>
+            
+        </div>
+        <div class="flex flex-wrap gap-2 shrink-0">
+            <button type="button" onclick="loadDrivePdfs()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors font-semibold">Refresh</button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 max-w-3xl">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Upload PDF</h3>
+        <form id="driveUploadForm" onsubmit="uploadDrivePdf(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Display name</label>
+                <input type="text" id="drivePdfNameInput" maxlength="255" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="e.g. Company profile 2026">
+                <p class="text-xs text-gray-500 mt-1">If left empty, the file name is used.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">PDF file *</label>
+                <input type="file" id="drivePdfFileInput" name="pdf" accept=".pdf,application/pdf" required class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+            <button type="submit" id="driveUploadBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors">Upload &amp; generate link</button>
+        </form>
+    </div>
+
+    <div id="driveLoading" class="hidden flex justify-center py-12 bg-white rounded-2xl shadow-lg">
+        <div class="text-center">
+            <div class="loading mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading drive…</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Your PDFs</h3>
+            <span id="driveCountBadge" class="text-sm text-gray-500"></span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px]">
+                <thead class="bg-gray-50 text-left text-sm text-gray-600">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">Name</th>
+                        <th class="px-4 py-3 font-semibold">Public link</th>
+                        <th class="px-4 py-3 font-semibold">Uploaded</th>
+                        <th class="px-4 py-3 font-semibold">By</th>
+                        <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="driveTableBody" class="divide-y divide-gray-200 text-sm">
+                    <tr>
+                        <td colspan="5" class="px-4 py-10 text-center text-gray-500">Open this section to load files.</td>
                     </tr>
                 </tbody>
             </table>
@@ -1934,8 +2118,8 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">News Content *</label>
-                            <textarea id="newsContent" required rows="8" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Write the full news article here..."></textarea>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Content *</label>
+                            <textarea id="newsContent" required rows="8" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1972,6 +2156,99 @@
                     </button>
                     <button type="submit" id="newsSaveBtn" class="px-8 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
                         <span id="newsSaveText">💾 Save News</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TV INTERVIEWS MODAL -->
+    <div id="tvInterviewModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="tvInterviewModalTitle">Add TV Interview</h3>
+                <button type="button" onclick="hideModal('tvInterviewModal')" class="text-gray-400 hover:text-gray-600 text-2xl" aria-label="Close modal">×</button>
+            </div>
+
+            <form id="tvInterviewForm" onsubmit="saveTvInterview(event)">
+                <input type="hidden" id="tvInterviewId">
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="tvInterviewTitle">Heading / Title *</label>
+                        <input type="text" id="tvInterviewTitle" required maxlength="255" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Interview title">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="tvInterviewYoutubeUrl">YouTube URL *</label>
+                        <input type="url" id="tvInterviewYoutubeUrl" maxlength="500" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="https://www.youtube.com/watch?v=... or youtu.be/... or youtube.com/shorts/...">
+                        <p class="text-xs text-gray-500 mt-2">Paste the YouTube link only — not iframe embed code.</p>
+                        <p id="tvInterviewVideoIdHint" class="text-xs text-green-600 mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="tvInterviewOrder">Display Order</label>
+                        <input type="number" id="tvInterviewOrder" min="0" max="999" value="0" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" onclick="hideModal('tvInterviewModal')" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" id="tvInterviewSaveBtn" class="px-8 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
+                        <span id="tvInterviewSaveText">💾 Save TV Interview</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POSITIVE TALK SHOW MODAL -->
+    <div id="positiveTalkModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="positiveTalkModalTitle">Add Positive Talk Video</h3>
+                <button type="button" onclick="hideModal('positiveTalkModal')" class="text-gray-400 hover:text-gray-600 text-2xl" aria-label="Close modal">×</button>
+            </div>
+
+            <form id="positiveTalkForm" onsubmit="savePositiveTalkVideo(event)">
+                <input type="hidden" id="positiveTalkId">
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="positiveTalkTitle">Heading / Title *</label>
+                        <input type="text" id="positiveTalkTitle" required maxlength="255" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Video title">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="positiveTalkCategory">Section *</label>
+                        <select id="positiveTalkCategory" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white">
+                            <option value="promo">Promo Videos (shown at top)</option>
+                            <option value="full_episode">Full Episodes (shown below promo)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="positiveTalkVideoDate">Video Date *</label>
+                        <input type="date" id="positiveTalkVideoDate" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-2">Newer dates appear first on the website. Set an older date for backdated videos so they show last.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="positiveTalkYoutubeUrl">YouTube URL *</label>
+                        <input type="url" id="positiveTalkYoutubeUrl" maxlength="500" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="https://www.youtube.com/watch?v=... or youtu.be/... or youtube.com/shorts/...">
+                        <p class="text-xs text-gray-500 mt-2">Paste the YouTube link only — not iframe embed code.</p>
+                        <p id="positiveTalkVideoIdHint" class="text-xs text-green-600 mt-1 hidden"></p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" onclick="hideModal('positiveTalkModal')" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" id="positiveTalkSaveBtn" class="px-8 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors">
+                        <span id="positiveTalkSaveText">💾 Save Video</span>
                     </button>
                 </div>
             </form>
@@ -2316,6 +2593,8 @@ async function apiCall(endpoint, options = {}, retries = 3, forceRefresh = false
             newsletter: { data: null, timestamp: 0, loading: false },
             hero: { data: null, timestamp: 0, loading: false },
             news: { data: null, timestamp: 0, loading: false },
+            tvInterviews: { data: null, timestamp: 0, loading: false },
+            positiveTalk: { data: null, timestamp: 0, loading: false },
             services: { data: null, timestamp: 0, loading: false },
             membershipBenefits: { data: null, timestamp: 0, loading: false },
             membershipStories: { data: null, timestamp: 0, loading: false }
@@ -2465,9 +2744,168 @@ async function saveFooterPdf(event) {
   }
 }
 
+function escapeDriveHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
+function driveFullUrl(fileUrl) {
+  if (!fileUrl || typeof fileUrl !== 'string') return '';
+  if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) return fileUrl;
+  return window.location.origin + (fileUrl.startsWith('/') ? fileUrl : '/' + fileUrl);
+}
 
+function formatDriveUploadDate(uploadDate) {
+  if (!uploadDate) return '—';
+  try {
+    const d = new Date(uploadDate);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch (e) {
+    return '—';
+  }
+}
 
+async function loadDrivePdfs() {
+  const tbody = document.getElementById('driveTableBody');
+  const loading = document.getElementById('driveLoading');
+  const badge = document.getElementById('driveCountBadge');
+  if (!tbody) return;
+  const token = localStorage.getItem('adminToken');
+  if (!token) {
+    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-600">Please log in again.</td></tr>';
+    return;
+  }
+  if (loading) loading.classList.remove('hidden');
+  try {
+    const base = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+    const response = await fetch(base + '/drive/admin/all', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const result = await response.json();
+    if (!result.success) {
+      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-600">' + escapeDriveHtml(result.message || 'Failed to load') + '</td></tr>';
+      if (badge) badge.textContent = '';
+      return;
+    }
+    const rows = Array.isArray(result.data) ? result.data : [];
+    if (badge) badge.textContent = rows.length ? rows.length + ' file' + (rows.length === 1 ? '' : 's') : 'No files yet';
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center text-gray-500">No PDFs yet. Upload one above.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function (row) {
+      const name = escapeDriveHtml(row.pdf_name);
+      const full = driveFullUrl(row.file_url);
+      const linkEsc = escapeDriveHtml(full);
+      const short = full.length > 56 ? full.slice(0, 40) + '…' + full.slice(-12) : full;
+      const when = formatDriveUploadDate(row.upload_date);
+      const by = escapeDriveHtml(row.uploaded_by || '—');
+      return (
+        '<tr class="hover:bg-gray-50">' +
+        '<td class="px-4 py-3 font-medium text-gray-900">' + name + '</td>' +
+        '<td class="px-4 py-3">' +
+        '<a href="' + linkEsc + '" target="_blank" rel="noopener" class="text-indigo-600 hover:underline break-all">' + escapeDriveHtml(short) + '</a>' +
+        '</td>' +
+        '<td class="px-4 py-3 text-gray-600 whitespace-nowrap">' + escapeDriveHtml(when) + '</td>' +
+        '<td class="px-4 py-3 text-gray-600 max-w-[140px] truncate" title="' + by + '">' + by + '</td>' +
+        '<td class="px-4 py-3 text-right whitespace-nowrap">' +
+        '<button type="button" onclick="copyDriveLink(' + JSON.stringify(full).replace(/</g, '\\u003c') + ')" class="text-indigo-600 hover:text-indigo-800 font-semibold mr-2">Copy link</button>' +
+        '<button type="button" onclick="deleteDrivePdf(' + Number(row.id) + ')" class="text-red-600 hover:text-red-800 font-semibold">Delete</button>' +
+        '</td></tr>'
+      );
+    }).join('');
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-600">Network error</td></tr>';
+    if (badge) badge.textContent = '';
+  } finally {
+    if (loading) loading.classList.add('hidden');
+  }
+}
+
+function copyDriveLink(fullUrl) {
+  if (!fullUrl) return;
+  function ok() { showMessage('Link copied to clipboard', 'success'); }
+  function fail() {
+    window.prompt('Copy this link:', fullUrl);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(ok).catch(fail);
+  } else {
+    fail();
+  }
+}
+
+async function uploadDrivePdf(event) {
+  event.preventDefault();
+  const nameInput = document.getElementById('drivePdfNameInput');
+  const fileInput = document.getElementById('drivePdfFileInput');
+  const btn = document.getElementById('driveUploadBtn');
+  const token = localStorage.getItem('adminToken');
+  if (!token) {
+    showMessage('Please log in again', 'error');
+    return;
+  }
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+    showMessage('Choose a PDF file', 'error');
+    return;
+  }
+  const fd = new FormData();
+  fd.append('pdf', fileInput.files[0]);
+  if (nameInput && nameInput.value.trim()) {
+    fd.append('pdf_name', nameInput.value.trim().slice(0, 255));
+  }
+  if (btn) btn.disabled = true;
+  try {
+    const base = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+    const response = await fetch(base + '/drive/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: fd
+    });
+    const result = await response.json();
+    if (result.success) {
+      showMessage('PDF uploaded — link is in the table. Use “Copy link” to paste it anywhere on the site.', 'success');
+      if (fileInput) fileInput.value = '';
+      if (nameInput) nameInput.value = '';
+      await loadDrivePdfs();
+    } else {
+      showMessage(result.message || 'Upload failed', 'error');
+    }
+  } catch (err) {
+    showMessage('Upload failed — check your connection', 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function deleteDrivePdf(id) {
+  if (!id || !confirm('Delete this PDF from the server and remove its link? This cannot be undone.')) return;
+  const token = localStorage.getItem('adminToken');
+  if (!token) {
+    showMessage('Please log in again', 'error');
+    return;
+  }
+  try {
+    const base = typeof API_BASE !== 'undefined' ? API_BASE : '/api';
+    const response = await fetch(base + '/drive/delete/' + encodeURIComponent(id), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const result = await response.json();
+    if (result.success) {
+      showMessage('PDF deleted', 'success');
+      await loadDrivePdfs();
+    } else {
+      showMessage(result.message || 'Delete failed', 'error');
+    }
+  } catch (err) {
+    showMessage('Delete failed', 'error');
+  }
+}
 
       
         async function loadDashboardData() {
@@ -2572,6 +3010,16 @@ function showSection(sectionName) {
                 loadNews();
             }
             break;
+        case 'tvInterviews':
+            if (typeof loadTvInterviews === 'function') {
+                loadTvInterviews();
+            }
+            break;
+        case 'positiveTalk':
+            if (typeof loadPositiveTalkVideos === 'function') {
+                loadPositiveTalkVideos();
+            }
+            break;
         case 'testimonials':
             // Load testimonials only when section is opened
             if (typeof loadTestimonials === 'function') {
@@ -2633,9 +3081,21 @@ function showSection(sectionName) {
             }
             break;
 
+        case 'loanHelpdesk':
+            if (typeof loadLoanHelpdeskCases === 'function') {
+                loadLoanHelpdeskCases();
+            }
+            break;
+
         case 'footerPdf':
             if (typeof loadFooterPdfAdmin === 'function') {
                 loadFooterPdfAdmin();
+            }
+            break;
+
+        case 'drive':
+            if (typeof loadDrivePdfs === 'function') {
+                loadDrivePdfs();
             }
             break;
             
@@ -2683,6 +3143,7 @@ function hideModal(modalId) {
     }
     
     if (modalId === 'newsModal') {
+        destroyNewsContentEditor();
         resetNewsPhotoPreview();
     }
     
@@ -3187,6 +3648,33 @@ function ensureEventDescriptionEditor() {
   });
 }
 
+function destroyNewsContentEditor() {
+  if (typeof window.CKEDITOR !== 'undefined' && window.CKEDITOR.instances.newsContent) {
+    try { window.CKEDITOR.instances.newsContent.destroy(false); } catch (e) { console.warn('CKEditor destroy:', e); }
+  }
+}
+
+function ensureNewsContentEditor() {
+  if (typeof window.CKEDITOR === 'undefined') return;
+  if (window.CKEDITOR.instances.newsContent) return;
+  var el = document.getElementById('newsContent');
+  if (!el || el.tagName !== 'TEXTAREA') return;
+  window.CKEDITOR.replace('newsContent', {
+    height: 200,
+    removePlugins: 'elementspath',
+    resize_enabled: false,
+    enterMode: window.CKEDITOR.ENTER_P,
+    shiftEnterMode: window.CKEDITOR.ENTER_BR,
+    versionCheck: false
+  });
+}
+
+function getNewsContentValue() {
+  return (typeof window.CKEDITOR !== 'undefined' && window.CKEDITOR.instances.newsContent)
+    ? window.CKEDITOR.instances.newsContent.getData()
+    : (document.getElementById('newsContent') && document.getElementById('newsContent').value) || '';
+}
+
 function showAddEventModal() {
     document.getElementById('eventModalTitle').textContent = 'Add New Event';
     document.getElementById('eventModal').classList.add('active');
@@ -3341,7 +3829,7 @@ async function saveEvent(e) {
             console.log('Event saved successfully, refreshing data...');
             alert(`✅ Event ${isEdit ? 'updated' : 'created'} successfully!`);
             closeEventModal();
-          
+            // Force reload events immediately
             invalidateCache('events');
             await loadEvents(true); // Force refresh after save
             await loadDashboardData();
@@ -3585,6 +4073,7 @@ async function deleteSpeaker(id) {
     }
 }
 
+// PHOTOS MANAGEMENT
 // PHOTOS MANAGEMENT
 async function loadPhotos() {
   try {
@@ -4926,7 +5415,6 @@ async function deleteChapterSubleader(id) {
 
 // NEWS SECTION FUNCTIONS
 let currentNews = [];
-let isNewsGridView = true;
 
 async function loadNews(forceRefresh = false) {
     // Check cache first - INSTANT display, no loading indicator
@@ -4944,7 +5432,6 @@ async function loadNews(forceRefresh = false) {
     }
     
     const loading = document.getElementById('newsLoading');
-    const grid = document.getElementById('newsGrid');
     
     try {
         dataCache.news.loading = true;
@@ -4976,15 +5463,20 @@ async function loadNews(forceRefresh = false) {
             console.log('⚠️ Using stale cached data due to error');
             currentNews = cached;
             displayNews();
-        } else if (grid) {
-            grid.innerHTML = `
-                <div class="col-span-full bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-                    <p class="text-red-600 mb-4">Failed to load news: ${error.message}</p>
-                    <button onclick="loadNews(true)" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-                        Retry
-                    </button>
-                </div>
-            `;
+        } else {
+            const tableBody = document.getElementById('newsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center">
+                            <p class="text-red-600 mb-4">Failed to load news: ${error.message}</p>
+                            <button onclick="loadNews(true)" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                                Retry
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
         }
     } finally {
         dataCache.news.loading = false;
@@ -4992,20 +5484,21 @@ async function loadNews(forceRefresh = false) {
 }
 
 function displayNews() {
-    const grid = document.getElementById('newsGrid');
-    
-    if (!grid) return;
-    
+    const tableBody = document.getElementById('newsTableBody');
+    if (!tableBody) return;
+
     if (currentNews.length === 0) {
-        grid.innerHTML = `
-            <div class="col-span-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
-                <div class="text-gray-400 text-6xl mb-4">📰</div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">No news found</h3>
-                <p class="text-gray-600 mb-6">Get started by adding your first news article</p>
-                <button onclick="showAddNewsModal()" class="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">
-                    📰 Add First News
-                </button>
-            </div>
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-12 text-center">
+                    <div class="text-gray-400 text-6xl mb-4">📰</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No news found</h3>
+                    <p class="text-gray-600 mb-6">Get started by adding your first news article</p>
+                    <button onclick="showAddNewsModal()" class="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">
+                        📰 Add First News
+                    </button>
+                </td>
+            </tr>
         `;
         return;
     }
@@ -5016,57 +5509,38 @@ function displayNews() {
         return orderA - orderB;
     });
 
-    grid.innerHTML = sortedNews.map(news => {
-        console.log('🖼️ Rendering news:', news.title, 'Photo URL:', news.photo_url);
-        
-        const photoUrl = news.photo_url?.startsWith('http') 
-            ? news.photo_url 
-            : `${window.location.origin}${news.photo_url}`;
-        
-        const truncatedContent = news.content.length > 100 
-            ? news.content.substring(0, 100) + '...' 
-            : news.content;
-        
+    tableBody.innerHTML = sortedNews.map(news => {
+        const photoUrl = news.photo_url?.startsWith('http')
+            ? news.photo_url
+            : news.photo_url ? `${window.location.origin}${news.photo_url}` : '';
+
         return `
-            <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-                <div class="h-48 overflow-hidden bg-gray-200">
-                    <img src="${photoUrl}" 
-                         alt="${news.title}" 
-                         class="w-full h-full object-cover"
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2248%22>📰</text></svg>';">
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+            <td class="px-6 py-4">
+                ${photoUrl ?
+                    `<img src="${photoUrl}" class="w-16 h-12 rounded object-cover" alt="${news.title}">` :
+                    `<div class="w-16 h-12 bg-gradient-to-br from-red-500 to-red-700 rounded flex items-center justify-center text-white text-sm font-bold">📰</div>`
+                }
+            </td>
+            <td class="px-6 py-4 font-medium text-gray-900">${news.title}</td>
+            <td class="px-6 py-4 text-gray-600">${news.published_date ? new Date(news.published_date).toLocaleDateString() : 'N/A'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">${news.order_index}</td>
+            <td class="px-6 py-4">
+                <div class="flex space-x-2">
+                    <button onclick="viewNewsDetails(${news.id})" class="text-green-600 hover:text-green-800">👁️ View</button>
+                    <button onclick="editNews(${news.id})" class="text-blue-600 hover:text-blue-800">✏️ Edit</button>
+                    <button onclick="deleteNews(${news.id}, '${news.title.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800">🗑️ Delete</button>
                 </div>
-                
-                <div class="p-6">
-                    <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2">${news.title}</h3>
-                    <p class="text-gray-600 text-sm mb-3 line-clamp-3">${truncatedContent}</p>
-                    
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-xs text-gray-500">📅 ${news.published_date ? new Date(news.published_date).toLocaleDateString() : 'N/A'}</span>
-                        <span class="text-xs text-gray-400">Order: ${news.order_index}</span>
-                    </div>
-                    
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                        <button onclick="viewNewsDetails(${news.id})" class="text-green-600 hover:text-green-800 px-3 py-1 rounded hover:bg-green-50 text-sm font-medium">
-                            👁️ View
-                        </button>
-                        <div class="flex space-x-2">
-                            <button onclick="editNews(${news.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded hover:bg-blue-50 text-sm font-medium">
-                                ✏️ Edit
-                            </button>
-                            <button onclick="deleteNews(${news.id}, '${news.title.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800 px-3 py-1 rounded hover:bg-red-50 text-sm font-medium">
-                                🗑️ Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+            </td>
+        </tr>
+    `;
     }).join('');
 }
 
 // News CRUD operations
 function showAddNewsModal() {
     document.getElementById('newsModalTitle').textContent = 'Add New News';
+    destroyNewsContentEditor();
     document.getElementById('newsForm').reset();
     document.getElementById('newsId').value = '';
     document.getElementById('newsSaveText').textContent = '💾 Save News';
@@ -5077,6 +5551,19 @@ function showAddNewsModal() {
     resetNewsPhotoPreview();
     showModal('newsModal');
     currentEditingId = null;
+    function initEditor() {
+      ensureNewsContentEditor();
+      if (typeof window.CKEDITOR !== 'undefined' && window.CKEDITOR.instances.newsContent) {
+        window.CKEDITOR.instances.newsContent.setData('');
+      }
+    }
+    ensureCKEditorScript(function() {
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          setTimeout(initEditor, 250);
+        });
+      });
+    });
 }
 
 function editNews(id) {
@@ -5092,7 +5579,10 @@ function editNews(id) {
     document.getElementById('newsModalTitle').textContent = 'Edit News';
     document.getElementById('newsId').value = news.id;
     document.getElementById('newsTitle').value = news.title;
-    document.getElementById('newsContent').value = news.content;
+    var contentEl = document.getElementById('newsContent');
+    if (contentEl && contentEl.tagName === 'TEXTAREA') {
+      contentEl.value = news.content || '';
+    }
     document.getElementById('newsDate').value = news.published_date ? news.published_date.split('T')[0] : '';
     document.getElementById('newsOrder').value = news.order_index;
     document.getElementById('newsSourceLinkUrl').value = news.source_link_url || '';
@@ -5122,6 +5612,20 @@ function editNews(id) {
     }
     
     showModal('newsModal');
+    var contentForEditor = news.content || '';
+    function initEditorForEdit() {
+      ensureNewsContentEditor();
+      if (typeof window.CKEDITOR !== 'undefined' && window.CKEDITOR.instances.newsContent) {
+        window.CKEDITOR.instances.newsContent.setData(contentForEditor);
+      }
+    }
+    ensureCKEditorScript(function() {
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          setTimeout(initEditorForEdit, 250);
+        });
+      });
+    });
 }
 
 async function saveNews(event) {
@@ -5131,7 +5635,7 @@ async function saveNews(event) {
     
     // Add form fields
     formData.append('title', document.getElementById('newsTitle').value.trim());
-    formData.append('content', document.getElementById('newsContent').value.trim());
+    formData.append('content', getNewsContentValue().trim());
     formData.append('published_date', document.getElementById('newsDate').value);
     formData.append('order_index', parseInt(document.getElementById('newsOrder').value, 10) || 0);
     formData.append('source_link_url', document.getElementById('newsSourceLinkUrl').value.trim());
@@ -5221,57 +5725,541 @@ async function deleteNews(id, title) {
     }
 }
 
-function toggleNewsView() {
-    const grid = document.getElementById('newsGrid');
-    const table = document.getElementById('newsTable');
-    const toggleBtn = document.getElementById('newsViewToggleBtn');
-    
-    if (!grid || !table || !toggleBtn) return;
-    
-    isNewsGridView = !isNewsGridView;
-    
-    if (isNewsGridView) {
-        grid.classList.remove('hidden');
-        table.classList.add('hidden');
-        toggleBtn.textContent = 'Switch to Table View';
-    } else {
-        grid.classList.add('hidden');
-        table.classList.remove('hidden');
-        toggleBtn.textContent = 'Switch to Grid View';
-        displayNewsTable();
+// TV INTERVIEWS SECTION FUNCTIONS
+let currentTvInterviews = [];
+let currentTvInterviewEditingId = null;
+
+function extractYouTubeVideoIdClient(url) {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    const patterns = [
+        /(?:youtube\.com\/watch\?(?:[^&]*&)*v=|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+    ];
+    for (const pattern of patterns) {
+        const match = trimmed.match(pattern);
+        if (match && match[1]) return match[1];
+    }
+    return null;
+}
+
+function getTvInterviewThumbnailUrl(videoId) {
+    return `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+}
+
+async function loadTvInterviews(forceRefresh = false) {
+    if (!forceRefresh && isCached('tvInterviews')) {
+        currentTvInterviews = getCached('tvInterviews') || [];
+        displayTvInterviews();
+        return;
+    }
+
+    if (dataCache.tvInterviews.loading) return;
+
+    const loading = document.getElementById('tvInterviewsLoading');
+    const grid = document.getElementById('tvInterviewsGrid');
+
+    try {
+        dataCache.tvInterviews.loading = true;
+        if (loading && !isCached('tvInterviews')) loading.style.display = 'flex';
+
+        const response = await apiCall('/tv-interviews/admin/all', {}, 3, forceRefresh);
+        currentTvInterviews = response.data || [];
+        setCached('tvInterviews', currentTvInterviews);
+
+        if (loading) loading.style.display = 'none';
+        displayTvInterviews();
+    } catch (error) {
+        console.error('Failed to load TV interviews:', error);
+        if (loading) loading.style.display = 'none';
+        const cached = getCached('tvInterviews');
+        if (cached && cached.length > 0) {
+            currentTvInterviews = cached;
+            displayTvInterviews();
+        } else if (grid) {
+            grid.innerHTML = `
+                <div class="col-span-full bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+                    <p class="text-red-600 mb-4">Failed to load TV interviews: ${error.message}</p>
+                    <button onclick="loadTvInterviews(true)" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Retry</button>
+                </div>
+            `;
+        }
+    } finally {
+        dataCache.tvInterviews.loading = false;
     }
 }
 
-function displayNewsTable() {
-    const tableBody = document.getElementById('newsTableBody');
-    if (!tableBody) return;
+function displayTvInterviews() {
+    const grid = document.getElementById('tvInterviewsGrid');
+    if (!grid) return;
 
-    const sortedNews = [...currentNews].sort((a, b) => {
-        const orderA = a.order_index || 999;
-        const orderB = b.order_index || 999;
-        return orderA - orderB;
-    });
+    if (currentTvInterviews.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
+                <div class="text-gray-400 text-6xl mb-4">📺</div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No TV interviews yet</h3>
+                <p class="text-gray-600 mb-6">Add your first YouTube TV interview</p>
+                <button onclick="showAddTvInterviewModal()" class="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">📺 Add TV Interview</button>
+            </div>
+        `;
+        return;
+    }
 
-    tableBody.innerHTML = sortedNews.map(news => `
-        <tr class="border-b border-gray-200 hover:bg-gray-50">
-            <td class="px-6 py-4">
-                ${news.photo_url ? 
-                    `<img src="${news.photo_url}" class="w-16 h-12 rounded object-cover" alt="${news.title}">` :
-                    `<div class="w-16 h-12 bg-gradient-to-br from-red-500 to-red-700 rounded flex items-center justify-center text-white text-sm font-bold">📰</div>`
-                }
-            </td>
-            <td class="px-6 py-4 font-medium text-gray-900">${news.title}</td>
-            <td class="px-6 py-4 text-gray-600">${news.published_date ? new Date(news.published_date).toLocaleDateString() : 'N/A'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">${news.order_index}</td>
-            <td class="px-6 py-4">
-                <div class="flex space-x-2">
-                    <button onclick="viewNewsDetails(${news.id})" class="text-green-600 hover:text-green-800">👁️ View</button>
-                    <button onclick="editNews(${news.id})" class="text-blue-600 hover:text-blue-800">✏️ Edit</button>
-                    <button onclick="deleteNews(${news.id}, '${news.title.replace(/'/g, "\\'")}')" class="text-red-600 hover:text-red-800">🗑️ Delete</button>
+    const sorted = [...currentTvInterviews].sort((a, b) => (a.order_index || 999) - (b.order_index || 999));
+
+    grid.innerHTML = sorted.map(item => {
+        const videoId = item.youtube_video_id || extractYouTubeVideoIdClient(item.youtube_url) || '';
+        const thumbUrl = videoId ? getTvInterviewThumbnailUrl(videoId) : '';
+        const safeTitle = (item.title || '').replace(/'/g, "\\'").replace(/</g, '&lt;');
+        const created = item.created_at ? new Date(item.created_at).toLocaleDateString() : '—';
+        const updated = item.updated_at ? new Date(item.updated_at).toLocaleDateString() : '—';
+
+        return `
+            <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200 hover:shadow-xl transition-shadow ${item.is_active ? '' : 'opacity-75'}">
+                <div class="h-48 overflow-hidden bg-gray-900 relative">
+                    ${thumbUrl ? `<img src="${thumbUrl}" alt="${safeTitle}" class="w-full h-full object-cover" onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'">` : '<div class="w-full h-full flex items-center justify-center text-5xl">📺</div>'}
+                    <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center pointer-events-none">
+                        <div class="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center">
+                            <svg class="w-7 h-7 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
                 </div>
-            </td>
-        </tr>
-    `).join('');
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-bold text-gray-900 line-clamp-2 flex-1">${item.title}</h3>
+                        <span class="text-xs px-2 py-1 rounded-full ml-2 shrink-0 ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">${item.is_active ? '✅ Active' : '⏸️ Hidden'}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-1">Order: ${item.order_index ?? 0}</p>
+                    <p class="text-xs text-gray-400 mb-4">Created: ${created} · Updated: ${updated}</p>
+                    <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                        <button type="button" onclick="toggleTvInterviewActive(${item.id})" class="text-amber-600 hover:text-amber-800 px-3 py-1 rounded hover:bg-amber-50 text-sm font-medium">${item.is_active ? '👁️ Hide' : '👁️ Show'}</button>
+                        <button type="button" onclick="editTvInterview(${item.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded hover:bg-blue-50 text-sm font-medium">✏️ Edit</button>
+                        <button type="button" onclick="deleteTvInterview(${item.id}, '${safeTitle}')" class="text-red-600 hover:text-red-800 px-3 py-1 rounded hover:bg-red-50 text-sm font-medium">🗑️ Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showAddTvInterviewModal() {
+    currentTvInterviewEditingId = null;
+    document.getElementById('tvInterviewModalTitle').textContent = 'Add TV Interview';
+    document.getElementById('tvInterviewForm').reset();
+    document.getElementById('tvInterviewId').value = '';
+    document.getElementById('tvInterviewSaveText').textContent = '💾 Save TV Interview';
+    document.getElementById('tvInterviewYoutubeUrl').setAttribute('required', 'required');
+    const hint = document.getElementById('tvInterviewVideoIdHint');
+    if (hint) { hint.classList.add('hidden'); hint.textContent = ''; }
+    showModal('tvInterviewModal');
+}
+
+function editTvInterview(id) {
+    const item = currentTvInterviews.find(i => i.id === id);
+    if (!item) {
+        alert('TV Interview not found');
+        return;
+    }
+    currentTvInterviewEditingId = id;
+    document.getElementById('tvInterviewModalTitle').textContent = 'Edit TV Interview';
+    document.getElementById('tvInterviewId').value = item.id;
+    document.getElementById('tvInterviewTitle').value = item.title || '';
+    document.getElementById('tvInterviewYoutubeUrl').value = item.youtube_url || '';
+    document.getElementById('tvInterviewYoutubeUrl').removeAttribute('required');
+    document.getElementById('tvInterviewOrder').value = item.order_index ?? 0;
+    document.getElementById('tvInterviewSaveText').textContent = '💾 Update TV Interview';
+    const hint = document.getElementById('tvInterviewVideoIdHint');
+    if (hint && item.youtube_video_id) {
+        hint.textContent = 'Video ID: ' + item.youtube_video_id;
+        hint.classList.remove('hidden');
+    }
+    showModal('tvInterviewModal');
+}
+
+async function saveTvInterview(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('tvInterviewTitle').value.trim();
+    const youtubeUrl = document.getElementById('tvInterviewYoutubeUrl').value.trim();
+    const orderIndex = parseInt(document.getElementById('tvInterviewOrder').value, 10) || 0;
+
+    if (!title) {
+        alert('Title is required');
+        return;
+    }
+    if (!currentTvInterviewEditingId && !youtubeUrl) {
+        alert('YouTube URL is required');
+        return;
+    }
+    if (youtubeUrl && !extractYouTubeVideoIdClient(youtubeUrl)) {
+        alert('Invalid YouTube URL. Use youtube.com/watch, youtu.be, or youtube.com/shorts links.');
+        return;
+    }
+
+    const payload = { title, order_index: orderIndex };
+    if (youtubeUrl) payload.youtube_url = youtubeUrl;
+
+    const saveBtn = document.getElementById('tvInterviewSaveBtn');
+    const saveText = document.getElementById('tvInterviewSaveText');
+    const originalText = saveText.textContent;
+
+    try {
+        saveBtn.disabled = true;
+        saveText.innerHTML = '<div class="loading mx-auto"></div>';
+
+        const isEdit = currentTvInterviewEditingId;
+        const endpoint = isEdit ? `/tv-interviews/update/${currentTvInterviewEditingId}` : '/tv-interviews/create';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert(`✅ TV Interview ${isEdit ? 'updated' : 'created'} successfully!`);
+            hideModal('tvInterviewModal');
+            invalidateCache('tvInterviews');
+            await loadTvInterviews(true);
+        } else {
+            throw new Error(result.message || 'Save failed');
+        }
+    } catch (error) {
+        console.error('Save TV interview error:', error);
+        alert(`❌ Error: ${error.message}`);
+    } finally {
+        saveBtn.disabled = false;
+        saveText.textContent = originalText;
+    }
+}
+
+async function deleteTvInterview(id, title) {
+    if (!confirm(`Delete "${title}"?\n\nThis cannot be undone.`)) return;
+    try {
+        const response = await fetch(`${API_BASE}/tv-interviews/delete/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('✅ TV Interview deleted');
+            invalidateCache('tvInterviews');
+            await loadTvInterviews(true);
+        } else {
+            throw new Error(result.message || 'Delete failed');
+        }
+    } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+    }
+}
+
+async function toggleTvInterviewActive(id) {
+    try {
+        const response = await fetch(`${API_BASE}/tv-interviews/toggle-active/${id}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const result = await response.json();
+        if (result.success) {
+            invalidateCache('tvInterviews');
+            await loadTvInterviews(true);
+        } else {
+            throw new Error(result.message || 'Toggle failed');
+        }
+    } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+    }
+}
+
+// POSITIVE TALK SHOW SECTION FUNCTIONS
+let currentPositiveTalkVideos = [];
+let currentPositiveTalkEditingId = null;
+
+const POSITIVE_TALK_CATEGORY_LABELS = {
+    promo: 'Promo Videos',
+    full_episode: 'Full Episodes'
+};
+
+function getPositiveTalkCategoryLabel(category) {
+    return POSITIVE_TALK_CATEGORY_LABELS[category] || category || 'Unknown';
+}
+
+function formatPositiveTalkVideoDate(value) {
+    if (!value) return '—';
+    const str = String(value).slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return '—';
+    const parsed = new Date(`${str}T12:00:00`);
+    if (Number.isNaN(parsed.getTime())) return str;
+    return parsed.toLocaleDateString();
+}
+
+function toPositiveTalkDateInputValue(value) {
+    if (!value) return new Date().toISOString().slice(0, 10);
+    const str = String(value).slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(str) ? str : new Date().toISOString().slice(0, 10);
+}
+
+function getPositiveTalkSortTime(item) {
+    const videoDate = item.video_date ? new Date(`${String(item.video_date).slice(0, 10)}T12:00:00`).getTime() : NaN;
+    if (Number.isFinite(videoDate)) return videoDate;
+    return new Date(item.created_at || 0).getTime();
+}
+
+function sortPositiveTalkByDateClient(items) {
+    return [...items].sort((a, b) => {
+        const dateA = getPositiveTalkSortTime(a);
+        const dateB = getPositiveTalkSortTime(b);
+        if (dateB !== dateA) return dateB - dateA;
+        return (b.id || 0) - (a.id || 0);
+    });
+}
+
+async function loadPositiveTalkVideos(forceRefresh = false) {
+    if (!forceRefresh && isCached('positiveTalk')) {
+        currentPositiveTalkVideos = getCached('positiveTalk') || [];
+        displayPositiveTalkVideos();
+        return;
+    }
+
+    if (dataCache.positiveTalk.loading) return;
+
+    const loading = document.getElementById('positiveTalkLoading');
+    const grid = document.getElementById('positiveTalkGrid');
+
+    try {
+        dataCache.positiveTalk.loading = true;
+        if (loading && !isCached('positiveTalk')) loading.style.display = 'flex';
+
+        const response = await apiCall('/positive-talk/admin/all', {}, 3, forceRefresh);
+        currentPositiveTalkVideos = response.data || [];
+        setCached('positiveTalk', currentPositiveTalkVideos);
+
+        if (loading) loading.style.display = 'none';
+        displayPositiveTalkVideos();
+    } catch (error) {
+        console.error('Failed to load Positive Talk videos:', error);
+        if (loading) loading.style.display = 'none';
+        const cached = getCached('positiveTalk');
+        if (cached && cached.length > 0) {
+            currentPositiveTalkVideos = cached;
+            displayPositiveTalkVideos();
+        } else if (grid) {
+            grid.innerHTML = `
+                <div class="col-span-full bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+                    <p class="text-red-600 mb-4">Failed to load videos: ${error.message}</p>
+                    <button onclick="loadPositiveTalkVideos(true)" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Retry</button>
+                </div>
+            `;
+        }
+    } finally {
+        dataCache.positiveTalk.loading = false;
+    }
+}
+
+function displayPositiveTalkVideos() {
+    const grid = document.getElementById('positiveTalkGrid');
+    if (!grid) return;
+
+    if (currentPositiveTalkVideos.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
+                <div class="text-gray-400 text-6xl mb-4">🎙️</div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No videos yet</h3>
+                <p class="text-gray-600 mb-6">Add your first Positive Talk Show video</p>
+                <button onclick="showAddPositiveTalkModal()" class="bg-red-500 text-white px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">🎙️ Add Video</button>
+            </div>
+        `;
+        return;
+    }
+
+    const sorted = sortPositiveTalkByDateClient(currentPositiveTalkVideos);
+
+    grid.innerHTML = sorted.map(item => {
+        const videoId = item.youtube_video_id || extractYouTubeVideoIdClient(item.youtube_url) || '';
+        const thumbUrl = videoId ? getTvInterviewThumbnailUrl(videoId) : '';
+        const safeTitle = (item.title || '').replace(/'/g, "\\'").replace(/</g, '&lt;');
+        const videoDate = formatPositiveTalkVideoDate(item.video_date || item.created_at);
+        const categoryLabel = getPositiveTalkCategoryLabel(item.category);
+        const categoryClass = item.category === 'promo'
+            ? 'bg-purple-100 text-purple-800'
+            : 'bg-blue-100 text-blue-800';
+
+        return `
+            <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-200 hover:shadow-xl transition-shadow ${item.is_active ? '' : 'opacity-75'}">
+                <div class="h-48 overflow-hidden bg-gray-900 relative">
+                    ${thumbUrl ? `<img src="${thumbUrl}" alt="${safeTitle}" class="w-full h-full object-cover" onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'">` : '<div class="w-full h-full flex items-center justify-center text-5xl">🎙️</div>'}
+                    <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center pointer-events-none">
+                        <div class="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center">
+                            <svg class="w-7 h-7 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2 gap-2">
+                        <h3 class="text-lg font-bold text-gray-900 line-clamp-2 flex-1">${item.title}</h3>
+                        <span class="text-xs px-2 py-1 rounded-full shrink-0 ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">${item.is_active ? '✅ Active' : '⏸️ Hidden'}</span>
+                    </div>
+                    <span class="inline-block text-xs px-2 py-1 rounded-full mb-2 ${categoryClass}">${categoryLabel}</span>
+                    <p class="text-xs text-gray-400 mb-4">Video date: ${videoDate} · Newest shown first</p>
+                    <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                        <button type="button" onclick="togglePositiveTalkActive(${item.id})" class="text-amber-600 hover:text-amber-800 px-3 py-1 rounded hover:bg-amber-50 text-sm font-medium">${item.is_active ? '👁️ Hide' : '👁️ Show'}</button>
+                        <button type="button" onclick="editPositiveTalkVideo(${item.id})" class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded hover:bg-blue-50 text-sm font-medium">✏️ Edit</button>
+                        <button type="button" onclick="deletePositiveTalkVideo(${item.id}, '${safeTitle}')" class="text-red-600 hover:text-red-800 px-3 py-1 rounded hover:bg-red-50 text-sm font-medium">🗑️ Delete</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showAddPositiveTalkModal() {
+    currentPositiveTalkEditingId = null;
+    document.getElementById('positiveTalkModalTitle').textContent = 'Add Positive Talk Video';
+    document.getElementById('positiveTalkForm').reset();
+    document.getElementById('positiveTalkId').value = '';
+    document.getElementById('positiveTalkCategory').value = 'promo';
+    document.getElementById('positiveTalkVideoDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('positiveTalkSaveText').textContent = '💾 Save Video';
+    document.getElementById('positiveTalkYoutubeUrl').setAttribute('required', 'required');
+    const hint = document.getElementById('positiveTalkVideoIdHint');
+    if (hint) { hint.classList.add('hidden'); hint.textContent = ''; }
+    showModal('positiveTalkModal');
+}
+
+function editPositiveTalkVideo(id) {
+    const item = currentPositiveTalkVideos.find(i => i.id === id);
+    if (!item) {
+        alert('Video not found');
+        return;
+    }
+    currentPositiveTalkEditingId = id;
+    document.getElementById('positiveTalkModalTitle').textContent = 'Edit Positive Talk Video';
+    document.getElementById('positiveTalkId').value = item.id;
+    document.getElementById('positiveTalkTitle').value = item.title || '';
+    document.getElementById('positiveTalkCategory').value = item.category || 'full_episode';
+    document.getElementById('positiveTalkVideoDate').value = toPositiveTalkDateInputValue(item.video_date || item.created_at);
+    document.getElementById('positiveTalkYoutubeUrl').value = item.youtube_url || '';
+    document.getElementById('positiveTalkYoutubeUrl').removeAttribute('required');
+    document.getElementById('positiveTalkSaveText').textContent = '💾 Update Video';
+    const hint = document.getElementById('positiveTalkVideoIdHint');
+    if (hint && item.youtube_video_id) {
+        hint.textContent = 'Video ID: ' + item.youtube_video_id;
+        hint.classList.remove('hidden');
+    }
+    showModal('positiveTalkModal');
+}
+
+async function savePositiveTalkVideo(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('positiveTalkTitle').value.trim();
+    const youtubeUrl = document.getElementById('positiveTalkYoutubeUrl').value.trim();
+    const category = document.getElementById('positiveTalkCategory').value;
+    const videoDate = document.getElementById('positiveTalkVideoDate').value;
+
+    if (!title) {
+        alert('Title is required');
+        return;
+    }
+    if (!videoDate) {
+        alert('Video date is required');
+        return;
+    }
+    if (!currentPositiveTalkEditingId && !youtubeUrl) {
+        alert('YouTube URL is required');
+        return;
+    }
+    if (youtubeUrl && !extractYouTubeVideoIdClient(youtubeUrl)) {
+        alert('Invalid YouTube URL. Use youtube.com/watch, youtu.be, or youtube.com/shorts links.');
+        return;
+    }
+
+    const payload = { title, category, video_date: videoDate };
+    if (youtubeUrl) payload.youtube_url = youtubeUrl;
+
+    const saveBtn = document.getElementById('positiveTalkSaveBtn');
+    const saveText = document.getElementById('positiveTalkSaveText');
+    const originalText = saveText.textContent;
+
+    try {
+        saveBtn.disabled = true;
+        saveText.innerHTML = '<div class="loading mx-auto"></div>';
+
+        const isEdit = currentPositiveTalkEditingId;
+        const endpoint = isEdit ? `/positive-talk/update/${currentPositiveTalkEditingId}` : '/positive-talk/create';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert(`✅ Video ${isEdit ? 'updated' : 'created'} successfully!`);
+            hideModal('positiveTalkModal');
+            invalidateCache('positiveTalk');
+            await loadPositiveTalkVideos(true);
+        } else {
+            throw new Error(result.message || 'Save failed');
+        }
+    } catch (error) {
+        console.error('Save Positive Talk video error:', error);
+        alert(`❌ Error: ${error.message}`);
+    } finally {
+        saveBtn.disabled = false;
+        saveText.textContent = originalText;
+    }
+}
+
+async function deletePositiveTalkVideo(id, title) {
+    if (!confirm(`Delete "${title}"?\n\nThis cannot be undone.`)) return;
+    try {
+        const response = await fetch(`${API_BASE}/positive-talk/delete/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('✅ Video deleted');
+            invalidateCache('positiveTalk');
+            await loadPositiveTalkVideos(true);
+        } else {
+            throw new Error(result.message || 'Delete failed');
+        }
+    } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+    }
+}
+
+async function togglePositiveTalkActive(id) {
+    try {
+        const response = await fetch(`${API_BASE}/positive-talk/toggle-active/${id}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const result = await response.json();
+        if (result.success) {
+            invalidateCache('positiveTalk');
+            await loadPositiveTalkVideos(true);
+        } else {
+            throw new Error(result.message || 'Toggle failed');
+        }
+    } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+    }
 }
 
 function viewNewsDetails(id) {
@@ -8035,6 +9023,337 @@ async function deleteService(id) {
     } catch (error) {
         console.error('❌ Delete error:', error);
         alert('Error deleting service. Please try again.');
+    }
+}
+
+
+let loanHelpdeskCases = [];
+
+function formatLoanHelpdeskDate(value) {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function getLoanHelpdeskStatusClass(status) {
+    const map = {
+        'Submitted': 'bg-indigo-100 text-indigo-800',
+        'Under Review': 'bg-blue-100 text-blue-800',
+        'Representation Sent': 'bg-amber-100 text-amber-800',
+        'Reply Awaited': 'bg-yellow-100 text-yellow-800',
+        'Escalated': 'bg-rose-100 text-rose-800',
+        'Closed': 'bg-green-100 text-green-800'
+    };
+    return map[status] || 'bg-gray-100 text-gray-800';
+}
+
+function displayLoanHelpdeskCases() {
+    const tbody = document.getElementById('loanHelpdeskTableBody');
+    const tableWrap = document.getElementById('loanHelpdeskTableWrap');
+    const empty = document.getElementById('loanHelpdeskEmpty');
+    const countEl = document.getElementById('loanHelpdeskCount');
+    if (!tbody) return;
+
+    let filtered = Array.isArray(loanHelpdeskCases) ? [...loanHelpdeskCases] : [];
+    const search = (document.getElementById('loanHelpdeskSearch')?.value || '').trim().toLowerCase();
+    const statusFilter = document.getElementById('loanHelpdeskStatusFilter')?.value || '';
+
+    if (statusFilter) {
+        filtered = filtered.filter(item => item.status === statusFilter);
+    }
+    if (search) {
+        filtered = filtered.filter(item => {
+            const haystack = [
+                item.caseId, item.name, item.mobile, item.email, item.businessName,
+                item.lenderName, item.referenceNo, item.issue, item.city, item.state, item.adminRemark
+            ].join(' ').toLowerCase();
+            return haystack.includes(search);
+        });
+    }
+
+    if (countEl) {
+        countEl.textContent = `${filtered.length} case${filtered.length === 1 ? '' : 's'} shown`;
+    }
+
+    if (!filtered.length) {
+        tbody.innerHTML = '';
+        tableWrap?.classList.add('hidden');
+        empty?.classList.remove('hidden');
+        return;
+    }
+
+    empty?.classList.add('hidden');
+    tableWrap?.classList.remove('hidden');
+
+    tbody.innerHTML = filtered.map(item => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-4 py-4 text-sm font-bold text-gray-900">${escapeHtml(item.caseId || '-')}</td>
+            <td class="px-4 py-4 text-sm text-gray-800">
+                <div class="font-semibold">${escapeHtml(item.name || '-')}</div>
+                <div class="text-xs text-gray-500">${escapeHtml(item.businessName || '')}</div>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-800">${escapeHtml(item.mobile || '-')}</td>
+            <td class="px-4 py-4 text-sm text-gray-800">${escapeHtml(item.lenderName || '-')}</td>
+            <td class="px-4 py-4 text-sm text-gray-800">Rs. ${escapeHtml(String(item.amount || '-'))}</td>
+            <td class="px-4 py-4 text-sm text-gray-800">${escapeHtml(item.issue || '-')}</td>
+            <td class="px-4 py-4 text-sm">
+                <span class="px-3 py-1 rounded-full text-xs font-bold ${getLoanHelpdeskStatusClass(item.status)}">${escapeHtml(item.status || 'Submitted')}</span>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700 max-w-[180px]">
+                ${item.adminRemark
+                    ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Added</span>`
+                    : '<span class="text-xs text-gray-400">-</span>'}
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-600">${escapeHtml(formatLoanHelpdeskDate(item.createdAt))}</td>
+            <td class="px-4 py-4 text-sm whitespace-nowrap">
+                <button type="button" onclick="viewLoanHelpdeskCase(${Number(item.id)})" class="text-indigo-600 hover:text-indigo-800 font-semibold mr-3">View</button>
+                <button type="button" onclick="deleteLoanHelpdeskCase(${Number(item.id)})" class="text-red-600 hover:text-red-800 font-semibold">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function loadLoanHelpdeskCases(forceRefresh = false) {
+    const loading = document.getElementById('loanHelpdeskLoading');
+    const tableWrap = document.getElementById('loanHelpdeskTableWrap');
+    const empty = document.getElementById('loanHelpdeskEmpty');
+
+    loading?.classList.remove('hidden');
+    tableWrap?.classList.add('hidden');
+    empty?.classList.add('hidden');
+
+    try {
+        const result = await apiCall('/admin/loan-helpdesk/cases', {}, 3, forceRefresh);
+        loanHelpdeskCases = Array.isArray(result.data) ? result.data : [];
+        displayLoanHelpdeskCases();
+    } catch (error) {
+        console.error('Failed to load loan helpdesk cases:', error);
+        loanHelpdeskCases = [];
+        displayLoanHelpdeskCases();
+        showMessage('Failed to load loan helpdesk cases.', 'error');
+    } finally {
+        loading?.classList.add('hidden');
+    }
+}
+
+function closeLoanHelpdeskDetailModal() {
+    const modal = document.getElementById('loanHelpdeskDetailModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+}
+
+function renderLoanHelpdeskFiles(files) {
+    if (!Array.isArray(files) || !files.length) {
+        return '<p class="text-sm text-gray-600">No documents uploaded.</p>';
+    }
+
+    return files.map((file) => {
+        const name = escapeHtml(file.name || 'Document');
+        const url = String(file.url || '').trim();
+        const safeUrl = escapeHtml(url);
+
+        if (!url) {
+            return `<div class="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-0"><p class="font-semibold text-gray-900">${name}</p><span class="text-xs text-gray-500">Not available</span></div>`;
+        }
+
+        return `
+            <div class="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-0">
+                <p class="font-semibold text-gray-900">${name}</p>
+                <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">View</a>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderLoanHelpdeskDetail(item) {
+    const files = Array.isArray(item.files) ? item.files : [];
+    const timeline = Array.isArray(item.timeline) ? item.timeline : [];
+    const detailField = (label, value) => `
+        <div class="rounded-xl bg-gray-50 p-4">
+            <p class="text-xs font-bold uppercase tracking-wide text-gray-500">${escapeHtml(label)}</p>
+            <p class="mt-1 text-sm font-semibold text-gray-900 break-words">${escapeHtml(value || '-')}</p>
+        </div>
+    `;
+
+    return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${detailField('Case ID', item.caseId)}
+            ${detailField('Status', item.status)}
+            ${detailField('Applicant Name', item.name)}
+            ${detailField('Business Name', item.businessName)}
+            ${detailField('Mobile', item.mobile)}
+            ${detailField('Email', item.email)}
+            ${detailField('Applicant Pincode', item.applicantPincode)}
+            ${detailField('Applicant City', item.city)}
+            ${detailField('Applicant State', item.state)}
+            ${detailField('Udhyam Registration', item.udhyam)}
+            ${detailField('Bank / NBFC', item.lenderName)}
+            ${detailField('IFSC Code', item.ifsc)}
+            ${detailField('Bank Pincode', item.bankPincode)}
+            ${detailField('Bank City', item.bankCity)}
+            ${detailField('Bank State', item.bankState)}
+            ${detailField('Bank Address', item.bankAddress)}
+            ${detailField('Loan Type', item.loanType)}
+            ${detailField('Loan Amount', item.amount ? 'Rs. ' + item.amount : '-')}
+            ${detailField('Application Date', item.applicationDate)}
+            ${detailField('Reference Number', item.referenceNo)}
+            ${detailField('Bank Officer Name', item.officerName)}
+            ${detailField('Officer Designation', item.officerDesignation)}
+            ${detailField('Officer Mobile', item.officerMobile)}
+            ${detailField('Officer Email', item.officerEmail)}
+            ${detailField('Problem Faced', item.issue)}
+            ${detailField('Assigned Officer', item.assignedTo || '-')}
+            ${detailField('Assigned Officer Number', item.assignedOfficerMobile || '-')}
+            ${detailField('Follow-up Date', item.followUpDate)}
+            ${detailField('Submitted On', formatLoanHelpdeskDate(item.createdAt))}
+        </div>
+        <div class="mt-6">
+            <p class="text-sm font-bold text-gray-700 mb-2">Brief Details</p>
+            <div class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-800 whitespace-pre-wrap">${escapeHtml(item.issueDetails || '-')}</div>
+        </div>
+        <div class="mt-6">
+            <p class="text-sm font-bold text-gray-700 mb-2">Uploaded Documents</p>
+            <div class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-800">
+                ${renderLoanHelpdeskFiles(files)}
+            </div>
+        </div>
+        <div class="mt-6">
+            <p class="text-sm font-bold text-gray-700 mb-2">Timeline</p>
+            <div class="space-y-3">
+                ${timeline.length ? timeline.map(entry => `
+                    <div class="rounded-xl bg-gray-50 p-4">
+                        <p class="text-sm font-bold text-gray-900">${escapeHtml(entry.status || '-')}</p>
+                        <p class="text-xs text-gray-500 mt-1">${escapeHtml(entry.time || '-')}</p>
+                        <p class="text-sm text-gray-700 mt-2">${escapeHtml(entry.note || '-')}</p>
+                    </div>
+                `).join('') : '<p class="text-sm text-gray-600">No timeline entries.</p>'}
+            </div>
+        </div>
+        <div class="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <div class="flex items-start justify-between gap-3 mb-3">
+                <div>
+                    <p class="text-sm font-bold text-amber-900">Admin Remark</p>
+                    <p class="text-xs text-amber-800 mt-1">Internal only. This remark is visible to admins and is not shown to the applicant.</p>
+                </div>
+                <span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Admin only</span>
+            </div>
+            <textarea id="loanHelpdeskRemarkInput" rows="4" maxlength="2000" class="w-full px-4 py-3 border border-amber-200 rounded-xl bg-white text-sm text-gray-800" placeholder="Write internal notes about this lead, follow-up actions, bank response, or case handling...">${escapeHtml(item.adminRemark || '')}</textarea>
+        </div>
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Update Status</label>
+                <select id="loanHelpdeskStatusInput" class="w-full px-4 py-3 border border-gray-300 rounded-xl">
+                    <option value="Submitted">Submitted</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Representation Sent">Representation Sent</option>
+                    <option value="Reply Awaited">Reply Awaited</option>
+                    <option value="Escalated">Escalated</option>
+                    <option value="Closed">Closed</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Assigned Officer</label>
+                <input id="loanHelpdeskAssignedInput" type="text" value="${escapeHtml(item.assignedTo || '')}" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="Officer name handling this case">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Assigned Officer Number</label>
+                <input id="loanHelpdeskAssignedMobileInput" type="text" maxlength="10" inputmode="numeric" value="${escapeHtml(item.assignedOfficerMobile || '')}" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="10 digit mobile number">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Follow-up Date</label>
+                <input id="loanHelpdeskFollowUpInput" type="date" value="${escapeHtml(item.followUpDate || '')}" class="w-full px-4 py-3 border border-gray-300 rounded-xl">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Timeline Note</label>
+                <textarea id="loanHelpdeskNoteInput" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="Add an update note visible to the applicant in track status"></textarea>
+            </div>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-3">
+            <button type="button" onclick="saveLoanHelpdeskCaseStatus(${Number(item.id)})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold">Save Updates</button>
+            <button type="button" onclick="closeLoanHelpdeskDetailModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl font-semibold">Close</button>
+        </div>
+    `;
+}
+
+async function viewLoanHelpdeskCase(id) {
+    try {
+        const result = await apiCall(`/admin/loan-helpdesk/cases/${id}`);
+        const item = result.data;
+        const modal = document.getElementById('loanHelpdeskDetailModal');
+        const content = document.getElementById('loanHelpdeskDetailContent');
+        if (!modal || !content || !item) return;
+
+        content.innerHTML = renderLoanHelpdeskDetail(item);
+        const statusInput = document.getElementById('loanHelpdeskStatusInput');
+        if (statusInput) statusInput.value = item.status || 'Submitted';
+
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Failed to load loan helpdesk case:', error);
+        showMessage('Failed to load case details.', 'error');
+    }
+}
+
+async function saveLoanHelpdeskCaseStatus(id) {
+    try {
+        const status = document.getElementById('loanHelpdeskStatusInput')?.value || 'Submitted';
+        const assignedTo = document.getElementById('loanHelpdeskAssignedInput')?.value || '';
+        const assignedOfficerMobile = String(document.getElementById('loanHelpdeskAssignedMobileInput')?.value || '').replace(/\D/g, '').slice(0, 10);
+        const followUpDate = document.getElementById('loanHelpdeskFollowUpInput')?.value || '';
+        const note = document.getElementById('loanHelpdeskNoteInput')?.value || '';
+        const adminRemark = document.getElementById('loanHelpdeskRemarkInput')?.value || '';
+
+        const response = await fetch(`/api/admin/loan-helpdesk/cases/${id}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ status, assignedTo, assignedOfficerMobile, followUpDate, note, adminRemark })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Failed to update case');
+        }
+
+        showMessage('Case updated successfully.', 'success');
+        closeLoanHelpdeskDetailModal();
+        await loadLoanHelpdeskCases(true);
+    } catch (error) {
+        console.error('Failed to update loan helpdesk case:', error);
+        showMessage(error.message || 'Failed to update case.', 'error');
+    }
+}
+
+async function deleteLoanHelpdeskCase(id) {
+    if (!confirm('Delete this loan helpdesk case? This action cannot be undone.')) return;
+
+    try {
+        const response = await fetch(`/api/admin/loan-helpdesk/cases/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Failed to delete case');
+        }
+
+        showMessage('Case deleted successfully.', 'success');
+        await loadLoanHelpdeskCases(true);
+    } catch (error) {
+        console.error('Failed to delete loan helpdesk case:', error);
+        showMessage(error.message || 'Failed to delete case.', 'error');
     }
 }
 
