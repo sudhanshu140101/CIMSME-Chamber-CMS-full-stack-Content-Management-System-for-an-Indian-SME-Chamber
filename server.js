@@ -6,32 +6,312 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
-
-
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+const { SendMailClient } = require("zeptomail");
 
 const axios = require("axios");
 const crypto = require('crypto');
+const https = require('https');
+const Razorpay = require('razorpay');
 
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-const cashfreeConfig = {
-  appId: process.env.CASHFREE_APP_ID?.trim(),
-  secretKey: process.env.CASHFREE_SECRET_KEY?.trim(),
-  apiVersion: '2023-08-01',
-  baseURL: process.env.CASHFREE_ENV === 'production' 
-    ? 'https://api.cashfree.com/pg' 
-    : 'https://test.cashfree.com/pg'
-};
+function envTrim(name) {
+  const v = process.env[name];
+  if (v == null || v === '') return '';
+  return String(v).trim().replace(/^['"]|['"]$/g, '');
+}
 
-function getCashfreeHeaders() {
-   return {
-        'x-api-version': cashfreeConfig.apiVersion,     
-        'x-client-id': cashfreeConfig.appId,            
-        'x-client-secret': cashfreeConfig.secretKey,    
-        'Content-Type': 'application/json; charset=utf-8'
+function normalizeRazorpayEnv() {
+  const env = String(process.env.RAZORPAY_ENV || 'test').trim().toLowerCase();
+  return env === 'production' || env === 'live' ? 'production' : 'test';
+}
+
+function resolvePaymentMode() {
+  return normalizeRazorpayEnv() === 'production' ? 'production' : 'test';
+}
+
+function getRazorpayRuntime() {
+  const keyId = envTrim('RAZORPAY_KEY_ID') || envTrim('RAZORPAY_API_KEY');
+  const keySecret = envTrim('RAZORPAY_KEY_SECRET') || envTrim('RAZORPAY_API_SECRET');
+  const mode = resolvePaymentMode();
+  let client = null;
+  if (keyId && keySecret) {
+    client = new Razorpay({ key_id: keyId, key_secret: keySecret });
+  }
+  return { mode, keyId, keySecret, client };
+}
+
+let razorpayRuntime = getRazorpayRuntime();
+
+function refreshRazorpayRuntime() {
+  razorpayRuntime = getRazorpayRuntime();
+  return razorpayRuntime;
+}
+
+function parsePaymentError(error) {
+  const rz = error?.error || error?.response?.data?.error;
+  return {
+    message: rz?.description || error?.message || 'Payment could not be started',
+    code: rz?.code || error?.statusCode || null,
+    raw: rz || null
+  };
+}
+
+function razorpayTimestampToMysql(ts) {
+  if (ts == null || ts === '') return null;
+  const n = Number(ts);
+  if (!Number.isFinite(n)) return null;
+  const d = n > 1e12 ? new Date(n) : new Date(n * 1000);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function mapRazorpayPaymentEntity(p) {
+  if (!p) return null;
+  const status = p.status === 'captured' ? 'SUCCESS'
+    : (p.status === 'failed' ? 'FAILED' : 'PENDING');
+  return {
+    payment_status: status,
+    cf_payment_id: p.id,
+    payment_amount: Number(p.amount) / 100,
+    payment_method: p.method || 'razorpay',
+    payment_group: p.method || 'razorpay',
+    bank_reference: p.acquirer_data?.rrn || p.id,
+    payment_time: razorpayTimestampToMysql(p.created_at)
+  };
+}
+
+async function verifyRazorpayConnection() {
+  const rt = refreshRazorpayRuntime();
+  if (!rt.client) {
+    return {
+      ok: false,
+      mode: rt.mode,
+      message: 'Razorpay credentials missing — set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env (save file) and restart the server'
     };
+  }
+  try {
+    await rt.client.orders.all({ count: 1 });
+    return { ok: true, mode: rt.mode, message: 'Razorpay payment gateway is ready' };
+  } catch (error) {
+    const pErr = parsePaymentError(error);
+    return { ok: false, mode: rt.mode, message: pErr.message, code: pErr.code };
+  }
+}
+
+function normalizeCustomerPhone(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length === 10) return digits;
+  if (digits.length > 10) return digits.slice(-10);
+  return digits;
+}
+
+function generatePaymentOrderId() {
+  return `ORD_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+}
+
+function isPaymentsEnabled() {
+  return String(process.env.ENABLE_PAYMENTS || 'true').trim().toLowerCase() !== 'false';
+}
+
+async function createPaymentSession({
+  req,
+  orderId,
+  amount,
+  memberId,
+  fullName,
+  email,
+  phone,
+  savedId,
+  businessCategoryL
+}) {
+  if (!isPaymentsEnabled()) {
+    throw new Error('Payments are temporarily unavailable. Please try again later or contact support.');
+  }
+
+  const totals = calculateMembershipPaymentTotals(amount);
+  if (totals.totalPayable <= 0) {
+    throw new Error('Invalid payment amount');
+  }
+
+  const phoneNorm = normalizeCustomerPhone(phone);
+  if (!/^[0-9]{10}$/.test(phoneNorm)) {
+    throw new Error('Invalid phone number for payment');
+  }
+
+  await Database.createPaymentOrder({
+    order_id: orderId,
+    amount: totals.totalPayable,
+    currency: 'INR',
+    customer_name: fullName,
+    customer_email: email,
+    customer_phone: phoneNorm,
+    membership_data: {
+      memberId,
+      applicationId: savedId,
+      businessCategory: businessCategoryL,
+      email,
+      baseFee: totals.baseFee,
+      gstAmount: totals.gstAmount,
+      finalAmount: totals.totalPayable
+    }
+  });
+
+  const rt = refreshRazorpayRuntime();
+  if (!rt.client) {
+    try {
+      await Database.query(
+        "UPDATE payment_orders SET status = 'FAILED', updated_at = NOW() WHERE order_id = ?",
+        [orderId]
+      );
+    } catch (_) { /* ignore */ }
+    const msg = isDevelopment
+      ? 'Payment gateway credentials missing. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env, save the file, and restart npm run dev.'
+      : 'Payment gateway is not configured. Please contact support.';
+    throw new Error(msg);
+  }
+  try {
+    const razorpayOrder = await rt.client.orders.create({
+      amount: totals.amountPaise,
+      currency: 'INR',
+      receipt: String(orderId).slice(0, 40),
+      notes: {
+        member_id: String(memberId || '').slice(0, 100),
+        application_id: String(savedId || ''),
+        email: String(email || '').slice(0, 200),
+        base_fee: String(totals.baseFee),
+        gst_amount: String(totals.gstAmount)
+      }
+    });
+
+    if (!razorpayOrder?.id) {
+      throw new Error('Invalid response from payment gateway');
+    }
+
+    await Database.updatePaymentOrder(orderId, razorpayOrder.id, razorpayOrder.id);
+    if (savedId) {
+      await Database.query(
+        'UPDATE membership_applications SET order_id = ?, payment_status = ? WHERE id = ?',
+        [orderId, 'pending', savedId]
+      );
+    }
+
+    return {
+      orderId,
+      paymentSessionId: razorpayOrder.id,
+      paymentLink: null,
+      cfOrderId: razorpayOrder.id,
+      baseFee: totals.baseFee,
+      gstAmount: totals.gstAmount,
+      finalAmount: totals.totalPayable,
+      amount: totals.totalPayable,
+      cashfreeMode: rt.mode,
+      razorpayKeyId: rt.keyId
+    };
+  } catch (error) {
+    try {
+      await Database.query(
+        "UPDATE payment_orders SET status = 'FAILED', updated_at = NOW() WHERE order_id = ?",
+        [orderId]
+      );
+    } catch (_) { /* ignore */ }
+    throw error;
+  }
+}
+
+async function fetchRazorpayPaymentsForOrder(razorpayOrderId) {
+  const rt = getRazorpayRuntime();
+  if (!rt.client) {
+    throw new Error('Payment gateway is not configured.');
+  }
+  if (!razorpayOrderId) return [];
+
+  try {
+    const order = await rt.client.orders.fetch(razorpayOrderId);
+    const payments = await rt.client.orders.fetchPayments(razorpayOrderId);
+    const items = payments?.items || [];
+    const mapped = items.map(mapRazorpayPaymentEntity).filter(Boolean);
+
+    if (mapped.some((p) => p.payment_status === 'SUCCESS')) {
+      return mapped;
+    }
+    if (order?.status === 'paid' && mapped.length === 0) {
+      return [{
+        payment_status: 'SUCCESS',
+        cf_payment_id: `order_${razorpayOrderId}`,
+        payment_amount: Number(order.amount) / 100,
+        payment_method: 'razorpay',
+        payment_group: 'razorpay',
+        bank_reference: razorpayOrderId,
+        payment_time: razorpayTimestampToMysql(order.created_at)
+      }];
+    }
+    return mapped;
+  } catch (error) {
+    if (isDevelopment) console.error('fetchRazorpayPaymentsForOrder:', parsePaymentError(error).message);
+    return [];
+  }
+}
+
+async function resolveMerchantOrderIdFromRazorpay(razorpayOrderId, receipt) {
+  if (receipt && String(receipt).startsWith('ORD_')) {
+    return receipt;
+  }
+  if (!razorpayOrderId) return null;
+  const rows = await Database.query(
+    'SELECT order_id FROM payment_orders WHERE cf_order_id = ? LIMIT 1',
+    [razorpayOrderId]
+  );
+  return rows[0]?.order_id || null;
+}
+
+async function finalizeSuccessfulPayment(merchantOrderId, payment) {
+  const currentOrder = await Database.getPaymentOrder(merchantOrderId);
+  if (!currentOrder) return false;
+  if (currentOrder.status === 'PAID') {
+    await Database.completeMembershipPayment(merchantOrderId, currentOrder.amount);
+    return true;
+  }
+
+  await Database.updatePaymentStatus(merchantOrderId, 'PAID', {
+    payment_method: payment.payment_group || payment.payment_method
+  });
+
+  await Database.createPaymentTransaction({
+    cf_payment_id: payment.cf_payment_id,
+    order_id: merchantOrderId,
+    amount: payment.payment_amount,
+    status: 'SUCCESS',
+    payment_method: payment.payment_group || payment.payment_method,
+    bank_reference: payment.bank_reference,
+    payment_time: payment.payment_time,
+    webhook_data: payment
+  });
+
+  const completed = await Database.completeMembershipPayment(merchantOrderId, payment.payment_amount);
+  if (completed) {
+    sendMembershipPaymentConfirmationEmail(merchantOrderId);
+  }
+  return !!completed;
+}
+
+async function sendMembershipPaymentConfirmationEmail(orderId) {
+  try {
+    const order = await Database.getPaymentOrder(orderId);
+    if (!order?.customer_email) return;
+    const appRows = await Database.query(
+      'SELECT * FROM membership_applications WHERE email = ? LIMIT 1',
+      [order.customer_email.toLowerCase()]
+    );
+    if (appRows[0]) {
+      sendMembershipApplicationEmail(appRows[0], appRows[0].finalamount || appRows[0].membershipfee).catch(() => {});
+    }
+  } catch (_) { /* non-blocking */ }
 }
 
 //  JWT_SECRET IS 
@@ -68,18 +348,44 @@ const {
   committeeUpload,
   committeeLeaderUpload,
   chapterUpload,
-  chapterLeaderUpload
+  chapterLeaderUpload,
+  drivePdfUpload,
+  loanHelpdeskDocumentsUpload
 } = require('./middleware/upload.middleware');
 
 const verifyAdmin = verifyAdminToken;
 
 
 function getBaseUrl(req) {
+  const fromEnv = [
+    process.env.BASE_URL,
+    process.env.FRONTEND_URL,
+    process.env.PAYMENT_SUCCESS_URL
+      ? String(process.env.PAYMENT_SUCCESS_URL).replace(/\/payment-success\/?$/i, '')
+      : null
+  ]
+    .map((u) => String(u || '').trim().replace(/\/$/, ''))
+    .find((u) => u.startsWith('http'));
+  if (fromEnv) return fromEnv;
+
+  const origin = req?.headers?.origin || req?.get?.('origin');
+  if (origin) return String(origin).trim().replace(/\/$/, '');
+
+  const host = req?.get?.('host') || req?.headers?.host;
+  if (host) {
+    const proto = String(req?.get?.('x-forwarded-proto') || req?.protocol || 'https')
+      .split(',')[0]
+      .trim();
+    return `${proto}://${host}`.replace(/\/$/, '');
+  }
+
   return 'https://indiansmechamber.com';
 }
 
 
 const MEMBER_ID_SERIAL_PAD_LENGTH = 4;
+
+
 
 function getMembershipFeeServer(membershipType, businessCategory, annualTurnover) {
   const type = String(membershipType || 'annual').trim().toLowerCase();
@@ -90,6 +396,25 @@ function getMembershipFeeServer(membershipType, businessCategory, annualTurnover
   if (type === 'patron') return 500000;
   if (type === 'annual') return Number(annualTurnover) || baseCategory;
   return baseCategory;
+}
+
+const MEMBERSHIP_GST_RATE = 0.18;
+
+
+
+function calculateMembershipPaymentTotals(baseFee) {
+  const base = parseFloat(Number(baseFee).toFixed(2));
+  if (!Number.isFinite(base) || base <= 0) {
+    return { baseFee: 0, gstAmount: 0, totalPayable: 0, amountPaise: 0 };
+  }
+  const gstAmount = parseFloat((base * MEMBERSHIP_GST_RATE).toFixed(2));
+  const totalPayable = parseFloat((base + gstAmount).toFixed(2));
+  return {
+    baseFee: base,
+    gstAmount,
+    totalPayable,
+    amountPaise: Math.round(totalPayable * 100)
+  };
 }
 
 function normalizeAndValidateUdyam(value) {
@@ -293,7 +618,12 @@ const allowedOriginsRaw = [
 const allowedOrigins = allowedOriginsRaw.map(o => (o || '').toString().replace(/\/$/, ''));
 
 
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  // YouTube embeds require a referrer; helmet's default "no-referrer" causes Error 153
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+}));
 app.use(compression());
 
 
@@ -305,7 +635,6 @@ app.use(cors({
   
         const normalizedOrigin = origin.replace(/\/$/, '');
         
-
         if (normalizedOrigin.includes('ngrok-free.dev') || normalizedOrigin.includes('ngrok-free.app')) {
             return callback(null, true);
         }
@@ -337,25 +666,55 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Initialize everything
 initDb().then(() => {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(` Server running on port ${PORT}`);
-    console.log(`Main Website:    http://localhost:${PORT}`);
-    console.log(` Admin Dashboard: http://localhost:${PORT}/admin`);
+    console.log(` Razorpay config: ${razorpayRuntime.mode} mode | Payments: ${isPaymentsEnabled() ? 'enabled' : 'disabled'}`);
     if (isDevelopment) {
-        console.log(` Environment: DEVELOPMENT`);
-        console.log(`Allowed Origins: ${allowedOrigins.join(', ')}`);
+      console.log(`Main Website:    http://localhost:${PORT}`);
+      console.log(` Admin Dashboard: http://localhost:${PORT}/admin`);
+      console.log(` Environment: DEVELOPMENT`);
+      console.log(`Allowed Origins: ${allowedOrigins.join(', ')}`);
     } else {
-        console.log(`Environment: PRODUCTION`);
+      console.log(`Environment: PRODUCTION`);
     }
+
+    verifyRazorpayConnection().then((pgHealth) => {
+      if (pgHealth.ok) {
+        console.log(` Razorpay gateway: READY (${pgHealth.mode})`);
+        return;
+      }
+      console.warn(` Razorpay gateway: NOT READY (${pgHealth.mode}) — ${pgHealth.message}`);
+      console.warn(' → Set RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET in .env');
+      console.warn(' → Dashboard: Webhooks → URL: {BASE_URL}/api/payment/webhook → payment.captured, order.paid');
+    }).catch((err) => {
+      console.warn(' Razorpay health check failed:', err.message);
+    });
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use. Stop the existing server before starting again.`);
+      process.exit(1);
+    }
+    throw err;
   });
 });
+
+
+
+
+
+
+
+
+
 
 
 
 app.get('/signature/:filename', (req, res) => {
     const filename = req.params.filename;
     const safeName = path.basename(filename);
-    
+    // Security: only allow PNG and prevent path traversal
     if (!safeName || !safeName.endsWith('.png')) {
         console.error('  Invalid file type:', filename);
         return res.status(400).json({ success: false, message: 'Invalid file type' });
@@ -394,16 +753,17 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 
 app.set('trust proxy', 1);
 
+function isLocalRequestIp(ip) {
+  return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+}
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 600, 
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
- 
-    const isLocalhost = req.ip === '127.0.0.1' || req.ip === '::1';
-    
- 
+    const isLocalhost = isLocalRequestIp(req.ip);
     const path = req.path.toLowerCase();
     const isAdminRoute = 
       path.startsWith('/api/admin/') ||
@@ -412,7 +772,12 @@ const limiter = rateLimit({
       path.startsWith('/api/advisory') ||
       path.startsWith('/api/hero') ||
       path.startsWith('/api/news') ||
+      path.startsWith('/api/tv-interviews') ||
+      path.startsWith('/api/drive') ||
       path.includes('/admin/');
+    const isPublicApiRoute =
+      path.startsWith('/api/loan-helpdesk/') ||
+      path.startsWith('/api/pincode/');
     
     // 3. Static files
     const isStaticFile = 
@@ -426,7 +791,7 @@ const limiter = rateLimit({
       path.includes('.svg') ||
       path.includes('.ico');
     
-    return isLocalhost || isAdminRoute || isStaticFile;
+    return isLocalhost || isAdminRoute || isPublicApiRoute || isStaticFile;
   },
   handler: (req, res) => {
     
@@ -451,7 +816,19 @@ const membershipLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' 
+  skip: (req) => isLocalRequestIp(req.ip)
+});
+
+const loanHelpdeskLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    success: false,
+    message: 'Too many complaint submissions from this IP. Please try again after 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => isLocalRequestIp(req.ip)
 });
 
 // Rate limiter for admin login (prevents brute-force)
@@ -464,7 +841,7 @@ const loginLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1'
+  skip: (req) => isLocalRequestIp(req.ip)
 });
 
 
@@ -497,8 +874,628 @@ app.use((req, res, next) => {
 app.use('/uploads', express.static(publicUploadsDir, { maxAge: '1d' }));
 
 app.get('/api/config', (req, res) => {
-  const cashfreeMode = process.env.CASHFREE_ENV === 'production' ? 'production' : 'test';
-  res.json({ cashfreeMode });
+  const rt = getRazorpayRuntime();
+  res.json({
+    cashfreeMode: rt.mode,
+    razorpayKeyId: rt.keyId || null,
+    paymentsEnabled: isPaymentsEnabled()
+  });
+});
+
+const indiaPostPincodeAgent = new https.Agent({ rejectUnauthorized: false, keepAlive: true, maxSockets: 10 });
+
+const PINCODE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const PINCODE_CACHE_MAX = 5000;
+const PINCODE_PROVIDER_TIMEOUT_MS = 7000;
+const pincodeCache = new Map();
+
+function getCachedPincode(pincode) {
+  const entry = pincodeCache.get(pincode);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > PINCODE_CACHE_TTL_MS) {
+    pincodeCache.delete(pincode);
+    return null;
+  }
+  return entry.data;
+}
+
+function setCachedPincode(pincode, data) {
+  if (pincodeCache.size >= PINCODE_CACHE_MAX) {
+    const oldest = pincodeCache.keys().next().value;
+    pincodeCache.delete(oldest);
+  }
+  pincodeCache.set(pincode, { data, ts: Date.now() });
+}
+
+function formatPincodeLocation(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (match) => match.toUpperCase());
+}
+
+function normalizePincodeParam(raw) {
+  return String(raw || '').trim().replace(/\D/g, '').slice(0, 6);
+}
+
+async function fetchIndiaPostPincode(pincode) {
+  const response = await axios.get(`https://api.postalpincode.in/pincode/${encodeURIComponent(pincode)}`, {
+    httpsAgent: indiaPostPincodeAgent,
+    timeout: PINCODE_PROVIDER_TIMEOUT_MS,
+    validateStatus: () => true
+  });
+
+  if (response.status !== 200) return null;
+
+  const payload = Array.isArray(response.data) ? response.data[0] : response.data;
+  if (!payload || payload.Status !== 'Success' || !Array.isArray(payload.PostOffice) || !payload.PostOffice.length) {
+    return null;
+  }
+
+  const office = payload.PostOffice.find((o) => o && (o.District || o.Name)) || payload.PostOffice[0];
+  const city = formatPincodeLocation(office.District || office.Name || '');
+  const state = formatPincodeLocation(office.State || '');
+  if (!city || !state) return null;
+
+  return { city, state, source: 'indiapost' };
+}
+
+async function fetchFallbackPincode(pincode) {
+  const response = await axios.get(`https://postal-pincode-api.vercel.app/api/v1/pincode/${encodeURIComponent(pincode)}`, {
+    timeout: PINCODE_PROVIDER_TIMEOUT_MS,
+    validateStatus: () => true
+  });
+
+  if (response.status !== 200 || !Array.isArray(response.data?.data) || !response.data.data.length) {
+    return null;
+  }
+
+  const row = response.data.data.find((r) => r && (r.district || r.state)) || response.data.data[0];
+  const city = formatPincodeLocation(row.district || row.office || '');
+  const state = formatPincodeLocation(row.state || '');
+  if (!city || !state) return null;
+
+  return { city, state, source: 'fallback' };
+}
+
+async function resolvePincodeLocation(pincode) {
+  const cached = getCachedPincode(pincode);
+  if (cached) return { ...cached, cached: true };
+
+  const providers = [
+    fetchIndiaPostPincode(pincode),
+    fetchFallbackPincode(pincode)
+  ].map((p) => p.then((result) => (result ? result : Promise.reject(new Error('empty')))));
+
+  try {
+    const result = await Promise.any(providers);
+    setCachedPincode(pincode, result);
+    return result;
+  } catch (err) {
+    if (err instanceof AggregateError) return null;
+    return null;
+  }
+}
+
+app.get('/api/pincode/:pincode', async (req, res) => {
+  const pincode = normalizePincodeParam(req.params.pincode);
+
+  if (!/^[1-9]\d{5}$/.test(pincode)) {
+    return res.status(400).json({ success: false, message: 'Invalid PIN code format.' });
+  }
+
+  try {
+    const result = await resolvePincodeLocation(pincode);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'PIN code not found.' });
+    }
+
+    res.set('Cache-Control', 'public, max-age=86400');
+    return res.json({
+      success: true,
+      pincode,
+      city: result.city,
+      state: result.state,
+      source: result.source,
+      cached: !!result.cached
+    });
+  } catch (err) {
+    console.error('GET /api/pincode/:pincode:', err.message);
+    return res.status(502).json({ success: false, message: 'Could not fetch PIN code details. Please try again.' });
+  }
+});
+
+const LOAN_HELPDESK_ISSUES = [
+  'No response received',
+  'Repeated documents asked',
+  'Application pending for long time',
+  'Rejected without proper reason',
+  'Sanction delayed',
+  'Disbursement delayed',
+  'Collateral / guarantee issue',
+  'Government scheme / subsidy issue',
+  'Non Acceptance of Loan Application',
+  'Other issue'
+];
+
+function makeLoanHelpdeskCaseId() {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `LRH-${y}${m}${d}-${rand}`;
+}
+
+function loanHelpdeskNowStamp() {
+  return new Date().toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function trimLoanValue(value) {
+  return value == null ? '' : String(value).trim();
+}
+
+function parseLoanHelpdeskJson(value, fallback) {
+  if (value == null || value === '') return fallback;
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'object') return value;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed == null ? fallback : parsed;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function normalizeLoanHelpdeskAssignedTo(value) {
+  const text = trimLoanValue(value);
+  if (!text || /^not assigned$/i.test(text)) return '';
+  return text;
+}
+
+function mapLoanHelpdeskRow(row, options = {}) {
+  if (!row) return null;
+  const files = parseLoanHelpdeskJson(row.files_json, []);
+  const timeline = parseLoanHelpdeskJson(row.timeline_json, []);
+  const formatStamp = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  const mapped = {
+    id: row.id,
+    caseId: row.case_id,
+    name: row.name,
+    mobile: row.mobile,
+    email: row.email || '',
+    businessName: row.business_name,
+    applicantPincode: row.applicant_pincode,
+    city: row.applicant_city,
+    state: row.applicant_state,
+    udhyam: row.udhyam || '',
+    lenderName: row.lender_name,
+    ifsc: row.ifsc || '',
+    bankPincode: row.bank_pincode,
+    bankCity: row.bank_city,
+    bankState: row.bank_state,
+    bankAddress: row.bank_address,
+    loanType: row.loan_type,
+    amount: String(row.amount ?? ''),
+    applicationDate: row.application_date ? String(row.application_date).slice(0, 10) : '',
+    referenceNo: row.reference_no || '',
+    officerName: row.officer_name || '',
+    officerDesignation: row.officer_designation || '',
+    officerMobile: row.officer_mobile || '',
+    officerEmail: row.officer_email || '',
+    issue: row.issue,
+    issueDetails: row.issue_details,
+    consent: Boolean(row.consent),
+    status: row.status,
+    assignedTo: normalizeLoanHelpdeskAssignedTo(row.assigned_to),
+    assignedOfficerMobile: trimLoanValue(row.assigned_officer_mobile),
+    followUpDate: row.follow_up_date ? String(row.follow_up_date).slice(0, 10) : '',
+    files,
+    timeline,
+    createdAt: formatStamp(row.created_at),
+    updatedAt: formatStamp(row.updated_at)
+  };
+
+  if (options.includeAdminFields) {
+    mapped.adminRemark = String(row.admin_remark || '').trim();
+  }
+
+  return mapped;
+}
+
+function cleanupLoanHelpdeskStagingFiles(files) {
+  if (!Array.isArray(files)) return;
+  files.forEach((file) => {
+    if (file && file.path && fs.existsSync(file.path)) {
+      try {
+        fs.unlinkSync(file.path);
+      } catch (err) {
+        console.error('Failed to cleanup staged loan helpdesk file:', err.message);
+      }
+    }
+  });
+}
+
+function finalizeLoanHelpdeskUploads(caseId, uploadedFiles) {
+  if (!Array.isArray(uploadedFiles) || !uploadedFiles.length) {
+    return [];
+  }
+
+  const safeCaseId = String(caseId || '').replace(/[^a-zA-Z0-9-]/g, '');
+  const caseDir = path.join(__dirname, 'public', 'uploads', 'loan-helpdesk', safeCaseId);
+  fs.mkdirSync(caseDir, { recursive: true, mode: 0o750 });
+
+  return uploadedFiles.map((file) => {
+    const ext = path.extname(file.originalname || file.filename || '').toLowerCase();
+    const storedName = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+    const destPath = path.join(caseDir, storedName);
+    fs.renameSync(file.path, destPath);
+    return {
+      name: file.originalname || storedName,
+      size: file.size,
+      type: file.mimetype || '',
+      url: `/uploads/loan-helpdesk/${safeCaseId}/${storedName}`
+    };
+  });
+}
+
+function deleteLoanHelpdeskCaseFiles(caseId) {
+  const safeCaseId = String(caseId || '').replace(/[^a-zA-Z0-9-]/g, '');
+  if (!safeCaseId) return;
+  const caseDir = path.join(__dirname, 'public', 'uploads', 'loan-helpdesk', safeCaseId);
+  if (fs.existsSync(caseDir)) {
+    fs.rmSync(caseDir, { recursive: true, force: true });
+  }
+}
+
+function parseLoanHelpdeskConsent(value) {
+  if (value === true || value === 1) return true;
+  const text = String(value || '').trim().toLowerCase();
+  return text === 'on' || text === 'true' || text === '1' || text === 'yes';
+}
+
+function validateLoanHelpdeskPayload(body, uploadedFiles = []) {
+  const trim = trimLoanValue;
+  const payload = {
+    name: trim(body.name),
+    businessName: trim(body.businessName),
+    mobile: trim(body.mobile),
+    email: trim(body.email).toLowerCase(),
+    applicantPincode: trim(body.applicantPincode),
+    applicantCity: trim(body.applicantCity),
+    applicantState: trim(body.applicantState),
+    udhyam: trim(body.udhyam).toUpperCase(),
+    lenderName: trim(body.lenderName),
+    ifsc: trim(body.ifsc).toUpperCase(),
+    bankPincode: trim(body.bankPincode),
+    bankCity: trim(body.bankCity),
+    bankState: trim(body.bankState),
+    bankAddress: trim(body.bankAddress),
+    loanType: trim(body.loanType),
+    amount: trim(body.amount).replace(/,/g, ''),
+    applicationDate: trim(body.applicationDate),
+    referenceNo: trim(body.referenceNo),
+    officerName: trim(body.officerName),
+    officerDesignation: trim(body.officerDesignation),
+    officerMobile: trim(body.officerMobile),
+    officerEmail: trim(body.officerEmail).toLowerCase(),
+    issue: trim(body.issue) || 'No response received',
+    issueDetails: trim(body.issueDetails),
+    consent: parseLoanHelpdeskConsent(body.consent),
+    files: []
+  };
+
+  if (!payload.name || !/^[A-Za-z\s.']+$/.test(payload.name) || payload.name.length < 2 || payload.name.length > 80) {
+    return { valid: false, message: 'Invalid applicant name.' };
+  }
+  if (!payload.businessName || payload.businessName.length < 2 || payload.businessName.length > 120) {
+    return { valid: false, message: 'Invalid business name.' };
+  }
+  if (!/^[6-9]\d{9}$/.test(payload.mobile)) {
+    return { valid: false, message: 'Invalid mobile number.' };
+  }
+  if (payload.email && (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(payload.email) || payload.email.length > 100)) {
+    return { valid: false, message: 'Invalid email address.' };
+  }
+  if (!/^[1-9]\d{5}$/.test(payload.applicantPincode)) {
+    return { valid: false, message: 'Invalid applicant pincode.' };
+  }
+  if (!payload.applicantCity || payload.applicantCity.length < 2) {
+    return { valid: false, message: 'Applicant city is required.' };
+  }
+  if (!payload.applicantState || payload.applicantState.length < 2) {
+    return { valid: false, message: 'Applicant state is required.' };
+  }
+  if (payload.udhyam && !/^UDYAM-[A-Z]{2}-\d{2}-\d{7}$/.test(payload.udhyam)) {
+    return { valid: false, message: 'Invalid Udhyam registration number.' };
+  }
+  if (!payload.lenderName || payload.lenderName.length < 2) {
+    return { valid: false, message: 'Bank / institution name is required.' };
+  }
+  if (payload.ifsc && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(payload.ifsc)) {
+    return { valid: false, message: 'Invalid IFSC code.' };
+  }
+  if (!/^[1-9]\d{5}$/.test(payload.bankPincode)) {
+    return { valid: false, message: 'Invalid bank branch pincode.' };
+  }
+  if (!payload.bankCity || !payload.bankState || !payload.bankAddress || payload.bankAddress.length < 5) {
+    return { valid: false, message: 'Complete bank branch location details are required.' };
+  }
+  if (!payload.loanType || payload.loanType === 'Select') {
+    return { valid: false, message: 'Loan type is required.' };
+  }
+  if (!/^\d+$/.test(payload.amount) || Number(payload.amount) < 1000) {
+    return { valid: false, message: 'Invalid loan amount.' };
+  }
+  if (payload.applicationDate) {
+    const selected = new Date(payload.applicationDate + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (Number.isNaN(selected.getTime()) || selected > today) {
+      return { valid: false, message: 'Invalid application date.' };
+    }
+  }
+  if (payload.referenceNo && (payload.referenceNo.length < 3 || payload.referenceNo.length > 50 || !/^[A-Za-z0-9\-/]+$/.test(payload.referenceNo))) {
+    return { valid: false, message: 'Invalid application reference number.' };
+  }
+  if (payload.officerMobile && !/^[6-9]\d{9}$/.test(payload.officerMobile)) {
+    return { valid: false, message: 'Invalid bank officer mobile number.' };
+  }
+  if (payload.officerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(payload.officerEmail)) {
+    return { valid: false, message: 'Invalid bank officer email.' };
+  }
+  if (!LOAN_HELPDESK_ISSUES.includes(payload.issue)) {
+    return { valid: false, message: 'Invalid problem selection.' };
+  }
+  if (!payload.issueDetails || payload.issueDetails.length < 10 || payload.issueDetails.length > 1000) {
+    return { valid: false, message: 'Brief details must be between 10 and 1000 characters.' };
+  }
+  if (!payload.consent) {
+    return { valid: false, message: 'Authorization consent is required.' };
+  }
+
+  const maxFileBytes = 5 * 1024 * 1024;
+  const fileList = Array.isArray(uploadedFiles) ? uploadedFiles : [];
+  if (fileList.length > 20) {
+    return { valid: false, message: 'You can upload up to 20 documents only.' };
+  }
+  for (const file of fileList) {
+    const size = Number(file?.size);
+    if (!Number.isFinite(size) || size < 0 || size > maxFileBytes) {
+      return { valid: false, message: 'Each uploaded document must be 5 MB or smaller.' };
+    }
+  }
+
+  payload.files = fileList.map((file) => ({
+    name: file.originalname || file.filename || 'document',
+    size: file.size,
+    type: file.mimetype || ''
+  }));
+
+  return { valid: true, payload };
+}
+
+app.post('/api/loan-helpdesk/submit', loanHelpdeskLimiter, loanHelpdeskDocumentsUpload, async (req, res) => {
+  const stagedFiles = Array.isArray(req.files) ? req.files : [];
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[loan-helpdesk] Submit request received from', req.ip || 'unknown ip');
+    }
+
+    const validation = validateLoanHelpdeskPayload(req.body || {}, stagedFiles);
+    if (!validation.valid) {
+      cleanupLoanHelpdeskStagingFiles(stagedFiles);
+      return res.status(400).json({ success: false, message: validation.message });
+    }
+
+    const p = validation.payload;
+    const now = loanHelpdeskNowStamp();
+    const caseId = makeLoanHelpdeskCaseId();
+    const storedFiles = finalizeLoanHelpdeskUploads(caseId, stagedFiles);
+    const timeline = [{
+      time: now,
+      status: 'Submitted',
+      note: 'Case received online. Applicant authorization completed.'
+    }];
+
+    const insertId = await Database.createLoanHelpdeskCase({
+      case_id: caseId,
+      name: p.name,
+      business_name: p.businessName,
+      mobile: p.mobile,
+      email: p.email || null,
+      applicant_pincode: p.applicantPincode,
+      applicant_city: p.applicantCity,
+      applicant_state: p.applicantState,
+      udhyam: p.udhyam || null,
+      lender_name: p.lenderName,
+      ifsc: p.ifsc || null,
+      bank_pincode: p.bankPincode,
+      bank_city: p.bankCity,
+      bank_state: p.bankState,
+      bank_address: p.bankAddress,
+      loan_type: p.loanType,
+      amount: p.amount,
+      application_date: p.applicationDate || null,
+      reference_no: p.referenceNo || null,
+      officer_name: p.officerName || null,
+      officer_designation: p.officerDesignation || null,
+      officer_mobile: p.officerMobile || null,
+      officer_email: p.officerEmail || null,
+      issue: p.issue,
+      issue_details: p.issueDetails,
+      consent: 1,
+      status: 'Submitted',
+      assigned_to: null,
+      assigned_officer_mobile: null,
+      follow_up_date: null,
+      files_json: JSON.stringify(storedFiles.slice(0, 20)),
+      timeline_json: JSON.stringify(timeline)
+    });
+
+    const row = await Database.getLoanHelpdeskCaseById(insertId);
+    return res.status(201).json({
+      success: true,
+      message: 'Complaint submitted successfully.',
+      data: mapLoanHelpdeskRow(row)
+    });
+  } catch (err) {
+    cleanupLoanHelpdeskStagingFiles(stagedFiles);
+    console.error('POST /api/loan-helpdesk/submit:', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to submit complaint. Please try again.' });
+  }
+});
+
+app.get('/api/loan-helpdesk/track', async (req, res) => {
+  try {
+    const caseId = trimLoanValue(req.query.caseId);
+    const mobile = trimLoanValue(req.query.mobile);
+
+    if (!caseId && !mobile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Enter your Case ID or registered mobile number to track your case.'
+      });
+    }
+
+    if (mobile && !/^[6-9]\d{9}$/.test(mobile)) {
+      return res.status(400).json({ success: false, message: 'Invalid mobile number.' });
+    }
+
+    let row = null;
+    if (caseId && mobile) {
+      row = await Database.getLoanHelpdeskCaseByCaseIdAndMobile(caseId, mobile);
+    } else if (caseId) {
+      row = await Database.getLoanHelpdeskCaseByCaseId(caseId);
+    } else {
+      row = await Database.getLoanHelpdeskCaseByMobile(mobile);
+    }
+
+    if (!row) {
+      return res.status(404).json({
+        success: false,
+        message: 'No case found. Please check your Case ID or registered mobile number.'
+      });
+    }
+
+    return res.json({ success: true, data: mapLoanHelpdeskRow(row) });
+  } catch (err) {
+    console.error('GET /api/loan-helpdesk/track:', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to track case.' });
+  }
+});
+
+app.get('/api/admin/loan-helpdesk/cases', verifyAdmin, async (req, res) => {
+  try {
+    const rows = await Database.getAllLoanHelpdeskCases();
+    res.json({ success: true, data: rows.map((row) => mapLoanHelpdeskRow(row, { includeAdminFields: true })) });
+  } catch (err) {
+    console.error('GET /api/admin/loan-helpdesk/cases:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to load loan helpdesk cases.' });
+  }
+});
+
+app.get('/api/admin/loan-helpdesk/cases/:id', verifyAdmin, async (req, res) => {
+  try {
+    const row = await Database.getLoanHelpdeskCaseById(req.params.id);
+    if (!row) {
+      return res.status(404).json({ success: false, message: 'Case not found.' });
+    }
+    res.json({ success: true, data: mapLoanHelpdeskRow(row, { includeAdminFields: true }) });
+  } catch (err) {
+    console.error('GET /api/admin/loan-helpdesk/cases/:id:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to load case details.' });
+  }
+});
+
+app.put('/api/admin/loan-helpdesk/cases/:id/status', verifyAdmin, async (req, res) => {
+  try {
+    const row = await Database.getLoanHelpdeskCaseById(req.params.id);
+    if (!row) {
+      return res.status(404).json({ success: false, message: 'Case not found.' });
+    }
+
+    const status = trimLoanValue(req.body.status) || row.status;
+    const assignedTo = normalizeLoanHelpdeskAssignedTo(req.body.assignedTo);
+    const assignedOfficerMobile = trimLoanValue(req.body.assignedOfficerMobile).replace(/\D/g, '').slice(0, 10);
+    const followUpDate = trimLoanValue(req.body.followUpDate) || null;
+    const note = trimLoanValue(req.body.note);
+    const adminRemark = trimLoanValue(req.body.adminRemark);
+    const allowedStatuses = ['Submitted', 'Under Review', 'Representation Sent', 'Reply Awaited', 'Escalated', 'Closed'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status value.' });
+    }
+    if (assignedOfficerMobile && !/^[6-9]\d{9}$/.test(assignedOfficerMobile)) {
+      return res.status(400).json({ success: false, message: 'Invalid assigned officer mobile number.' });
+    }
+    if (adminRemark.length > 2000) {
+      return res.status(400).json({ success: false, message: 'Admin remark must not exceed 2000 characters.' });
+    }
+
+    const timeline = parseLoanHelpdeskJson(row.timeline_json, []);
+    const statusChanged = status !== row.status;
+    if (note) {
+      timeline.unshift({
+        time: loanHelpdeskNowStamp(),
+        status,
+        note
+      });
+    } else if (statusChanged) {
+      timeline.unshift({
+        time: loanHelpdeskNowStamp(),
+        status,
+        note: `Case status updated to ${status}.`
+      });
+    }
+
+    await Database.updateLoanHelpdeskCase(row.id, {
+      status,
+      assigned_to: assignedTo || null,
+      assigned_officer_mobile: assignedOfficerMobile || null,
+      follow_up_date: followUpDate || null,
+      admin_remark: adminRemark || null,
+      timeline_json: JSON.stringify(timeline)
+    });
+
+    const updated = await Database.getLoanHelpdeskCaseById(row.id);
+    res.json({ success: true, data: mapLoanHelpdeskRow(updated, { includeAdminFields: true }) });
+  } catch (err) {
+    console.error('PUT /api/admin/loan-helpdesk/cases/:id/status:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to update case status.' });
+  }
+});
+
+app.delete('/api/admin/loan-helpdesk/cases/:id', verifyAdmin, async (req, res) => {
+  try {
+    const row = await Database.getLoanHelpdeskCaseById(req.params.id);
+    if (!row) {
+      return res.status(404).json({ success: false, message: 'Case not found.' });
+    }
+    deleteLoanHelpdeskCaseFiles(row.case_id);
+    await Database.deleteLoanHelpdeskCase(row.id);
+    res.json({ success: true, message: 'Case deleted successfully.' });
+  } catch (err) {
+    console.error('DELETE /api/admin/loan-helpdesk/cases/:id:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to delete case.' });
+  }
 });
 
 app.get('/api/footer-pdf', async (req, res) => {
@@ -535,6 +1532,98 @@ app.put('/api/admin/footer-pdf', verifyAdmin, async (req, res) => {
   } catch (err) {
     console.error('PUT /api/admin/footer-pdf:', err.message);
     res.status(500).json({ success: false, message: 'Failed to update footer PDF' });
+  }
+});
+
+/** Resolve a drive PDF DB path to an absolute path under public/uploads/pdfs only. */
+function resolveDrivePdfAbsolutePath(fileUrl) {
+  if (typeof fileUrl !== 'string' || !fileUrl.startsWith('/uploads/pdfs/') || fileUrl.includes('..')) {
+    return null;
+  }
+  const rel = fileUrl.replace(/^\//, '');
+  const abs = path.resolve(path.join(__dirname, 'public', rel));
+  const base = path.resolve(path.join(__dirname, 'public', 'uploads', 'pdfs'));
+  if (!abs.startsWith(base + path.sep) && abs !== base) {
+    return null;
+  }
+  return abs;
+}
+
+// --- Drive (admin PDF library: /uploads/pdfs/) ---
+app.get('/api/drive/admin/all', verifyAdmin, async (req, res) => {
+  try {
+    const rows = await Database.getAllDrivePdfs();
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('GET /api/drive/admin/all:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to load drive files' });
+  }
+});
+
+app.post('/api/drive/upload', verifyAdmin, drivePdfUpload, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'PDF file is required' });
+    }
+    const relativeUrl = `/uploads/pdfs/${req.file.filename}`;
+    const rawName =
+      req.body && req.body.pdf_name != null && typeof req.body.pdf_name === 'string'
+        ? req.body.pdf_name.trim()
+        : '';
+    let pdfName = rawName.slice(0, 255);
+    if (!pdfName) {
+      const orig = req.file.originalname || 'document.pdf';
+      const stem = path.basename(orig, path.extname(orig)).replace(/[^a-zA-Z0-9 _.-]/g, '_').trim();
+      pdfName = (stem || 'Document').slice(0, 255);
+    }
+    const uploadedBy =
+      req.admin && req.admin.email ? String(req.admin.email).trim().slice(0, 255) : 'admin';
+
+    let id;
+    try {
+      id = await Database.createDrivePdf({
+        pdf_name: pdfName,
+        file_url: relativeUrl,
+        uploaded_by: uploadedBy
+      });
+    } catch (dbErr) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (_) { /* ignore */ }
+      throw dbErr;
+    }
+
+    const row = await Database.getDrivePdfById(id);
+    res.json({ success: true, message: 'PDF uploaded successfully', data: row });
+  } catch (err) {
+    console.error('POST /api/drive/upload:', err.message);
+    res.status(500).json({ success: false, message: err.message || 'Upload failed' });
+  }
+});
+
+app.delete('/api/drive/delete/:id', verifyAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id || id < 1) {
+      return res.status(400).json({ success: false, message: 'Invalid id' });
+    }
+    const row = await Database.getDrivePdfById(id);
+    if (!row) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+    const abs = resolveDrivePdfAbsolutePath(row.file_url);
+    if (abs && fs.existsSync(abs)) {
+      try {
+        fs.unlinkSync(abs);
+      } catch (unlinkErr) {
+        console.warn('Drive delete file:', unlinkErr.message);
+      }
+    }
+    await Database.deleteDrivePdf(id);
+    res.json({ success: true, message: 'PDF removed' });
+  } catch (err) {
+    console.error('DELETE /api/drive/delete:', err.message);
+    res.status(500).json({ success: false, message: 'Delete failed' });
   }
 });
 
@@ -635,7 +1724,9 @@ app.get('/api/auth/accounts', (req, res) => {
   res.status(404).json({ success: false, message: 'Not found' });
 });
 
-// HERO ROUTES 
+
+// HERO ROUTES - COMPLETE
+
 
 
 app.get('/api/hero', async (req, res) => {
@@ -705,6 +1796,8 @@ app.put('/api/hero/:id', verifyAdmin, heroUpload, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+
 
 
 app.patch('/api/hero/toggle/:id', verifyAdmin, async (req, res) => {
@@ -855,7 +1948,7 @@ app.get('/payment-failed', (req, res) => {
   }
 });
 
-// Membership application page 
+// Membership application page (dedicated route for production-ready URL)
 app.get('/membership', (req, res) => {
   const file = path.join(__dirname, 'public', 'membership.html');
   if (fs.existsSync(file)) {
@@ -874,6 +1967,24 @@ app.get('/sme-assurance', (req, res) => {
   }
 });
 
+app.get('/loan-helpdesk', (req, res) => {
+  const file = path.join(__dirname, 'public', 'loan-helpdesk.html');
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else {
+    res.status(404).send('Page not found');
+  }
+});
+
+app.get('/positive-talk', (req, res) => {
+  const file = path.join(__dirname, 'public', 'positive-talk.html');
+  if (fs.existsSync(file)) {
+    res.sendFile(file);
+  } else {
+    res.status(404).send('Page not found');
+  }
+});
+
 // Committees list page
 app.get('/committees', (req, res) => {
   const file = path.join(__dirname, 'public', 'committees.html');
@@ -884,7 +1995,7 @@ app.get('/committees', (req, res) => {
   }
 });
 
-// Single committee page 
+// Single committee page (supports ?id=1)
 app.get('/committee', (req, res) => {
   const file = path.join(__dirname, 'public', 'committee.html');
   if (fs.existsSync(file)) {
@@ -904,7 +2015,7 @@ app.get('/chapters', (req, res) => {
   }
 });
 
-// Single chapter page
+// Single chapter page (supports ?id=1)
 app.get('/chapter', (req, res) => {
   const file = path.join(__dirname, 'public', 'chapter.html');
   if (fs.existsSync(file)) {
@@ -1256,7 +2367,7 @@ app.get('/api/services/all', verifyAdmin, async (req, res) => {
     }
 });
 
-// Update service status 
+// Update service status (for admin)
 app.put('/api/services/update/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -1287,7 +2398,7 @@ app.put('/api/services/update/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-// Delete service request 
+// Delete service request (for admin)
 app.delete('/api/services/delete/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -1308,12 +2419,12 @@ app.delete('/api/services/delete/:id', verifyAdmin, async (req, res) => {
 // NEWSLETTER ROUTES 
 
 
-// Get all newsletter subscribers 
+// Get all newsletter subscribers (Admin)
 app.get('/api/admin/newsletter/subscribers', verifyAdmin, async (req, res) => {
   try {
     const subscribers = await Database.getAllNewsletter();
     
-    // Sort by date 
+    // Sort by date (newest first)
     subscribers.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
   
@@ -1392,78 +2503,48 @@ app.delete('/api/admin/newsletter/subscribers/:id', verifyAdmin, async (req, res
 app.post('/api/payment/create-order', async (req, res) => {
     try {
         const { membershipData, amount } = req.body;
-        
+
         if (!membershipData || !amount) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Missing required fields' 
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
             });
         }
 
-        const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        await Database.createPaymentOrder({
-            order_id: orderId,
-            amount: parseFloat(amount),
-            currency: 'INR',
-            customer_name: membershipData.fullname || membershipData.fullName,
-            customer_email: membershipData.email,
-            customer_phone: membershipData.phone,
-            membership_data: membershipData
+        const orderId = generatePaymentOrderId();
+        const email = String(membershipData.email || '').trim().toLowerCase();
+        const memberId = membershipData.memberId || membershipData.memberid || email;
+        const savedId = membershipData.applicationId || membershipData.id || null;
+
+        const payment = await createPaymentSession({
+            req,
+            orderId,
+            amount,
+            memberId,
+            fullName: membershipData.fullname || membershipData.fullName || 'Member',
+            email,
+            phone: membershipData.phone,
+            savedId,
+            businessCategoryL: membershipData.businessCategory || membershipData.businesscategory || 'micro'
         });
 
-        const request = {
-            order_amount: parseFloat(amount),
-            order_currency: 'INR',
-            order_id: orderId,
-            customer_details: {
-                customer_id: membershipData.email,
-                customer_name: membershipData.fullname || membershipData.fullName,
-                customer_email: membershipData.email,
-                customer_phone: membershipData.phone
-            },
-           
-            order_meta: {
-              return_url: `${getBaseUrl(req)}/payment-status?orderId=${orderId}`,
-              notify_url: `${getBaseUrl(req)}/api/payment/webhook`
-          }
-  };
+        console.log('Payment order created:', orderId);
 
-            const response = await axios.post(
-    `${cashfreeConfig.baseURL}/orders`,
-    request,
-    { headers: getCashfreeHeaders(), timeout: 15000 }
-);
-
-if (!response?.data?.cf_order_id || !response?.data?.payment_session_id) {
-    throw new Error('Invalid response from payment gateway');
-}
-
-await Database.updatePaymentOrder(
-    orderId, 
-    response.data.cf_order_id, 
-    response.data.payment_session_id
-);
-
-
-
-console.log('✓ Payment order created:', orderId);
-
-res.json({
-    success: true,
-    data: {
-        orderId,
-        sessionId: response.data.payment_session_id,
-        paymentUrl: response.data.payment_link
-    }
-});
-
-
+        res.json({
+            success: true,
+            data: {
+                orderId: payment.orderId,
+                sessionId: payment.paymentSessionId,
+                paymentSessionId: payment.paymentSessionId,
+                razorpayKeyId: payment.razorpayKeyId
+            }
+        });
     } catch (error) {
-        console.error('Payment order error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to create payment order' 
+        const pgErr = parsePaymentError(error);
+        console.error('Payment order error:', pgErr.message, pgErr.code || '');
+        res.status(500).json({
+            success: false,
+            message: pgErr.message || 'Failed to create payment order'
         });
     }
 });
@@ -1515,72 +2596,46 @@ app.post('/api/payment/verify', async (req, res) => {
             });
         }
 
-        // Cashfree payment verification
-        const response = await axios.get(
-            `${cashfreeConfig.baseURL}/orders/${orderData.cf_order_id}/payments`,
-            { 
-                headers: getCashfreeHeaders(),
-                timeout: 10000
-            }
-        );
-        
-        if (response.data && response.data.length > 0) {
-            const payment = response.data[0];
-            
-            if (payment.payment_status === 'SUCCESS') {
-               
-                const currentOrder = await Database.getPaymentOrder(orderId);
-                if (currentOrder.status === 'PAID') {
-                    return res.json({
-                        success: true,
-                        message: 'Payment successful',
-                        status: 'SUCCESS',
-                        alreadyProcessed: true
-                    });
-                }
+        const payments = await fetchRazorpayPaymentsForOrder(orderData.cf_order_id);
+        const successPayment = payments.find((p) => p.payment_status === 'SUCCESS');
 
-                // Complete payment processing
-                await Database.updatePaymentStatus(orderId, 'PAID', {
-                    payment_method: payment.payment_group
-                });
-
-                await Database.createPaymentTransaction({
-                    cf_payment_id: payment.cf_payment_id,
-                    order_id: orderId,
-                    amount: payment.payment_amount,
-                    status: 'SUCCESS',
-                    payment_method: payment.payment_group,
-                    bank_reference: payment.bank_reference,
-                    payment_time: payment.payment_time,
-                    webhook_data: payment
-                });
-
-                const completed = await Database.completeMembershipPayment(orderId, payment.payment_amount);
-                if (!completed) {
-                    console.error('Verify: completeMembershipPayment returned null for order', orderId);
-                    return res.status(500).json({
-                        success: false,
-                        message: 'Payment recorded but membership update failed. Please contact support with your Order ID.',
-                        status: 'PENDING'
-                    });
-                }
-                console.log(' Payment verified & completed:', orderId);
+        if (successPayment) {
+            const currentOrder = await Database.getPaymentOrder(orderId);
+            if (currentOrder?.status === 'PAID') {
                 return res.json({
                     success: true,
                     message: 'Payment successful',
-                    status: 'SUCCESS'
+                    status: 'SUCCESS',
+                    alreadyProcessed: true
                 });
             }
-            if (payment.payment_status === 'FAILED' || payment.payment_status === 'EXPIRED' || payment.payment_status === 'CANCELLED') {
-                return res.json({
+
+            const completed = await finalizeSuccessfulPayment(orderId, successPayment);
+            if (!completed) {
+                console.error('Verify: completeMembershipPayment returned null for order', orderId);
+                return res.status(500).json({
                     success: false,
-                    message: 'Payment failed or was cancelled',
-                    status: 'FAILED'
+                    message: 'Payment recorded but membership update failed. Please contact support with your Order ID.',
+                    status: 'PENDING'
                 });
             }
+            console.log(' Payment verified & completed:', orderId);
+            return res.json({
+                success: true,
+                message: 'Payment successful',
+                status: 'SUCCESS'
+            });
         }
 
-        // Payment pending
+        const failedPayment = payments.find((p) => p.payment_status === 'FAILED');
+        if (failedPayment) {
+            return res.json({
+                success: false,
+                message: 'Payment failed or was cancelled',
+                status: 'FAILED'
+            });
+        }
+
         return res.json({
             success: false,
             message: 'Payment not completed',
@@ -1588,123 +2643,153 @@ app.post('/api/payment/verify', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Payment verification error:', error.response?.data || error.message);
-        return res.status(500).json({
+        const pgErr = parsePaymentError(error);
+        console.error('Payment verification error:', pgErr.message, pgErr.code || '');
+        return res.json({
             success: false,
-            message: 'Verification failed. Please wait and we will check again.',
+            message: 'Verification in progress. Please wait a moment.',
             status: 'PENDING'
         });
     }
 });
 
-//  PAYMENT WEBHOOK
+//  PAYMENT WEBHOOK (Razorpay)
     app.post('/api/payment/webhook', async (req, res) => {
     try {
-        const signature = req.headers['x-webhook-signature'];
-        const timestamp = req.headers['x-webhook-timestamp'];
-        
-      
+        const signature = req.headers['x-razorpay-signature'];
         let rawBody = req.rawBody;
-if (!rawBody || typeof rawBody !== 'string') {
-  if (Buffer.isBuffer(req.body)) rawBody = req.body.toString('utf8');
-  else if (req.body && typeof req.body === 'object') rawBody = JSON.stringify(req.body);
-  else rawBody = '';
-}
-        
-        if (!signature || !timestamp) {
-            console.error(' Missing webhook headers');
-            return res.status(400).json({ success: false, message: 'Missing headers' });
+        if (!rawBody || typeof rawBody !== 'string') {
+            if (Buffer.isBuffer(req.body)) rawBody = req.body.toString('utf8');
+            else if (req.body && typeof req.body === 'object') rawBody = JSON.stringify(req.body);
+            else rawBody = '';
         }
 
-        const expectedSignature = crypto
-            .createHmac('sha256', cashfreeConfig.secretKey)
-            .update(timestamp + rawBody)
-            .digest('base64');
-
-        if (signature !== expectedSignature) {
-            console.error('Invalid webhook signature');
-            console.error('Expected:', expectedSignature);
-            console.error('Received:', signature);
-            return res.status(400).json({ success: false, message: 'Invalid signature' });
+        const webhookSecret = envTrim('RAZORPAY_WEBHOOK_SECRET');
+        if (!webhookSecret) {
+            if (isDevelopment) {
+                console.warn(' RAZORPAY_WEBHOOK_SECRET not set — webhook signature check skipped in development');
+            } else {
+                console.error(' RAZORPAY_WEBHOOK_SECRET not configured');
+                return res.status(500).json({ success: false, message: 'Webhook not configured' });
+            }
         }
-        
-        
-        // Parse body after verification
+        if (!signature) {
+            console.error(' Missing x-razorpay-signature header');
+            return res.status(400).json({ success: false, message: 'Missing signature' });
+        }
+
+        if (webhookSecret) {
+            const expectedSignature = crypto
+                .createHmac('sha256', webhookSecret)
+                .update(rawBody)
+                .digest('hex');
+
+            if (signature !== expectedSignature) {
+                console.error('Invalid Razorpay webhook signature');
+                return res.status(400).json({ success: false, message: 'Invalid signature' });
+            }
+        }
+
         const payload = JSON.parse(rawBody);
-        const data = payload.data || payload;
-        
-        if (data.order && data.payment) {
-            const orderId = data.order.order_id;
-            const paymentStatus = data.payment.payment_status;
+        const event = payload.event;
 
-            console.log(` Webhook: Order ${orderId} - Status: ${paymentStatus}`);
+        if (event === 'payment.captured') {
+            const paymentEntity = payload.payload?.payment?.entity;
+            const orderEntity = payload.payload?.order?.entity;
+            const razorpayOrderId = paymentEntity?.order_id || orderEntity?.id;
+            const merchantOrderId = await resolveMerchantOrderIdFromRazorpay(
+                razorpayOrderId,
+                orderEntity?.receipt
+            );
 
-            if (paymentStatus === 'SUCCESS') {
-                // Check if already processed (prevents duplicates)
-                const existingOrder = await Database.getPaymentOrder(orderId);
-                if (existingOrder && existingOrder.status === 'PAID') {
-                    console.log(' Payment already processed via webhook:', orderId);
-                    return res.json({ success: true, message: 'Already processed' });
-                }
+            if (!merchantOrderId) {
+                console.warn('Webhook payment.captured: merchant order not found', razorpayOrderId);
+                return res.json({ success: true });
+            }
 
-                await Database.updatePaymentStatus(orderId, 'PAID', {
-                    payment_method: data.payment.payment_group
-                });
+            console.log(` Webhook: ${merchantOrderId} - payment captured`);
 
-                await Database.createPaymentTransaction({
-                    cf_payment_id: data.payment.cf_payment_id,
-                    order_id: orderId,
-                    amount: data.payment.payment_amount,
-                    status: 'SUCCESS',
-                    payment_method: data.payment.payment_group,
-                    bank_reference: data.payment.bank_reference,
-                    payment_time: data.payment.payment_time,
-                    webhook_data: data.payment
-                });
+            const existingOrder = await Database.getPaymentOrder(merchantOrderId);
+            if (existingOrder?.status === 'PAID') {
+                console.log(' Payment already processed via webhook:', merchantOrderId);
+                return res.json({ success: true, message: 'Already processed' });
+            }
 
-                const completed = await Database.completeMembershipPayment(orderId, data.payment.payment_amount);
-                if (!completed) {
-                      console.error('Webhook: completeMembershipPayment returned null for order', orderId);
-                } else {
-                    const appRows = await Database.query(
-                        'SELECT * FROM membership_applications WHERE email = ? LIMIT 1',
-                        [completed.email]
-                    );
-                    if (appRows[0]) {
-                        sendMembershipApplicationEmail(appRows[0], appRows[0].finalamount || appRows[0].membershipfee).catch(() => {});
-                    }
-                }
-                if (isDevelopment) console.log('Webhook processed:', orderId);
-            } else if (paymentStatus === 'FAILED' || paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') {
-                const existingOrder = await Database.getPaymentOrder(orderId);
+            const payment = mapRazorpayPaymentEntity(paymentEntity) || {
+                payment_status: 'SUCCESS',
+                cf_payment_id: paymentEntity?.id || `wh_${merchantOrderId}`,
+                payment_amount: existingOrder?.amount || Number(paymentEntity?.amount || 0) / 100,
+                payment_method: 'razorpay',
+                payment_group: 'razorpay',
+                bank_reference: paymentEntity?.id,
+                payment_time: razorpayTimestampToMysql(paymentEntity?.created_at)
+            };
+
+            await finalizeSuccessfulPayment(merchantOrderId, payment);
+            if (isDevelopment) console.log('Webhook processed:', merchantOrderId);
+        } else if (event === 'order.paid') {
+            const orderEntity = payload.payload?.order?.entity;
+            const razorpayOrderId = orderEntity?.id;
+            const merchantOrderId = await resolveMerchantOrderIdFromRazorpay(
+                razorpayOrderId,
+                orderEntity?.receipt
+            );
+
+            if (!merchantOrderId) {
+                return res.json({ success: true });
+            }
+
+            const existingOrder = await Database.getPaymentOrder(merchantOrderId);
+            if (existingOrder?.status === 'PAID') {
+                return res.json({ success: true, message: 'Already processed' });
+            }
+
+            const payment = {
+                payment_status: 'SUCCESS',
+                cf_payment_id: `order_paid_${razorpayOrderId}`,
+                payment_amount: existingOrder?.amount || Number(orderEntity?.amount || 0) / 100,
+                payment_method: 'razorpay',
+                payment_group: 'razorpay',
+                bank_reference: razorpayOrderId,
+                payment_time: razorpayTimestampToMysql(orderEntity?.created_at)
+            };
+            await finalizeSuccessfulPayment(merchantOrderId, payment);
+        } else if (event === 'payment.failed') {
+            const paymentEntity = payload.payload?.payment?.entity;
+            const razorpayOrderId = paymentEntity?.order_id;
+            const merchantOrderId = await resolveMerchantOrderIdFromRazorpay(razorpayOrderId, null);
+
+            if (merchantOrderId) {
+                const existingOrder = await Database.getPaymentOrder(merchantOrderId);
                 if (existingOrder && existingOrder.status === 'ACTIVE') {
-                    await Database.updatePaymentStatus(orderId, 'FAILED', {
-                        payment_method: data.payment.payment_group
+                    await Database.updatePaymentStatus(merchantOrderId, 'FAILED', {
+                        payment_method: paymentEntity?.method || 'razorpay'
                     });
-                    const txStatus = paymentStatus === 'CANCELLED' ? 'CANCELLED' : 'FAILED';
-                    await Database.createPaymentTransaction({
-                        cf_payment_id: data.payment.cf_payment_id,
-                        order_id: orderId,
-                        amount: data.payment.payment_amount,
-                        status: txStatus,
-                        payment_method: data.payment.payment_group,
-                        bank_reference: data.payment.bank_reference || null,
-                        payment_time: data.payment.payment_time || null,
-                        webhook_data: data.payment
-                    });
+                    const mapped = mapRazorpayPaymentEntity(paymentEntity);
+                    if (mapped) {
+                        await Database.createPaymentTransaction({
+                            cf_payment_id: mapped.cf_payment_id,
+                            order_id: merchantOrderId,
+                            amount: mapped.payment_amount,
+                            status: 'FAILED',
+                            payment_method: mapped.payment_group,
+                            bank_reference: mapped.bank_reference,
+                            payment_time: mapped.payment_time,
+                            webhook_data: paymentEntity
+                        });
+                    }
                     try {
-                        await Database.setMembershipPaymentFailed(orderId);
+                        await Database.setMembershipPaymentFailed(merchantOrderId);
                     } catch (e) {
                         console.error('setMembershipPaymentFailed:', e.message);
                     }
-                    console.log('Webhook: order marked FAILED:', orderId);
+                    console.log('Webhook: order marked FAILED:', merchantOrderId);
                 }
             }
         }
 
         res.json({ success: true });
-
-              } catch (error) {
+    } catch (error) {
         console.error('Webhook error:', error.message || error, error.stack || '');
         res.status(500).json({ success: false, message: 'Processing failed' });
     }
@@ -1826,6 +2911,8 @@ app.post('/api/events/create', verifyAdmin, eventUpload, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+
 
 
 
@@ -2240,7 +3327,7 @@ app.delete('/api/events/agenda/:id', verifyAdmin, async (req, res) => {
 
 // EVENT SPEAKERS ROUTES 
 
-
+// Get event speakers
 app.get('/api/events/:id/speakers', async (req, res) => {
   try {
     const { id } = req.params;
@@ -2297,6 +3384,7 @@ app.delete('/api/events/speakers/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// --- EVENT PHOTOS ROUTES ---
 
 // Get event photos
 app.get('/api/events/:id/photos', async (req, res) => {
@@ -2353,7 +3441,7 @@ app.delete('/api/events/photos/:id', verifyAdmin, async (req, res) => {
 });
 
 
-//  EVENT VIDEOS ROUTES
+// --- EVENT VIDEOS ROUTES ---
 
 // Get event videos
 app.get('/api/events/:id/videos', async (req, res) => {
@@ -2549,7 +3637,11 @@ app.delete('/api/events/videos/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// Toggle event featured status
+
+
+// Toggle event featured status - 
+
+
 app.patch('/api/events/toggle-featured/:id', verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -2576,7 +3668,9 @@ app.patch('/api/events/toggle-featured/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-//   CONFIRM PAYMENT FOR EVENT REGISTRATION
+
+//   CONFIRM PAYMENT  STAUS FOR EVENT REGISTRATION
+
 app.post('/api/admin/event-registrations/:registrationId/confirm', verifyAdmin, async (req, res) => {
   try {
     const { registrationId } = req.params;
@@ -2592,6 +3686,7 @@ app.post('/api/admin/event-registrations/:registrationId/confirm', verifyAdmin, 
     `;
     
     await Database.query(updateSql, [registrationId]);
+    
     // Get registration details for email
     const regSql = `
       SELECT er.*, e.title as event_title, e.event_date, e.location
@@ -2627,8 +3722,6 @@ app.post('/api/admin/event-registrations/:registrationId/confirm', verifyAdmin, 
     });
   }
 });
-
-
 
 
 // EVENT REGISTRATION ROUTES
@@ -2840,7 +3933,7 @@ app.get('/api/admin/all-event-registrations', verifyAdmin, async (req, res) => {
   try {
     console.log('  Admin: Fetching all event registrations from MySQL');
     
-    
+    // IMPROVED QUERY: JOIN with events table to get event_title
     const sql = `
       SELECT 
         er.*,
@@ -2878,7 +3971,7 @@ app.get('/api/admin/all-event-registrations', verifyAdmin, async (req, res) => {
 
 
 
-
+// ADVISORY/ADVISORS ROUTES
 
 app.post('/api/advisory/create', verifyAdmin, advisorUpload, async (req, res) => {
   try {
@@ -3500,6 +4593,342 @@ app.patch('/api/news/toggle-active/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// TV INTERVIEWS ROUTES
+
+function extractYouTubeVideoId(url) {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  const patterns = [
+    /(?:youtube\.com\/watch\?(?:[^&]*&)*v=|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+  ];
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match && match[1]) return match[1];
+  }
+  return null;
+}
+
+function parseTvInterviewBody(body, requireUrl = true) {
+  const title = (body.title && typeof body.title === 'string') ? body.title.trim() : '';
+  const youtubeUrl = (body.youtube_url && typeof body.youtube_url === 'string') ? body.youtube_url.trim() : '';
+
+  if (!title) {
+    return { error: 'Title is required' };
+  }
+  if (title.length > 255) {
+    return { error: 'Title must be 255 characters or less' };
+  }
+
+  if (requireUrl && !youtubeUrl) {
+    return { error: 'YouTube URL is required' };
+  }
+
+  let videoId = null;
+  let normalizedUrl = youtubeUrl;
+
+  if (youtubeUrl) {
+    if (youtubeUrl.length > 500) {
+      return { error: 'YouTube URL is too long' };
+    }
+    videoId = extractYouTubeVideoId(youtubeUrl);
+    if (!videoId) {
+      return { error: 'Invalid YouTube URL. Use youtube.com/watch, youtu.be, or youtube.com/shorts links.' };
+    }
+    normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  }
+
+  const orderIndex = body.order_index !== undefined
+    ? (parseInt(body.order_index, 10) || 0)
+    : 0;
+
+  return {
+    data: {
+      title,
+      youtube_url: normalizedUrl,
+      youtube_video_id: videoId,
+      order_index: orderIndex
+    }
+  };
+}
+
+function sortTvInterviewsByOrder(items) {
+  return [...items].sort((a, b) => (a.order_index || 999) - (b.order_index || 999));
+}
+
+app.get('/api/tv-interviews', async (req, res) => {
+  try {
+    const interviews = await Database.getAllTvInterviews();
+    const active = interviews.filter(i => i.is_active);
+    res.json({ success: true, data: sortTvInterviewsByOrder(active) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get('/api/tv-interviews/admin/all', verifyAdmin, async (req, res) => {
+  try {
+    const interviews = await Database.getAllTvInterviews();
+    res.json({ success: true, data: sortTvInterviewsByOrder(interviews) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/tv-interviews/create', verifyAdmin, async (req, res) => {
+  try {
+    const parsed = parseTvInterviewBody(req.body, true);
+    if (parsed.error) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const id = await Database.createTvInterview({
+      ...parsed.data,
+      is_active: true
+    });
+
+    res.json({ success: true, message: 'TV Interview created successfully', id });
+  } catch (error) {
+    console.error('Create TV interview error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.put('/api/tv-interviews/update/:id', verifyAdmin, async (req, res) => {
+  try {
+    const existing = await Database.getById('tv_interviews', req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'TV Interview not found' });
+    }
+
+    const hasUrl = req.body.youtube_url !== undefined && String(req.body.youtube_url).trim() !== '';
+    const parsed = parseTvInterviewBody(
+      {
+        title: req.body.title !== undefined ? req.body.title : existing.title,
+        youtube_url: hasUrl ? req.body.youtube_url : existing.youtube_url,
+        order_index: req.body.order_index !== undefined ? req.body.order_index : existing.order_index
+      },
+      hasUrl || false
+    );
+
+    if (parsed.error) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const data = { title: parsed.data.title, order_index: parsed.data.order_index };
+    if (hasUrl) {
+      data.youtube_url = parsed.data.youtube_url;
+      data.youtube_video_id = parsed.data.youtube_video_id;
+    }
+
+    const success = await Database.updateTvInterview(req.params.id, data);
+    res.json(success
+      ? { success: true, message: 'TV Interview updated' }
+      : { success: false, message: 'TV Interview not found' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete('/api/tv-interviews/delete/:id', verifyAdmin, async (req, res) => {
+  try {
+    await Database.deleteTvInterview(req.params.id);
+    res.json({ success: true, message: 'TV Interview deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.patch('/api/tv-interviews/toggle-active/:id', verifyAdmin, async (req, res) => {
+  try {
+    const result = await Database.toggleTvInterviewActive(req.params.id);
+    res.json({ success: true, message: 'TV Interview status updated', is_active: result.is_active });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+const POSITIVE_TALK_CATEGORIES = new Set(['promo', 'full_episode']);
+
+function parsePositiveTalkVideoDate(value) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return { date: new Date().toISOString().slice(0, 10) };
+  }
+  const str = String(value).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return { error: 'Video date must be in YYYY-MM-DD format' };
+  }
+  const parsed = new Date(`${str}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return { error: 'Invalid video date' };
+  }
+  return { date: str };
+}
+
+function parsePositiveTalkBody(body, requireUrl = true) {
+  const title = (body.title && typeof body.title === 'string') ? body.title.trim() : '';
+  const youtubeUrl = (body.youtube_url && typeof body.youtube_url === 'string') ? body.youtube_url.trim() : '';
+  const categoryRaw = (body.category && typeof body.category === 'string') ? body.category.trim() : 'full_episode';
+  const category = POSITIVE_TALK_CATEGORIES.has(categoryRaw) ? categoryRaw : null;
+  const videoDateResult = parsePositiveTalkVideoDate(body.video_date);
+
+  if (!title) {
+    return { error: 'Title is required' };
+  }
+  if (title.length > 255) {
+    return { error: 'Title must be 255 characters or less' };
+  }
+  if (!category) {
+    return { error: 'Invalid category. Use promo or full_episode.' };
+  }
+  if (videoDateResult.error) {
+    return { error: videoDateResult.error };
+  }
+
+  if (requireUrl && !youtubeUrl) {
+    return { error: 'YouTube URL is required' };
+  }
+
+  let videoId = null;
+  let normalizedUrl = youtubeUrl;
+
+  if (youtubeUrl) {
+    if (youtubeUrl.length > 500) {
+      return { error: 'YouTube URL is too long' };
+    }
+    videoId = extractYouTubeVideoId(youtubeUrl);
+    if (!videoId) {
+      return { error: 'Invalid YouTube URL. Use youtube.com/watch, youtu.be, or youtube.com/shorts links.' };
+    }
+    normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  }
+
+  return {
+    data: {
+      title,
+      youtube_url: normalizedUrl,
+      youtube_video_id: videoId,
+      category,
+      video_date: videoDateResult.date
+    }
+  };
+}
+
+function getPositiveTalkSortTime(item) {
+  const videoDate = item.video_date ? new Date(`${item.video_date}T12:00:00`).getTime() : NaN;
+  if (Number.isFinite(videoDate)) return videoDate;
+  return new Date(item.created_at || 0).getTime();
+}
+
+function sortPositiveTalkByDate(items) {
+  return [...items].sort((a, b) => {
+    const dateA = getPositiveTalkSortTime(a);
+    const dateB = getPositiveTalkSortTime(b);
+    if (dateB !== dateA) return dateB - dateA;
+    return (b.id || 0) - (a.id || 0);
+  });
+}
+
+app.get('/api/positive-talk', async (req, res) => {
+  try {
+    const videos = await Database.getAllPositiveTalkVideos();
+    const active = videos.filter(v => v.is_active);
+    res.json({ success: true, data: sortPositiveTalkByDate(active) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get('/api/positive-talk/admin/all', verifyAdmin, async (req, res) => {
+  try {
+    const videos = await Database.getAllPositiveTalkVideos();
+    res.json({ success: true, data: sortPositiveTalkByDate(videos) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/positive-talk/create', verifyAdmin, async (req, res) => {
+  try {
+    const parsed = parsePositiveTalkBody(req.body, true);
+    if (parsed.error) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const id = await Database.createPositiveTalkVideo({
+      ...parsed.data,
+      is_active: true
+    });
+
+    res.json({ success: true, message: 'Positive Talk video created successfully', id });
+  } catch (error) {
+    console.error('Create positive talk video error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.put('/api/positive-talk/update/:id', verifyAdmin, async (req, res) => {
+  try {
+    const existing = await Database.getById('positive_talk_videos', req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+
+    const hasUrl = req.body.youtube_url !== undefined && String(req.body.youtube_url).trim() !== '';
+    const parsed = parsePositiveTalkBody(
+      {
+        title: req.body.title !== undefined ? req.body.title : existing.title,
+        youtube_url: hasUrl ? req.body.youtube_url : existing.youtube_url,
+        category: req.body.category !== undefined ? req.body.category : existing.category,
+        video_date: req.body.video_date !== undefined ? req.body.video_date : existing.video_date
+      },
+      hasUrl || false
+    );
+
+    if (parsed.error) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const data = {
+      title: parsed.data.title,
+      category: parsed.data.category,
+      video_date: parsed.data.video_date
+    };
+    if (hasUrl) {
+      data.youtube_url = parsed.data.youtube_url;
+      data.youtube_video_id = parsed.data.youtube_video_id;
+    }
+
+    const success = await Database.updatePositiveTalkVideo(req.params.id, data);
+    res.json(success
+      ? { success: true, message: 'Positive Talk video updated' }
+      : { success: false, message: 'Video not found' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete('/api/positive-talk/delete/:id', verifyAdmin, async (req, res) => {
+  try {
+    await Database.deletePositiveTalkVideo(req.params.id);
+    res.json({ success: true, message: 'Positive Talk video deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.patch('/api/positive-talk/toggle-active/:id', verifyAdmin, async (req, res) => {
+  try {
+    const result = await Database.togglePositiveTalkVideoActive(req.params.id);
+    res.json({ success: true, message: 'Video status updated', is_active: result.is_active });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 
 // TESTIMONIALS ROUTES
 
@@ -3757,26 +5186,17 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
       }
     }
 
-    const existingMember = await Database.query(
-      'SELECT id FROM membership_applications WHERE email = ? LIMIT 1',
+    const existingRows = await Database.query(
+      'SELECT * FROM membership_applications WHERE email = ? LIMIT 1',
       [emailT]
     );
-    if (existingMember.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email already registered. Please login or use a different email.'
-      });
-    }
 
-    const year = new Date().getFullYear();
-    const nextSerial = await Database.getNextMemberSerialForYear(year);
-    const memberId = `CIMSME${year}${String(nextSerial).padStart(MEMBER_ID_SERIAL_PAD_LENGTH, '0')}`;
-    const hashedPassword = await bcrypt.hash(password, 12);
     const businessCategoryL = trim(businessCategory).toLowerCase();
-    const fee = getMembershipFeeServer(membershipTypeT, businessCategoryL, annualTurnover);
+    const baseFee = getMembershipFeeServer(membershipTypeT, businessCategoryL, annualTurnover);
+    const paymentTotals = calculateMembershipPaymentTotals(baseFee);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    const applicationData = {
-      memberid: memberId,
+    const applicationFields = {
       fullname: fullNameT,
       businessname: businessNameT,
       email: emailT,
@@ -3785,7 +5205,7 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
       businesscategory: businessCategoryL,
       businesstype: trim(businessType) || 'other',
       subbusinesscategory: trim(subBusinessCategory) || '',
-      annualturnover: fee,
+      annualturnover: paymentTotals.baseFee,
       state: stateT,
       pincode: pincodeT,
       city: cityT,
@@ -3794,79 +5214,102 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
       businessaddress: businessAddressT,
       gstregistered: gstregistered === 'yes' || gstregistered === true,
       gsttype: trim(gsttype) || '',
-      membershipfee: fee,
-      originalfee: fee,
-      finalamount: fee,
+      membershipfee: paymentTotals.baseFee,
+      originalfee: paymentTotals.baseFee,
+      finalamount: paymentTotals.totalPayable,
       membershiptype: membershipTypeT,
       status: 'pending',
       payment_status: 'pending',
       interested_community: interestedCommunityName
     };
 
-    const savedId = await Database.create('membership_applications', applicationData);
-    const savedRecord = { ...applicationData, id: savedId, memberid: memberId };
-    sendMembershipApplicationEmail(savedRecord, fee).catch((err) => {
-      if (isDevelopment) console.error('Membership email error:', err.message);
-    });
+    let savedId;
+    let memberId;
+    let isPaymentRetry = false;
 
-    if (fee > 0) {
-      try {
-        const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        await Database.createPaymentOrder({
-          order_id: orderId,
-          amount: fee,
-          currency: 'INR',
-          customer_name: fullNameT,
-          customer_email: emailT,
-          customer_phone: phoneT,
-          membership_data: {
-            memberId,
-            applicationId: savedId,
-            businessCategory: businessCategoryL,
-            email: emailT,
-            finalAmount: fee
-          }
+    if (existingRows.length > 0) {
+      const existing = existingRows[0];
+      const payStatus = String(existing.payment_status || 'pending').toLowerCase();
+      const appStatus = String(existing.status || 'pending').toLowerCase();
+
+      if (appStatus === 'approved' && payStatus === 'paid') {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered. Please login or use a different email.'
         });
+      }
 
-        const cashfreeRequest = {
-          order_amount: fee,
-          order_currency: 'INR',
-          order_id: orderId,
-          customer_details: {
-            customer_id: memberId.replace(/-/g, '_'),
-            customer_name: fullNameT,
-            customer_email: emailT,
-            customer_phone: phoneT
-          },
-          order_meta: {
-            return_url: `${getBaseUrl(req)}/payment-status?orderId=${orderId}`,
-            notify_url: `${getBaseUrl(req)}/api/payment/webhook`
-          }
-        };
+      if (appStatus === 'rejected') {
+        return res.status(400).json({
+          success: false,
+          message: 'Your previous application was rejected. Please contact support.'
+        });
+      }
 
-        const cashfreeResponse = await axios.post(
-          `${cashfreeConfig.baseURL}/orders`,
-          cashfreeRequest,
-          { headers: getCashfreeHeaders(), timeout: 15000 }
-        );
-
-        await Database.updatePaymentOrder(
-          orderId,
-          cashfreeResponse.data.cf_order_id,
-          cashfreeResponse.data.payment_session_id
-        );
+      if (appStatus === 'pending' && (payStatus === 'pending' || payStatus === 'failed')) {
+        savedId = existing.id;
+        memberId = existing.memberid;
+        isPaymentRetry = true;
+        await Database.update('membership_applications', savedId, applicationFields);
         await Database.query(
-          'UPDATE membership_applications SET order_id = ? WHERE id = ?',
-          [orderId, savedId]
+          "UPDATE payment_orders SET status = 'EXPIRED', updated_at = NOW() WHERE customer_email = ? AND status = 'ACTIVE'",
+          [emailT]
         );
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered. Please login or contact support.'
+        });
+      }
+    } else {
+      const year = new Date().getFullYear();
+      const nextSerial = await Database.getNextMemberSerialForYear(year);
+      memberId = `CIMSME${year}${String(nextSerial).padStart(MEMBER_ID_SERIAL_PAD_LENGTH, '0')}`;
+      savedId = await Database.create('membership_applications', {
+        memberid: memberId,
+        ...applicationFields
+      });
+    }
+
+    const savedRecord = { ...applicationFields, id: savedId, memberid: memberId };
+    if (!isPaymentRetry) {
+      sendMembershipApplicationEmail(savedRecord, paymentTotals.totalPayable).catch((err) => {
+        if (isDevelopment) console.error('Membership email error:', err.message);
+      });
+    }
+
+    if (paymentTotals.totalPayable > 0) {
+      const orderId = generatePaymentOrderId();
+
+     
+      try {
+        const payment = await createPaymentSession({
+          req,
+          orderId,
+          amount: paymentTotals.baseFee,
+          memberId,
+          fullName: fullNameT,
+          email: emailT,
+          phone: phoneT,
+          savedId,
+          businessCategoryL
+        });
 
         return res.json({
           success: true,
-          message: 'Application submitted. Please complete payment.',
+          message: isPaymentRetry
+            ? 'Payment session ready. Please complete payment.'
+            : 'Application submitted. Please complete payment.',
           memberId,
           requiresPayment: true,
-          paymentSessionId: cashfreeResponse.data.payment_session_id,
-          orderId,
+          paymentSessionId: payment.paymentSessionId,
+          paymentLink: payment.paymentLink,
+          cashfreeMode: payment.cashfreeMode || razorpayRuntime.mode,
+          razorpayKeyId: payment.razorpayKeyId,
+          amount: payment.amount,
+          baseAmount: payment.baseFee,
+          gstAmount: payment.gstAmount,
+          orderId: payment.orderId,
           data: {
             id: savedId,
             memberId,
@@ -3874,24 +5317,47 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
             businessCategory: businessCategoryL,
             city: cityT,
             state: stateT,
-            finalAmount: fee,
+            baseAmount: payment.baseFee,
+            gstAmount: payment.gstAmount,
+            finalAmount: payment.finalAmount,
             status: 'pending',
             paymentStatus: 'pending'
           }
         });
-            } catch (paymentError) {
-        const msg = paymentError.response?.data?.message || paymentError.message;
-        const code = paymentError.response?.data?.code || paymentError.response?.status;
-        console.error('Membership apply: payment step failed', { message: msg, code, memberId });
+      } catch (paymentError) {
+        const pgErr = parsePaymentError(paymentError);
+        console.error('Membership apply: payment step failed', {
+          message: pgErr.message,
+          code: pgErr.code,
+          memberId,
+          orderId
+        });
+
+        try {
+          await Database.query(
+            "UPDATE payment_orders SET status = 'FAILED', updated_at = NOW() WHERE order_id = ?",
+            [orderId]
+          );
+        } catch (_) { /* ignore */ }
+
+        try {
+          await Database.update('membership_applications', savedId, { payment_status: 'failed' });
+        } catch (_) { /* ignore */ }
+
+        const isGatewaySetup = /not enabled|not configured|invalid.*credentials|authentication|unauthorized|bad_request/i.test(pgErr.message || '');
+        const userMessage = isGatewaySetup
+          ? `Your application is saved (Member ID: ${memberId}). Payment gateway setup is in progress on our side — please try again in a few hours or contact support at info@indiansmechamber.com with your Member ID.`
+          : `Application saved (Member ID: ${memberId}). Payment could not be started — please click "Apply for Membership" again to retry.`;
+
         return res.status(200).json({
           success: false,
-          message: `Application saved but payment could not be started. Please contact support with your Member ID: ${memberId} to complete payment.`,
+          message: userMessage,
           memberId,
-          applicationSaved: true
+          applicationSaved: true,
+          canRetryPayment: true,
+          applicationId: savedId
         });
       }
-
-
     }
 
     await Database.update('membership_applications', savedId, {
@@ -4750,12 +6216,13 @@ app.get('/api/admin/dashboard/stats', verifyAdmin, async (req, res) => {
   }
 });
 
+
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ success: false, message: err.message });
 });
 
-
+// DATABASE HEALTH CHECK
 async function checkDatabaseHealth() {
     try {
         const applications = await Database.getAll('membership_applications');  
@@ -4777,4 +6244,8 @@ async function checkDatabaseHealth() {
     return false;
   }
 }
+
+
+
+
 module.exports = app;
