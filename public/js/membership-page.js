@@ -1,13 +1,15 @@
-/**
 
- */
 (function () {
     'use strict';
 
+    var MEMBERSHIP_GST_RATE = 0.18;
     var currentMembershipFee = 0;
+    var currentBaseFee = 0;
     var membershipBenefits = [];
     var membershipStories = [];
     var pincodeTimeout;
+    var pincodeFetchAbort = null;
+    var pincodeRequestSeq = 0;
 
     function handleMembershipTypeChange() {
         var membershipType = document.getElementById('membershipTypeSelect').value;
@@ -38,19 +40,35 @@
         }
     }
 
-    function displayFixedFee(amount, typeName) {
+    function computePaymentTotals(baseFee) {
+        var base = parseFloat(baseFee) || 0;
+        if (base <= 0) return { baseFee: 0, gstAmount: 0, totalPayable: 0 };
+        var gstAmount = Math.round(base * MEMBERSHIP_GST_RATE * 100) / 100;
+        var totalPayable = Math.round((base + gstAmount) * 100) / 100;
+        return { baseFee: base, gstAmount: gstAmount, totalPayable: totalPayable };
+    }
+
+    function displayFeeBreakdown(baseFee, typeName) {
         var feeDisplay = document.getElementById('membershipFeeDisplay');
         var originalFee = document.getElementById('originalFeeAmount');
+        var gstFee = document.getElementById('gstFeeAmount');
         var finalFee = document.getElementById('finalFeeAmount');
         var discountRow = document.getElementById('discountRow');
         var membershipFeeTitle = document.getElementById('membershipFeeTitle');
         if (!feeDisplay || !originalFee || !finalFee) return;
-        originalFee.textContent = amount.toLocaleString('en-IN');
-        finalFee.textContent = amount.toLocaleString('en-IN');
-        discountRow.classList.add('hidden');
-        membershipFeeTitle.textContent = typeName + ' Fee';
+        var totals = computePaymentTotals(baseFee);
+        originalFee.textContent = totals.baseFee.toLocaleString('en-IN');
+        if (gstFee) gstFee.textContent = totals.gstAmount.toLocaleString('en-IN');
+        finalFee.textContent = totals.totalPayable.toLocaleString('en-IN');
+        if (discountRow) discountRow.classList.add('hidden');
+        if (membershipFeeTitle) membershipFeeTitle.textContent = typeName + ' Fee';
         feeDisplay.classList.remove('hidden');
-        currentMembershipFee = amount;
+        currentBaseFee = totals.baseFee;
+        currentMembershipFee = totals.totalPayable;
+    }
+
+    function displayFixedFee(amount, typeName) {
+        displayFeeBreakdown(amount, typeName);
     }
 
     function calculateMembershipFee() {
@@ -77,12 +95,7 @@
             feeDisplay.classList.add('hidden');
             return;
         }
-        currentMembershipFee = baseFee;
-        if (originalFeeEl) originalFeeEl.textContent = baseFee.toLocaleString('en-IN');
-        if (finalFeeEl) finalFeeEl.textContent = baseFee.toLocaleString('en-IN');
-        if (discountRow) discountRow.classList.add('hidden');
-        if (membershipFeeTitle) membershipFeeTitle.textContent = 'Annual Membership Fee';
-        feeDisplay.classList.remove('hidden');
+        displayFeeBreakdown(baseFee, 'Annual Membership');
     }
 
     function getMembershipValidationErrors(data) {
@@ -194,34 +207,108 @@
         }, true);
     }
 
-    function loadCashfreeScript() {
-        if (window.Cashfree) return Promise.resolve();
+    var razorpayKeyId = null;
+    var razorpayScriptLoaded = false;
+
+    function loadRazorpayScript() {
+        if (window.Razorpay) {
+            razorpayScriptLoaded = true;
+            return Promise.resolve();
+        }
+        if (razorpayScriptLoaded) return Promise.resolve();
         return new Promise(function (resolve, reject) {
             var s = document.createElement('script');
-            s.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-            s.onload = function () { resolve(); };
-            s.onerror = function () { reject(new Error('Failed to load Cashfree SDK')); };
+            s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            s.async = true;
+            s.onload = function () {
+                razorpayScriptLoaded = true;
+                resolve();
+            };
+            s.onerror = function () { reject(new Error('Failed to load Razorpay checkout')); };
             document.head.appendChild(s);
         });
     }
 
-    var cashfreeInstance = null;
-    function loadCashfree() {
-        if (cashfreeInstance) return Promise.resolve(cashfreeInstance);
-        return loadCashfreeScript().then(function () {
-            if (!window.Cashfree) throw new Error('Cashfree SDK not loaded');
-            var mode = 'test';
-            return fetch('/api/config').then(function (r) {
-                if (r.ok) return r.json();
-                return {};
-            }).then(function (cfg) {
-                if (cfg.cashfreeMode) mode = cfg.cashfreeMode;
-                return window.Cashfree({ mode: mode });
-            }).then(function (cf) {
-                cashfreeInstance = cf;
-                return cf;
+    function preloadPaymentCheckout() {
+        loadRazorpayScript()
+            .then(function () {
+                return fetch('/api/config').then(function (r) { return r.ok ? r.json() : {}; });
+            })
+            .then(function (cfg) {
+                if (cfg.razorpayKeyId) razorpayKeyId = cfg.razorpayKeyId;
+            })
+            .catch(function () { /* warm-up only */ });
+    }
+
+    async function openPaymentCheckout(paymentSessionId, paymentLink, checkoutOpts) {
+        checkoutOpts = checkoutOpts || {};
+        if (paymentLink) {
+            window.location.href = paymentLink;
+            return;
+        }
+        if (!paymentSessionId) {
+            throw new Error('Unable to open payment page');
+        }
+
+        var key = checkoutOpts.razorpayKeyId || razorpayKeyId;
+        var merchantOrderId = checkoutOpts.orderId;
+        if (!key) {
+            var cfgRes = await fetch('/api/config');
+            var cfg = cfgRes.ok ? await cfgRes.json() : {};
+            key = cfg.razorpayKeyId;
+            if (!key) throw new Error('Payment gateway is not configured');
+        }
+
+        await loadRazorpayScript();
+        if (!window.Razorpay) throw new Error('Razorpay checkout not loaded');
+
+        var callbackUrl = checkoutOpts.callbackUrl
+            || (window.location.origin + '/payment-status?orderId=' + encodeURIComponent(merchantOrderId || ''));
+
+        return new Promise(function (resolve, reject) {
+            var options = {
+                key: key,
+                name: 'CIMSME',
+                description: 'Membership Fee (incl. 18% GST)',
+                order_id: paymentSessionId,
+                prefill: {
+                    name: checkoutOpts.name || '',
+                    email: checkoutOpts.email || '',
+                    contact: checkoutOpts.phone || ''
+                },
+                theme: { color: '#3B82F6' },
+                handler: function () {
+                    window.location.href = callbackUrl;
+                    resolve();
+                },
+                modal: {
+                    ondismiss: function () {
+                        var err = new Error('Payment cancelled');
+                        err.code = 'PAYMENT_CANCELLED';
+                        reject(err);
+                    }
+                }
+            };
+
+            var rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (resp) {
+                var msg = (resp.error && resp.error.description) || 'Payment failed';
+                reject(new Error(msg));
             });
+            rzp.open();
         });
+    }
+
+    function showMembershipStatus(messageDiv, message, type) {
+        var styles = {
+            success: 'mb-6 p-4 rounded-xl text-sm font-medium bg-green-100 text-green-800',
+            error: 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-100 text-red-800',
+            info: 'mb-6 p-4 rounded-xl text-sm font-medium bg-blue-100 text-blue-800',
+            warning: 'mb-6 p-4 rounded-xl text-sm font-medium bg-amber-100 text-amber-900 border border-amber-200'
+        };
+        messageDiv.textContent = message;
+        messageDiv.className = styles[type] || styles.error;
+        messageDiv.classList.remove('hidden');
     }
 
     async function handleMembershipApplication(event) {
@@ -254,33 +341,51 @@
             var result = null;
             try { result = (text && text.trim()) ? JSON.parse(text) : null; } catch (_) { result = null; }
             if (!result || typeof result !== 'object') {
-                messageDiv.textContent = 'Something went wrong. Please try again or contact support.';
-                messageDiv.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-100 text-red-800';
-                messageDiv.classList.remove('hidden');
+                showMembershipStatus(messageDiv, 'Something went wrong. Please try again or contact support.', 'error');
                 return;
             }
-            if (!result.success) throw new Error(result.message || 'Application submission failed');
-            if (result.requiresPayment && result.paymentSessionId) {
-                messageDiv.textContent = ' Application submitted! Opening secure payment page...';
-                messageDiv.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-blue-100 text-blue-800';
-                messageDiv.classList.remove('hidden');
-                setTimeout(function () {
-                    alert('Membership Application Submitted!\n\nMember ID: ' + result.memberId + '\nBusiness: ' + membershipData.businessName + '\nAmount to Pay: \u20B9' + (result.data && result.data.finalAmount ? result.data.finalAmount.toLocaleString() : '') + '\n\nOpening secure payment page...');
-                }, 300);
+            if (!result.success) {
+                if (result.applicationSaved && result.canRetryPayment) {
+                    showMembershipStatus(
+                        messageDiv,
+                        result.message || ('Application saved (Member ID: ' + (result.memberId || '') + '). Click "Apply for Membership" again to retry payment.'),
+                        'warning'
+                    );
+                    submitText.textContent = 'Retry Payment';
+                    return;
+                }
+                throw new Error(result.message || 'Application submission failed');
+            }
+            if (result.requiresPayment && (result.paymentSessionId || result.paymentLink)) {
+                if (result.razorpayKeyId) razorpayKeyId = result.razorpayKeyId;
+                showMembershipStatus(messageDiv, 'Application submitted! Opening secure payment page...', 'info');
                 try {
-                    var cashfree = await loadCashfree();
-                    await cashfree.checkout({
-                        paymentSessionId: result.paymentSessionId,
-                        redirectTarget: '_self'
+                    await openPaymentCheckout(result.paymentSessionId, result.paymentLink, {
+                        razorpayKeyId: result.razorpayKeyId,
+                        orderId: result.orderId,
+                        name: membershipData.fullName,
+                        email: membershipData.email,
+                        phone: membershipData.phone
                     });
                 } catch (e) {
-                    console.error('Cashfree checkout error:', e);
-                    alert('Unable to open payment page. Please refresh and try again.');
+                    console.error('Razorpay checkout error:', e);
+                    if (e && e.code === 'PAYMENT_CANCELLED') {
+                        showMembershipStatus(
+                            messageDiv,
+                            'Payment cancelled. Your application is saved — click "Apply for Membership" again to complete payment.',
+                            'warning'
+                        );
+                    } else {
+                        showMembershipStatus(
+                            messageDiv,
+                            (e && e.message) || 'Application saved but payment could not open. Please click "Apply for Membership" again to retry.',
+                            'warning'
+                        );
+                    }
+                    submitText.textContent = 'Retry Payment';
                 }
             } else {
-                messageDiv.textContent = ' Application submitted successfully!.';
-                messageDiv.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-green-100 text-green-800';
-                messageDiv.classList.remove('hidden');
+                showMembershipStatus(messageDiv, 'Application submitted successfully!', 'success');
                 setTimeout(function () {
                     alert('Welcome to CIMSME!\n\nMember ID: ' + result.memberId + '\nEmail: ' + membershipData.email + '\n\nYou can now log in using your email and password.\nA confirmation email has been sent.');
                 }, 500);
@@ -291,12 +396,16 @@
         } catch (error) {
             console.error('Membership submission error:', error);
             var isServerMessage = error && error.message && !/^(Failed to fetch|NetworkError|Load failed)/i.test(error.message);
-            messageDiv.textContent = isServerMessage ? error.message : 'Something went wrong. Please check your connection and try again, or contact support.';
-            messageDiv.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-100 text-red-800';
-            messageDiv.classList.remove('hidden');
+            showMembershipStatus(
+                messageDiv,
+                isServerMessage ? error.message : 'Something went wrong. Please check your connection and try again, or contact support.',
+                'error'
+            );
         } finally {
             submitBtn.disabled = false;
-            submitText.textContent = 'Apply for Membership';
+            if (submitText.textContent === 'Processing...') {
+                submitText.textContent = 'Apply for Membership';
+            }
         }
     }
 
@@ -407,49 +516,125 @@
             });
     }
 
-    async function fetchLocationByPincode(pincode) {
+    function enableManualLocationFields(stateInput, cityInput) {
+        if (stateInput) stateInput.removeAttribute('readonly');
+        if (cityInput) cityInput.removeAttribute('readonly');
+    }
+
+    function lockAutoLocationFields(stateInput, cityInput) {
+        if (stateInput) stateInput.setAttribute('readonly', 'readonly');
+        if (cityInput) cityInput.setAttribute('readonly', 'readonly');
+    }
+
+    function fetchLocationByPincode(rawPincode) {
         clearTimeout(pincodeTimeout);
+        if (pincodeFetchAbort) {
+            pincodeFetchAbort.abort();
+            pincodeFetchAbort = null;
+        }
+
+        var pincode = String(rawPincode || '').replace(/\D/g, '').slice(0, 6);
+        var pincodeInput = document.getElementById('pincodeInput');
         var statusEl = document.getElementById('pincodeStatus');
         var stateInput = document.getElementById('stateInput');
         var cityInput = document.getElementById('cityInput');
-        stateInput.value = '';
-        cityInput.value = '';
-        statusEl.classList.add('hidden');
-        if (pincode.length !== 6) return;
+
+        if (pincodeInput && pincodeInput.value !== pincode) {
+            pincodeInput.value = pincode;
+        }
+
+        if (pincode.length !== 6) {
+            statusEl.classList.add('hidden');
+            if (pincode.length === 0) {
+                stateInput.value = '';
+                cityInput.value = '';
+            }
+            return;
+        }
+
         statusEl.textContent = ' Fetching location...';
         statusEl.className = 'text-xs mt-1 text-blue-600';
         statusEl.classList.remove('hidden');
-        pincodeTimeout = setTimeout(async function () {
-            try {
-                var controller = new AbortController();
-                var timeoutId = setTimeout(function () { controller.abort(); }, 5000);
-                var response = await fetch('https://api.postalpincode.in/pincode/' + pincode, { signal: controller.signal });
-                clearTimeout(timeoutId);
-                if (!response.ok) throw new Error('API unavailable');
-                var data = await response.json();
-                if (data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
-                    var location = data[0].PostOffice[0];
-                    stateInput.value = location.State;
-                    cityInput.value = location.District;
-                    statusEl.textContent = ' ' + location.District + ', ' + location.State;
-                    statusEl.className = 'text-xs mt-1 text-green-600';
-                } else {
-                    statusEl.textContent = ' Invalid pincode. Enter city/state manually';
+
+        pincodeTimeout = setTimeout(function () {
+            var requestId = ++pincodeRequestSeq;
+            var activePincode = pincode;
+            var controller = new AbortController();
+            pincodeFetchAbort = controller;
+
+            fetch('/api/pincode/' + encodeURIComponent(activePincode), {
+                signal: controller.signal,
+                headers: { Accept: 'application/json' }
+            })
+                .then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (data) {
+                        return { response: response, data: data };
+                    });
+                })
+                .then(function (result) {
+                    if (requestId !== pincodeRequestSeq) return;
+
+                    var currentPincode = String(document.getElementById('pincodeInput')?.value || '').replace(/\D/g, '').slice(0, 6);
+                    if (currentPincode !== activePincode) return;
+
+                    var response = result.response;
+                    var data = result.data || {};
+
+                    if (response.status === 400) {
+                        statusEl.textContent = ' Enter a valid 6-digit pincode';
+                        statusEl.className = 'text-xs mt-1 text-orange-600';
+                        enableManualLocationFields(stateInput, cityInput);
+                        return;
+                    }
+
+                    if (response.status === 404) {
+                        statusEl.textContent = ' Pincode not found. Enter city/state manually';
+                        statusEl.className = 'text-xs mt-1 text-orange-600';
+                        stateInput.value = '';
+                        cityInput.value = '';
+                        enableManualLocationFields(stateInput, cityInput);
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        statusEl.textContent = ' Location service busy. Try again or enter manually';
+                        statusEl.className = 'text-xs mt-1 text-orange-600';
+                        enableManualLocationFields(stateInput, cityInput);
+                        return;
+                    }
+
+                    if (data.success && data.state && data.city) {
+                        stateInput.value = data.state;
+                        cityInput.value = data.city;
+                        lockAutoLocationFields(stateInput, cityInput);
+                        statusEl.textContent = ' ' + data.city + ', ' + data.state;
+                        statusEl.className = 'text-xs mt-1 text-green-600';
+                        clearMembershipFieldError(document.getElementById('membershipApplicationForm'), 'state');
+                        clearMembershipFieldError(document.getElementById('membershipApplicationForm'), 'city');
+                        clearMembershipFieldError(document.getElementById('membershipApplicationForm'), 'pincode');
+                        return;
+                    }
+
+                    statusEl.textContent = ' Could not resolve location. Enter city/state manually';
                     statusEl.className = 'text-xs mt-1 text-orange-600';
-                    stateInput.removeAttribute('readonly');
-                    cityInput.removeAttribute('readonly');
-                }
-            } catch (err) {
-                statusEl.textContent = ' API unavailable. Enter city/state manually';
-                statusEl.className = 'text-xs mt-1 text-orange-600';
-                stateInput.removeAttribute('readonly');
-                cityInput.removeAttribute('readonly');
-            }
-        }, 500);
+                    enableManualLocationFields(stateInput, cityInput);
+                })
+                .catch(function (err) {
+                    if (err && err.name === 'AbortError') return;
+                    if (requestId !== pincodeRequestSeq) return;
+                    statusEl.textContent = ' Network error. Try again or enter city/state manually';
+                    statusEl.className = 'text-xs mt-1 text-orange-600';
+                    enableManualLocationFields(stateInput, cityInput);
+                })
+                .finally(function () {
+                    if (pincodeFetchAbort === controller) pincodeFetchAbort = null;
+                });
+        }, 400);
     }
 
     async function loadMembershipData() {
         try {
+            preloadPaymentCheckout();
             loadCommitteesForMembership();
             await Promise.all([loadMembershipBenefits(), loadMembershipStories()]);
         } catch (e) {
