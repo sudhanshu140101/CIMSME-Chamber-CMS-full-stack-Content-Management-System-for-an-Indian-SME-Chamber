@@ -1,6 +1,12 @@
+USE cimsme_cms;
 SET NAMES utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+
+
+
+-- . HERO SLIDES 
 
 CREATE TABLE hero (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -21,7 +27,7 @@ CREATE TABLE hero (
 COMMENT='Homepage hero/carousel slides';
 
 
-
+--  EVENTS (Conferences, Webinars, etc.)
 
 CREATE TABLE events (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,7 +56,7 @@ CREATE TABLE events (
 COMMENT='Event management system';
 
 
-
+--  EVENT AGENDA 
 
 CREATE TABLE event_agenda (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,7 +75,7 @@ CREATE TABLE event_agenda (
 COMMENT='Event schedule/agenda items';
 
 
-
+--  EVENT SPEAKERS
 
 CREATE TABLE event_speakers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -88,7 +94,7 @@ CREATE TABLE event_speakers (
 COMMENT='Speakers for each event';
 
 
-
+--  EVENT PHOTOS 
 
 CREATE TABLE event_photos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -104,7 +110,7 @@ CREATE TABLE event_photos (
 COMMENT='Event photo gallery';
 
 
-
+--  EVENT VIDEOS 
 
 CREATE TABLE event_videos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -121,7 +127,7 @@ CREATE TABLE event_videos (
 COMMENT='Event videos gallery';
 
 
-
+--  EVENT REGISTRATIONS
 
 CREATE TABLE event_registrations (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,7 +165,7 @@ CREATE TABLE event_registrations (
 COMMENT='Event registration records';
 
 
-
+--  ADVISORS 
 
 CREATE TABLE advisors (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -185,7 +191,7 @@ CREATE TABLE advisors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Advisory board members';
 
--- NEWS TABLE
+-- 📰 NEWS TABLE
 
 CREATE TABLE news (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -207,7 +213,57 @@ CREATE TABLE news (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='News and announcements';
 
---  TESTIMONIALS TABLE
+-- 📺 TV INTERVIEWS TABLE
+
+CREATE TABLE tv_interviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    youtube_url VARCHAR(500) NOT NULL,
+    youtube_video_id VARCHAR(11) NOT NULL,
+    order_index INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_active (is_active),
+    INDEX idx_order (order_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='TV interview videos (YouTube)';
+
+-- 🎙️ POSITIVE TALK SHOW VIDEOS TABLE
+
+CREATE TABLE positive_talk_videos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    youtube_url VARCHAR(500) NOT NULL,
+    youtube_video_id VARCHAR(11) NOT NULL,
+    category ENUM('promo', 'full_episode') NOT NULL DEFAULT 'full_episode',
+    video_date DATE NOT NULL COMMENT 'Display order date — newest shown first',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    INDEX idx_active (is_active),
+    INDEX idx_category (category),
+    INDEX idx_video_date (video_date),
+    INDEX idx_active_category_date (is_active, category, video_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Positive Talk Show YouTube videos (promo and full episodes)';
+
+-- DRIVE (admin-uploaded PDFs; files live under /public/uploads/pdfs/)
+
+CREATE TABLE drive_pdfs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pdf_name VARCHAR(255) NOT NULL COMMENT 'Display name shown in admin and optional public lists',
+    file_url VARCHAR(500) NOT NULL COMMENT 'Public path e.g. /uploads/pdfs/pdfs-123-abc.pdf',
+    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    uploaded_by VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Admin email from JWT',
+
+    INDEX idx_upload_date (upload_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='PDF library for reusable document links';
+
+-- 💬 TESTIMONIALS TABLE
 
 CREATE TABLE testimonials (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -356,7 +412,7 @@ CREATE TABLE membership_stories (
 COMMENT='Member success stories/testimonials';
 
 
---  MEMBER SERVICES 
+--  MEMBER SERVICES (Support Requests)
 
 CREATE TABLE member_services (
     id INT AUTO_INCREMENT PRIMARY KEY,
