@@ -1,0 +1,1900 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="CIMSME Loan Response Helpdesk - transparent online support for MSME loan applicants." />
+  <title>CIMSME Loan Response Helpdesk</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --slate-950: #020617;
+      --indigo-50: #eff6ff;
+      --indigo-100: #dbeafe;
+      --indigo-200: #bfdbfe;
+      --indigo-300: #93c5fd;
+      --indigo-500: #3B82F6;
+      --indigo-700: #3B82F6;
+      --indigo-800: #1e40af;
+      --indigo-900: #1e3a8a;
+      --cimsme-blue: #3B82F6;
+      --cimsme-blue-dark: #1e40af;
+      --cimsme-blue-gradient: linear-gradient(135deg, #3B82F6 0%, #1e40af 100%);
+      --cimsme-blue-shadow: 0 14px 26px rgba(59, 130, 246, 0.24);
+      --emerald-100: #d1fae5;
+      --emerald-800: #065f46;
+      --amber-50: #fffbeb;
+      --amber-100: #fef3c7;
+      --amber-200: #fde68a;
+      --amber-800: #92400e;
+      --rose-50: #fff1f2;
+      --rose-100: #ffe4e6;
+      --rose-200: #fecdd3;
+      --rose-600: #e11d48;
+      --rose-700: #be123c;
+      --rose-800: #9f1239;
+      --white: #ffffff;
+      --shadow-soft: 0 20px 35px rgba(148, 163, 184, 0.28);
+      --shadow-card: 0 14px 26px rgba(148, 163, 184, 0.24);
+      --radius-xl: 16px;
+      --radius-2xl: 20px;
+      --radius-3xl: 24px;
+      --radius-4xl: 32px;
+      --font: "Lora", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      scroll-behavior: smooth;
+      min-height: 100%;
+      background-color: #ffffff;
+    }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      min-height: 100%;
+      font-family: "Lora", serif;
+      color: var(--slate-900);
+      background-color: transparent;
+      background-image: url("/assets/climpek.png");
+      background-attachment: fixed;
+      background-repeat: repeat;
+      background-position: 0 0;
+    }
+    .section-over-texture,
+    .page {
+      background-color: transparent;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.6; }
+
+    .app-shell { min-height: 100vh; }
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .narrow { max-width: 1024px; }
+    .track-wrap { max-width: 896px; }
+    .success-wrap { max-width: 768px; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.65);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .header-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .brand-logo-link {
+      display: block;
+      flex-shrink: 0;
+      line-height: 0;
+    }
+    .brand-logo {
+      height: 48px;
+      width: auto;
+      max-width: 140px;
+      object-fit: contain;
+    }
+    .brand-text-btn {
+      display: block;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      min-width: 0;
+    }
+    .brand-title { font-size: 16px; font-weight: 900; color: var(--slate-900); }
+    .brand-subtitle { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--slate-500); }
+    .nav-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .nav-tab {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 16px;
+      background: var(--slate-100);
+      color: var(--slate-700);
+      font-size: 14px;
+      font-weight: 800;
+      transition: 0.2s ease;
+    }
+    .nav-tab:hover { background: var(--slate-200); }
+    .nav-tab.active {
+      background: var(--cimsme-blue-gradient);
+      color: var(--white);
+      box-shadow: 0 12px 25px rgba(59, 130, 246, 0.22);
+    }
+    .nav-label-short { display: none; }
+
+    .page { padding-top: 40px; padding-bottom: 40px; }
+    .hero-grid { display: grid; gap: 32px; }
+    .card {
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      background: var(--white);
+      box-shadow: var(--shadow-soft);
+    }
+    .hero-card { border-radius: var(--radius-4xl); padding: 32px; }
+    .side-stack { display: grid; gap: 16px; }
+    .process-card {
+      border-radius: var(--radius-3xl);
+      padding: 24px;
+      background: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.96);
+      box-shadow: var(--shadow-card);
+    }
+    .process-flex { display: flex; gap: 16px; }
+    .step-num {
+      display: flex;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      background: var(--indigo-50);
+      color: var(--indigo-700);
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .badge {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.4;
+    }
+    .badge-indigo { background: var(--indigo-100); color: var(--indigo-800); }
+    .badge-green { background: var(--emerald-100); color: var(--emerald-800); }
+    .badge-amber { background: var(--amber-100); color: var(--amber-800); }
+    .badge-rose { background: var(--rose-100); color: var(--rose-800); }
+    .badge-slate { background: var(--slate-100); color: var(--slate-700); }
+
+    h1, h2, h3, p { margin: 0; }
+    .hero-title {
+      margin-top: 20px;
+      max-width: 768px;
+      font-size: 40px;
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+      font-weight: 950;
+      color: var(--slate-950);
+    }
+    .hero-copy {
+      margin-top: 20px;
+      max-width: 672px;
+      color: var(--slate-600);
+      font-size: 18px;
+      line-height: 1.72;
+    }
+    .title-3xl { font-size: 30px; line-height: 1.18; font-weight: 950; color: var(--slate-950); letter-spacing: -0.025em; }
+    .title-2xl { font-size: 24px; line-height: 1.22; font-weight: 950; color: var(--slate-950); }
+    .title-xl { font-size: 20px; line-height: 1.25; font-weight: 950; color: var(--slate-950); }
+    .title-lg { font-size: 18px; line-height: 1.35; font-weight: 950; color: var(--slate-900); }
+    .muted { color: var(--slate-500); }
+    .copy-sm { font-size: 14px; line-height: 1.7; color: var(--slate-600); }
+    .copy-xs { font-size: 12px; line-height: 1.45; color: var(--slate-500); }
+    .font-semibold { font-weight: 700; }
+    .font-bold { font-weight: 800; }
+    .font-black { font-weight: 950; }
+
+    .btn-row { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+    .btn {
+      border-radius: var(--radius-xl);
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 900;
+      transition: 0.2s ease;
+      min-height: 48px;
+    }
+    .btn-primary {
+      border: 0;
+      background: var(--cimsme-blue-gradient);
+      color: var(--white);
+      box-shadow: var(--cimsme-blue-shadow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 16px 28px rgba(37, 99, 235, 0.28);
+    }
+    .btn-secondary {
+      border: 1px solid var(--slate-200);
+      background: var(--white);
+      color: var(--slate-700);
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+    }
+    .btn-secondary:hover { background: var(--slate-50); }
+    .note-text { margin-top: 20px; font-size: 14px; font-weight: 700; color: var(--slate-500); }
+
+    .info-grid { margin-top: 32px; display: grid; gap: 20px; }
+    .dark-card {
+      border-radius: var(--radius-3xl);
+      padding: 28px;
+      background: var(--cimsme-blue-gradient);
+      color: var(--white);
+      box-shadow: 0 20px 35px rgba(59, 130, 246, 0.28);
+    }
+    .amber-card {
+      border-radius: var(--radius-3xl);
+      padding: 28px;
+      border: 1px solid var(--amber-200);
+      background: var(--amber-50);
+      box-shadow: 0 20px 35px rgba(253, 230, 138, 0.35);
+    }
+    .simple-list { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; font-size: 14px; line-height: 1.7; }
+    .simple-list.dark { color: rgba(255, 255, 255, 0.92); }
+    .simple-list.normal { color: var(--slate-700); }
+
+    .panel {
+      border-radius: var(--radius-4xl);
+      padding: 24px;
+      background: var(--white);
+      box-shadow: var(--shadow-soft);
+    }
+    .section-head {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-bottom: 1px solid var(--slate-100);
+      padding-bottom: 24px;
+    }
+    .form { margin-top: 32px; display: grid; gap: 32px; }
+    .form-section { display: block; }
+    .form-grid { margin-top: 16px; display: grid; gap: 16px; }
+    .field { display: block; }
+    .field-label { display: block; margin-bottom: 6px; color: var(--slate-700); font-size: 14px; font-weight: 800; }
+    .required { color: var(--rose-600); }
+    .input, .select, .textarea {
+      width: 100%;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--slate-200);
+      background: var(--white);
+      padding: 12px 16px;
+      color: var(--slate-800);
+      font-size: 14px;
+      line-height: 1.5;
+      outline: none;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      transition: 0.2s ease;
+      min-height: 48px;
+    }
+    .textarea { min-height: 110px; resize: vertical; }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--cimsme-blue);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+    }
+    .upload-box {
+      margin-top: 16px;
+      border: 2px dashed var(--slate-200);
+      border-radius: var(--radius-2xl);
+      background: var(--slate-50);
+      padding: 24px;
+    }
+    .input-file { width: 100%; color: var(--slate-600); font-size: 14px; }
+    .file-list { margin-top: 16px; display: grid; gap: 8px; }
+    .file-item { border-radius: 12px; background: var(--white); padding: 8px 12px; color: var(--slate-600); font-size: 14px; font-weight: 700; }
+    .consent-box {
+      border-radius: var(--radius-3xl);
+      border: 1px solid var(--indigo-100);
+      background: var(--indigo-50);
+      padding: 20px;
+    }
+    .consent-label { display: flex; gap: 12px; align-items: flex-start; color: var(--slate-700); font-size: 14px; line-height: 1.7; }
+    .checkbox { margin-top: 4px; width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--cimsme-blue); }
+    .actions { display: flex; flex-direction: column; gap: 12px; justify-content: flex-end; }
+    .alert-error {
+      margin-top: 24px;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--rose-200);
+      background: var(--rose-50);
+      padding: 16px;
+      color: var(--rose-700);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .field-error {
+      display: block;
+      margin-top: 6px;
+      color: var(--rose-700);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .field-hint {
+      display: block;
+      margin-top: 6px;
+      color: var(--slate-500);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+    .field-hint.is-warning { color: var(--amber-800); }
+    .field-hint.is-success { color: var(--emerald-800); }
+    .input.field-invalid,
+    .select.field-invalid,
+    .textarea.field-invalid {
+      border-color: var(--rose-600);
+      box-shadow: 0 0 0 4px var(--rose-100);
+    }
+    .input.field-valid,
+    .select.field-valid,
+    .textarea.field-valid {
+      border-color: var(--emerald-800);
+    }
+    .consent-box.field-invalid {
+      border-color: var(--rose-200);
+      background: var(--rose-50);
+    }
+    .upload-box.field-invalid {
+      border-color: var(--rose-200);
+      background: var(--rose-50);
+    }
+
+    .success-card { border-radius: var(--radius-4xl); background: var(--white); padding: 32px; text-align: center; box-shadow: var(--shadow-soft); }
+    .success-icon { margin: 0 auto; display: flex; width: 64px; height: 64px; align-items: center; justify-content: center; border-radius: var(--radius-3xl); background: var(--emerald-100); font-size: 30px; color: var(--emerald-800); font-weight: 950; }
+    .case-id-box { margin-top: 24px; border-radius: var(--radius-3xl); border: 1px solid var(--indigo-100); background: var(--indigo-50); padding: 24px; }
+    .case-id-label { color: var(--cimsme-blue-dark); font-size: 12px; font-weight: 950; letter-spacing: 0.08em; text-transform: uppercase; }
+    .case-id-text { margin-top: 8px; color: var(--indigo-900); font-size: 30px; font-weight: 950; user-select: all; word-break: break-word; }
+
+    .track-input-grid { margin-top: 24px; display: grid; gap: 16px; }
+    .result-area { margin-top: 24px; }
+    .case-card { border-radius: var(--radius-3xl); border: 1px solid var(--slate-100); background: var(--white); padding: 24px; box-shadow: var(--shadow-card); }
+    .case-head { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
+    .detail-grid { margin-top: 24px; display: grid; gap: 16px; }
+    .info-tile { border-radius: var(--radius-2xl); background: var(--slate-50); padding: 16px; }
+    .info-label { color: var(--slate-400); font-size: 12px; font-weight: 950; letter-spacing: 0.08em; text-transform: uppercase; }
+    .info-value { margin-top: 4px; color: var(--slate-800); font-size: 14px; font-weight: 800; word-break: break-word; }
+    .timeline-title { margin-top: 24px; color: var(--slate-500); font-size: 12px; font-weight: 950; letter-spacing: 0.08em; text-transform: uppercase; }
+    .timeline { margin-top: 16px; display: grid; gap: 16px; }
+    .timeline-row { display: flex; gap: 16px; }
+    .timeline-dot { margin-top: 5px; width: 12px; height: 12px; flex-shrink: 0; border-radius: 999px; background: var(--cimsme-blue); }
+    .timeline-status { color: var(--slate-900); font-size: 14px; font-weight: 950; }
+    .timeline-time { margin-top: 2px; color: var(--slate-500); font-size: 12px; font-weight: 700; }
+    .timeline-note { margin-top: 4px; color: var(--slate-600); font-size: 14px; line-height: 1.7; }
+    .empty-error { border-radius: var(--radius-3xl); border: 1px solid var(--rose-200); background: var(--rose-50); padding: 24px; color: var(--rose-700); font-size: 14px; font-weight: 800; }
+
+    .hide { display: none !important; }
+
+    img { max-width: 100%; height: auto; }
+
+    @media (max-width: 639px) {
+      html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      body { overflow-x: hidden; }
+
+      .container {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .site-header {
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+        padding-top: env(safe-area-inset-top, 0);
+        box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+      }
+
+      .header-inner {
+        gap: 14px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+
+      .brand-group {
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 44px;
+      }
+
+      .brand-logo {
+        height: 38px;
+        max-width: 100px;
+      }
+
+      .brand-text-btn {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .brand-title {
+        font-size: 15px;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .nav-tabs {
+        display: flex;
+        align-items: stretch;
+        gap: 4px;
+        width: 100%;
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--slate-100);
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+      }
+
+      .nav-tab {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        min-height: 42px;
+        padding: 8px 6px;
+        font-size: 12px;
+        font-weight: 800;
+        text-align: center;
+        white-space: nowrap;
+        line-height: 1.2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .nav-tab.active {
+        box-shadow: 0 8px 18px rgba(59, 130, 246, 0.2);
+      }
+
+      .nav-label-long { display: none; }
+      .nav-label-short { display: inline; }
+
+      .page {
+        padding-top: 24px;
+        padding-bottom: calc(32px + env(safe-area-inset-bottom, 0));
+      }
+
+      .hero-card {
+        padding: 20px;
+        border-radius: var(--radius-3xl);
+      }
+
+      .hero-title {
+        margin-top: 16px;
+        font-size: 28px;
+        letter-spacing: -0.03em;
+      }
+
+      .hero-copy {
+        margin-top: 16px;
+        font-size: 16px;
+        line-height: 1.65;
+      }
+
+      .btn-row {
+        margin-top: 24px;
+      }
+
+      .btn-row .btn,
+      .actions .btn,
+      .track-input-grid .btn,
+      .success-card .btn {
+        width: 100%;
+      }
+
+      .note-text {
+        margin-top: 16px;
+        line-height: 1.6;
+      }
+
+      .process-card {
+        padding: 16px;
+      }
+
+      .process-flex {
+        gap: 12px;
+      }
+
+      .info-grid {
+        margin-top: 24px;
+        gap: 16px;
+      }
+
+      .dark-card,
+      .amber-card {
+        padding: 20px;
+      }
+
+      .panel {
+        padding: 16px;
+        border-radius: var(--radius-3xl);
+      }
+
+      .section-head {
+        gap: 12px;
+        padding-bottom: 20px;
+      }
+
+      .title-3xl {
+        font-size: 24px;
+      }
+
+      .title-2xl {
+        font-size: 20px;
+      }
+
+      .form {
+        margin-top: 24px;
+        gap: 24px;
+      }
+
+      .form-grid {
+        gap: 14px;
+      }
+
+      .input,
+      .select,
+      .textarea {
+        font-size: 16px;
+      }
+
+      .upload-box {
+        padding: 16px;
+      }
+
+      .consent-box {
+        padding: 16px;
+      }
+
+      .consent-label {
+        gap: 10px;
+      }
+
+      .alert-error {
+        margin-top: 16px;
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .success-card {
+        padding: 24px 16px;
+      }
+
+      .success-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 26px;
+      }
+
+      .case-id-box {
+        padding: 16px;
+      }
+
+      .case-id-text {
+        font-size: 22px;
+      }
+
+      .case-card {
+        padding: 16px;
+      }
+
+      .case-head {
+        gap: 10px;
+      }
+
+      .detail-grid {
+        margin-top: 20px;
+        gap: 12px;
+      }
+
+      .track-input-grid {
+        margin-top: 20px;
+      }
+
+      .timeline-row {
+        gap: 12px;
+      }
+
+      .empty-error {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 379px) {
+      .hero-title {
+        font-size: 24px;
+      }
+
+      .title-3xl {
+        font-size: 22px;
+      }
+
+      .brand-title {
+        font-size: 14px;
+      }
+
+      .nav-tab {
+        font-size: 11px;
+        min-height: 40px;
+        padding: 8px 4px;
+      }
+    }
+
+    @media (min-width: 640px) {
+      .container { padding-left: 24px; padding-right: 24px; }
+      .hero-card { padding: 40px; }
+      .hero-title { font-size: 40px; }
+      .btn-row { flex-direction: row; }
+      .actions { flex-direction: row; }
+      .section-head { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+      .case-head { flex-direction: row; align-items: flex-start; }
+    }
+    @media (min-width: 768px) {
+      .form-grid, .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .track-input-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; }
+    }
+    @media (min-width: 1024px) {
+      .header-inner { flex-direction: row; align-items: center; justify-content: space-between; padding-left: 0; padding-right: 0; }
+      .hero-grid { grid-template-columns: 1.15fr 0.85fr; align-items: center; }
+      .container { padding-left: 32px; padding-right: 32px; }
+    }
+  </style>
+</head>
+<body style="min-height: 100%; background-color: #ffffff; background-image: url('/assets/climpek.png'); background-attachment: fixed; background-repeat: repeat; background-position: 0 0;">
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand-group">
+          <a href="/" class="brand-logo-link" aria-label="CIMSME home">
+            <img src="/assets/logo.png" alt="CIMSME Logo" class="brand-logo" width="140" height="48" decoding="async">
+          </a>
+          <button type="button" class="brand-text-btn" data-route="home" aria-label="Loan helpdesk home">
+            <span class="brand-title">Loan Response Helpdesk</span>
+          </button>
+        </div>
+        <nav class="nav-tabs" aria-label="Main navigation">
+          <button type="button" class="nav-tab active" data-route="home">
+            <span class="nav-label-long">Home</span>
+            <span class="nav-label-short">Home</span>
+          </button>
+          <button type="button" class="nav-tab" data-route="apply">
+            <span class="nav-label-long">Submit Complaint</span>
+            <span class="nav-label-short">Complaint</span>
+          </button>
+          <button type="button" class="nav-tab" data-route="track">
+            <span class="nav-label-long">Track Complaint</span>
+            <span class="nav-label-short">Track</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="app"></main>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const state = {
+        active: "home",
+        lastCreated: null,
+        trackSearched: false,
+        trackCaseId: "",
+        trackMobile: "",
+        trackLoading: false,
+        trackResult: null,
+        trackError: ""
+      };
+
+      const issueOptions = [
+        "No response received",
+        "Repeated documents asked",
+        "Application pending for long time",
+        "Rejected without proper reason",
+        "Sanction delayed",
+        "Disbursement delayed",
+        "Collateral / guarantee issue",
+        "Government scheme / subsidy issue",
+        "Non Acceptance of Loan Application",
+        "Other issue"
+      ];
+
+      const loanTypes = [
+        "Select",
+        "New",
+        "Enhancement",
+        "Take Over "
+      ];
+
+      const app = document.getElementById("app");
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function setRoute(route) {
+        state.active = route;
+        if (route !== "track") {
+          state.trackSearched = false;
+        }
+        updateNav();
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function updateNav() {
+        document.querySelectorAll(".nav-tab").forEach((button) => {
+          button.classList.toggle("active", button.dataset.route === state.active);
+        });
+      }
+
+      function badgeTone(status) {
+        if (status === "Closed") return "green";
+        if (status === "Escalated") return "rose";
+        if (status === "Representation Sent" || status === "Reply Awaited") return "amber";
+        return "indigo";
+      }
+
+      function badge(label, tone) {
+        return `<span class="badge badge-${tone || "slate"}">${escapeHtml(label)}</span>`;
+      }
+
+      function infoTile(label, value) {
+        return `
+          <div class="info-tile">
+            <p class="info-label">${escapeHtml(label)}</p>
+            <p class="info-value">${escapeHtml(value || "-")}</p>
+          </div>
+        `;
+      }
+
+      function hasTrackDisplayValue(value) {
+        const text = String(value || "").trim();
+        return text.length > 0 && text !== "-" && !/^not assigned$/i.test(text) && !/^not set$/i.test(text);
+      }
+
+      function optionalInfoTile(label, value) {
+        if (!hasTrackDisplayValue(value)) return "";
+        return infoTile(label, value);
+      }
+
+      function field(label, id, inputHtml, required, hintHtml) {
+        return `
+          <label class="field" for="${escapeHtml(id)}" data-field="${escapeHtml(id)}">
+            <span class="field-label">${escapeHtml(label)} ${required ? '<span class="required">*</span>' : ""}</span>
+            ${inputHtml}
+            <span class="field-error hide" id="${escapeHtml(id)}Error" role="alert" aria-live="polite"></span>
+            ${hintHtml || ""}
+          </label>
+        `;
+      }
+
+      function optionList(options, selected) {
+        return options.map((option) => `<option${option === selected ? " selected" : ""}>${escapeHtml(option)}</option>`).join("");
+      }
+
+      const PINCODE_API_URL = "/api/pincode/";
+      const MAX_DOCUMENT_FILE_SIZE = 5 * 1024 * 1024;
+
+      function formatFileSize(bytes) {
+        const size = Number(bytes) || 0;
+        if (size < 1024) return size + " B";
+        if (size < 1024 * 1024) return (size / 1024).toFixed(1) + " KB";
+        return (size / (1024 * 1024)).toFixed(2) + " MB";
+      }
+
+      function validateSelectedDocuments(files) {
+        const list = Array.from(files || []);
+        if (!list.length) return { valid: true, files: [] };
+
+        const oversized = list.filter((file) => file.size > MAX_DOCUMENT_FILE_SIZE);
+        if (oversized.length) {
+          const names = oversized.map((file) => file.name).join(", ");
+          return {
+            valid: false,
+            error: "Each file must be 5 MB or smaller. Too large: " + names + "."
+          };
+        }
+
+        return { valid: true, files: list };
+      }
+
+      function setDocumentsUploadError(message) {
+        const errorEl = document.getElementById("documentsError");
+        const uploadBox = document.querySelector(".upload-box");
+        if (errorEl) {
+          errorEl.textContent = message || "";
+          errorEl.classList.toggle("hide", !message);
+        }
+        if (uploadBox) uploadBox.classList.toggle("field-invalid", Boolean(message));
+      }
+
+      function renderDocumentFileList(files) {
+        const fileList = document.getElementById("fileList");
+        if (!fileList) return;
+
+        const list = Array.from(files || []);
+        if (!list.length) {
+          fileList.innerHTML = "";
+          return;
+        }
+
+        fileList.innerHTML = list.map((file) =>
+          `<div class="file-item">${escapeHtml(file.name)} <span style="font-weight:400;color:var(--slate-500);">(${formatFileSize(file.size)})</span></div>`
+        ).join("");
+      }
+
+      function handleDocumentsChange(input) {
+        if (!input) return;
+        const check = validateSelectedDocuments(input.files);
+        if (!check.valid) {
+          input.value = "";
+          renderDocumentFileList([]);
+          setDocumentsUploadError(check.error);
+          return;
+        }
+        setDocumentsUploadError("");
+        renderDocumentFileList(check.files);
+      }
+
+      const FORM_RULES = {
+        name: {
+          label: "Applicant Name",
+          required: true,
+          min: 2,
+          max: 80,
+          pattern: /^[A-Za-z\s.']+$/,
+          patternMsg: "Only alphabets, spaces, dots, and apostrophes are allowed."
+        },
+        businessName: {
+          label: "Business Name",
+          required: true,
+          min: 2,
+          max: 120,
+          pattern: /^[A-Za-z0-9\s.&,'\-()/]+$/,
+          patternMsg: "Use letters, numbers, and common business punctuation only."
+        },
+        mobile: {
+          label: "Mobile Number",
+          required: true,
+          pattern: /^[6-9]\d{9}$/,
+          patternMsg: "Enter a valid 10-digit Indian mobile number starting with 6-9."
+        },
+        email: {
+          label: "Email",
+          required: false,
+          max: 100,
+          custom(value) {
+            if (!value) return "";
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return "Enter a valid email address.";
+            if (value.length > 100) return "Email must not exceed 100 characters.";
+            return "";
+          }
+        },
+        applicantPincode: {
+          label: "Applicant Pincode",
+          required: true,
+          pattern: /^[1-9]\d{5}$/,
+          patternMsg: "Enter a valid 6-digit PIN code."
+        },
+        applicantCity: {
+          label: "Applicant City",
+          required: true,
+          min: 2,
+          max: 60,
+          pattern: /^[A-Za-z\s.'-]+$/,
+          patternMsg: "Only alphabets, spaces, and basic punctuation are allowed."
+        },
+        applicantState: {
+          label: "Applicant State",
+          required: true,
+          min: 2,
+          max: 60,
+          pattern: /^[A-Za-z\s.'-]+$/,
+          patternMsg: "Only alphabets, spaces, and basic punctuation are allowed."
+        },
+        udhyam: {
+          label: "Udhyam Registration Number",
+          required: false,
+          pattern: /^UDYAM-[A-Z]{2}-\d{2}-\d{7}$/i,
+          patternMsg: "Use format UDYAM-XX-00-0000000 (example: UDYAM-DL-01-0001234)."
+        },
+        lenderName: {
+          label: "Bank / NBFC / Institution Name",
+          required: true,
+          min: 2,
+          max: 120,
+          pattern: /^[A-Za-z0-9\s.&,'\-()/]+$/,
+          patternMsg: "Use letters, numbers, and common institution name characters only."
+        },
+        ifsc: {
+          label: "IFSC Code",
+          required: false,
+          pattern: /^[A-Z]{4}0[A-Z0-9]{6}$/,
+          patternMsg: "Enter a valid 11-character IFSC code (example: SBIN0001234)."
+        },
+        bankPincode: {
+          label: "Bank Branch Pincode",
+          required: true,
+          pattern: /^[1-9]\d{5}$/,
+          patternMsg: "Enter a valid 6-digit PIN code."
+        },
+        bankCity: {
+          label: "Bank Branch City",
+          required: true,
+          min: 2,
+          max: 60,
+          pattern: /^[A-Za-z\s.'-]+$/,
+          patternMsg: "Only alphabets, spaces, and basic punctuation are allowed."
+        },
+        bankState: {
+          label: "Bank Branch State",
+          required: true,
+          min: 2,
+          max: 60,
+          pattern: /^[A-Za-z\s.'-]+$/,
+          patternMsg: "Only alphabets, spaces, and basic punctuation are allowed."
+        },
+        bankAddress: {
+          label: "Bank Branch Address",
+          required: true,
+          min: 5,
+          max: 200,
+          pattern: /^[A-Za-z0-9\s.,#\-/()]+$/,
+          patternMsg: "Use valid address characters only (letters, numbers, comma, hyphen, slash, #)."
+        },
+        loanType: {
+          label: "Loan Type",
+          required: true,
+          custom(value) {
+            if (!value || value === "Select") return "Loan Type is required.";
+            return "";
+          }
+        },
+        amount: {
+          label: "Loan Amount Applied",
+          required: true,
+          custom(value) {
+            const normalized = String(value || "").replace(/,/g, "").trim();
+            if (!/^\d+$/.test(normalized)) return "Enter a valid loan amount using numbers only.";
+            const amount = Number(normalized);
+            if (amount < 1000) return "Loan amount must be at least Rs. 1,000.";
+            if (amount > 99999999999) return "Loan amount is too large.";
+            return "";
+          }
+        },
+        applicationDate: {
+          label: "Application Date",
+          required: false,
+          custom(value) {
+            if (!value) return "";
+            const selected = new Date(value + "T00:00:00");
+            if (Number.isNaN(selected.getTime())) return "Enter a valid application date.";
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selected > today) return "Application date cannot be in the future.";
+            return "";
+          }
+        },
+        referenceNo: {
+          label: "Application Reference Number",
+          required: false,
+          min: 3,
+          max: 50,
+          pattern: /^[A-Za-z0-9\-/]+$/,
+          patternMsg: "Use letters, numbers, hyphens, or slashes only."
+        },
+        officerName: {
+          label: "Bank Officer Name",
+          required: false,
+          max: 80,
+          pattern: /^[A-Za-z\s.']*$/,
+          patternMsg: "Only alphabets, spaces, dots, and apostrophes are allowed."
+        },
+        officerDesignation: {
+          label: "Designation",
+          required: false,
+          max: 80,
+          pattern: /^[A-Za-z0-9\s.,\-/()]*$/,
+          patternMsg: "Use letters, numbers, and common designation characters only."
+        },
+        officerMobile: {
+          label: "Bank Officer Mobile Number",
+          required: false,
+          custom(value) {
+            if (!value) return "";
+            if (!/^[6-9]\d{9}$/.test(value)) return "Enter a valid 10-digit mobile number starting with 6-9.";
+            return "";
+          }
+        },
+        officerEmail: {
+          label: "Bank Officer Email",
+          required: false,
+          custom(value) {
+            if (!value) return "";
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return "Enter a valid email address.";
+            if (value.length > 100) return "Email must not exceed 100 characters.";
+            return "";
+          }
+        },
+        issue: {
+          label: "Problem Faced",
+          required: false,
+          custom(value) {
+            if (!value || !issueOptions.includes(value)) return "Please select a valid problem.";
+            return "";
+          }
+        },
+        issueDetails: {
+          label: "Brief Details",
+          required: true,
+          min: 10,
+          max: 1000,
+          pattern: /^[A-Za-z0-9\s.,!?;:'"()\-/]+$/,
+          patternMsg: "Use plain text only. Avoid special symbols and empty spaces.",
+          custom(value) {
+            if (!value) return "Brief details are required.";
+            if (/^\s+$/.test(value)) return "Brief details cannot contain only spaces.";
+            return "";
+          }
+        }
+      };
+
+      const formValidationState = {
+        touched: new Set(),
+        submitAttempted: false,
+        pinLookupTimers: {},
+        pinLookupControllers: {}
+      };
+
+      function getFieldValue(fieldId) {
+        const el = document.getElementById(fieldId);
+        if (!el) return "";
+        if (el.type === "checkbox") return el.checked;
+        return String(el.value || "");
+      }
+
+      function normalizeFieldValue(fieldId, value) {
+        if (fieldId === "ifsc") return String(value || "").trim().toUpperCase();
+        if (fieldId === "udhyam") return String(value || "").trim().toUpperCase();
+        if (fieldId === "amount") return String(value || "").replace(/,/g, "").trim();
+        return String(value || "").trim();
+      }
+
+      function evaluateFieldRule(fieldId, rawValue) {
+        const rules = FORM_RULES[fieldId];
+        if (!rules) return "";
+
+        const value = normalizeFieldValue(fieldId, rawValue);
+
+        if (rules.required && !value) {
+          return `${rules.label} is required.`;
+        }
+        if (!value && !rules.required) {
+          return "";
+        }
+
+        if (rules.min && value.length < rules.min) {
+          return `${rules.label} must be at least ${rules.min} characters.`;
+        }
+        if (rules.max && value.length > rules.max) {
+          return `${rules.label} must not exceed ${rules.max} characters.`;
+        }
+        if (rules.pattern && !rules.pattern.test(value)) {
+          return rules.patternMsg || `Invalid ${rules.label}.`;
+        }
+        if (rules.custom) {
+          return rules.custom(value, rawValue) || "";
+        }
+        return "";
+      }
+
+      function shouldDisplayFieldError(fieldId, error) {
+        if (!error) return false;
+        if (formValidationState.submitAttempted) return true;
+        if (formValidationState.touched.has(fieldId)) return true;
+        return Boolean(normalizeFieldValue(fieldId, getFieldValue(fieldId)));
+      }
+
+      function setFieldUiState(fieldId, error, forceShow) {
+        const input = document.getElementById(fieldId);
+        const errorEl = document.getElementById(fieldId + "Error");
+        const showError = Boolean(error) && (forceShow || shouldDisplayFieldError(fieldId, error));
+
+        if (input) {
+          input.classList.toggle("field-invalid", showError);
+          input.classList.toggle("field-valid", !error && normalizeFieldValue(fieldId, input.value).length > 0);
+          input.setAttribute("aria-invalid", showError ? "true" : "false");
+        }
+
+        if (errorEl) {
+          errorEl.textContent = showError ? error : "";
+          errorEl.classList.toggle("hide", !showError);
+        }
+
+        return showError ? error : "";
+      }
+
+      function validateFormField(fieldId, forceShow) {
+        const error = evaluateFieldRule(fieldId, getFieldValue(fieldId));
+        return setFieldUiState(fieldId, error, forceShow);
+      }
+
+      function validateConsent(forceShow) {
+        const consent = document.getElementById("consent");
+        const consentBox = document.getElementById("consentSection") || (consent ? consent.closest(".consent-box") : null);
+        const errorEl = document.getElementById("consentError");
+        const error = consent && consent.checked ? "" : "You must accept the authorization and consent to submit this complaint.";
+        const showError = Boolean(error) && (forceShow || formValidationState.submitAttempted || formValidationState.touched.has("consent"));
+
+        if (consentBox) {
+          consentBox.classList.toggle("field-invalid", showError);
+        }
+        if (consent) {
+          consent.setAttribute("aria-invalid", showError ? "true" : "false");
+        }
+        if (errorEl) {
+          errorEl.textContent = showError ? error : "";
+          errorEl.classList.toggle("hide", !showError);
+        }
+
+        return showError ? error : "";
+      }
+
+      function validateLoanForm(forceAll) {
+        if (forceAll) formValidationState.submitAttempted = true;
+
+        let firstInvalid = null;
+        let hasError = false;
+
+        Object.keys(FORM_RULES).forEach((fieldId) => {
+          const error = validateFormField(fieldId, forceAll);
+          if (error && !firstInvalid) firstInvalid = fieldId;
+          if (error) hasError = true;
+        });
+
+        const consentError = validateConsent(forceAll);
+        if (consentError) {
+          hasError = true;
+          if (!firstInvalid) firstInvalid = "consent";
+        }
+
+        return { valid: !hasError, firstInvalid };
+      }
+
+      function resetLoanFormValidation() {
+        formValidationState.touched.clear();
+        formValidationState.submitAttempted = false;
+
+        Object.keys(formValidationState.pinLookupTimers).forEach((key) => {
+          clearTimeout(formValidationState.pinLookupTimers[key]);
+        });
+        Object.keys(formValidationState.pinLookupControllers).forEach((key) => {
+          formValidationState.pinLookupControllers[key].abort();
+        });
+        formValidationState.pinLookupTimers = {};
+        formValidationState.pinLookupControllers = {};
+
+        Object.keys(FORM_RULES).forEach((fieldId) => {
+          setFieldUiState(fieldId, "", true);
+        });
+
+        ["applicantPinLookup", "bankPinLookup"].forEach((id) => {
+          const hint = document.getElementById(id);
+          if (hint) {
+            hint.textContent = "";
+            hint.className = "field-hint hide";
+          }
+        });
+
+        const consentBox = document.getElementById("consentSection");
+        if (consentBox) consentBox.classList.remove("field-invalid");
+        const consentError = document.getElementById("consentError");
+        if (consentError) {
+          consentError.textContent = "";
+          consentError.classList.add("hide");
+        }
+        const consent = document.getElementById("consent");
+        if (consent) consent.setAttribute("aria-invalid", "false");
+
+        setDocumentsUploadError("");
+        renderDocumentFileList([]);
+        const documentsInput = document.getElementById("documents");
+        if (documentsInput) documentsInput.value = "";
+      }
+
+      function setPinLookupHint(hintId, message, tone) {
+        const hint = document.getElementById(hintId);
+        if (!hint) return;
+        hint.textContent = message || "";
+        hint.className = "field-hint" + (tone ? " is-" + tone : "") + (message ? "" : " hide");
+      }
+
+      async function lookupPincodeDetails(pincode, cityFieldId, stateFieldId, hintId) {
+        if (!/^[1-9]\d{5}$/.test(pincode)) {
+          setPinLookupHint(hintId, "", "");
+          return;
+        }
+
+        if (formValidationState.pinLookupControllers[hintId]) {
+          formValidationState.pinLookupControllers[hintId].abort();
+        }
+
+        const controller = new AbortController();
+        formValidationState.pinLookupControllers[hintId] = controller;
+        setPinLookupHint(hintId, "Looking up city and state...", "");
+
+        try {
+          const response = await fetch(PINCODE_API_URL + encodeURIComponent(pincode), {
+            signal: controller.signal,
+            headers: { Accept: "application/json" }
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          const cityInput = document.getElementById(cityFieldId);
+          const stateInput = document.getElementById(stateFieldId);
+
+          if (response.ok && payload.success && payload.city && payload.state) {
+            if (cityInput) cityInput.value = payload.city;
+            if (stateInput) stateInput.value = payload.state;
+            setPinLookupHint(hintId, "City and state auto-filled from PIN code. You may edit if needed.", "success");
+            validateFormField(cityFieldId, true);
+            validateFormField(stateFieldId, true);
+            return;
+          }
+
+          if (response.status === 404) {
+            setPinLookupHint(hintId, "PIN code not found. Please enter city and state manually.", "warning");
+            return;
+          }
+
+          throw new Error(payload.message || "Lookup failed");
+        } catch (error) {
+          if (error.name === "AbortError") return;
+          setPinLookupHint(hintId, "Could not fetch location. Please enter city and state manually.", "warning");
+        } finally {
+          delete formValidationState.pinLookupControllers[hintId];
+        }
+      }
+
+      function schedulePinLookup(pinFieldId, cityFieldId, stateFieldId, hintId) {
+        clearTimeout(formValidationState.pinLookupTimers[hintId]);
+        formValidationState.pinLookupTimers[hintId] = setTimeout(() => {
+          lookupPincodeDetails(getFieldValue(pinFieldId).trim(), cityFieldId, stateFieldId, hintId);
+        }, 450);
+      }
+
+      function bindNumericInput(fieldId, maxLength) {
+        const input = document.getElementById(fieldId);
+        if (!input) return;
+        input.addEventListener("input", () => {
+          input.value = input.value.replace(/\D/g, "").slice(0, maxLength);
+        });
+      }
+
+      function bindUppercaseInput(fieldId, maxLength) {
+        const input = document.getElementById(fieldId);
+        if (!input) return;
+        input.addEventListener("input", () => {
+          input.value = input.value.toUpperCase().slice(0, maxLength);
+        });
+      }
+
+      function bindLoanFormValidation() {
+        const form = document.getElementById("loanForm");
+        if (!form) return;
+
+        resetLoanFormValidation();
+
+        bindNumericInput("mobile", 10);
+        bindNumericInput("officerMobile", 10);
+        bindNumericInput("applicantPincode", 6);
+        bindNumericInput("bankPincode", 6);
+        bindUppercaseInput("ifsc", 11);
+        bindUppercaseInput("udhyam", 19);
+
+        const amountInput = document.getElementById("amount");
+        if (amountInput) {
+          amountInput.addEventListener("input", () => {
+            amountInput.value = amountInput.value.replace(/[^\d,]/g, "").slice(0, 14);
+          });
+        }
+
+        Object.keys(FORM_RULES).forEach((fieldId) => {
+          const input = document.getElementById(fieldId);
+          if (!input) return;
+
+          const runValidation = () => validateFormField(fieldId, false);
+
+          input.addEventListener("input", runValidation);
+          input.addEventListener("blur", () => {
+            formValidationState.touched.add(fieldId);
+            validateFormField(fieldId, true);
+          });
+          input.addEventListener("change", () => {
+            formValidationState.touched.add(fieldId);
+            validateFormField(fieldId, true);
+          });
+        });
+
+        const applicantPin = document.getElementById("applicantPincode");
+        if (applicantPin) {
+          applicantPin.addEventListener("input", () => {
+            schedulePinLookup("applicantPincode", "applicantCity", "applicantState", "applicantPinLookup");
+          });
+        }
+
+        const bankPin = document.getElementById("bankPincode");
+        if (bankPin) {
+          bankPin.addEventListener("input", () => {
+            schedulePinLookup("bankPincode", "bankCity", "bankState", "bankPinLookup");
+          });
+        }
+
+        const consent = document.getElementById("consent");
+        if (consent) {
+          consent.addEventListener("change", () => {
+            formValidationState.touched.add("consent");
+            validateConsent(true);
+          });
+        }
+
+        form.addEventListener("reset", () => {
+          window.setTimeout(resetLoanFormValidation, 0);
+        });
+
+        const documentsInput = document.getElementById("documents");
+        if (documentsInput) {
+          documentsInput.addEventListener("change", () => handleDocumentsChange(documentsInput));
+        }
+
+        form.addEventListener("submit", submitLoanForm);
+      }
+
+      function renderHome() {
+        app.innerHTML = `
+          <section class="page">
+            <div class="container">
+              <div class="hero-grid">
+                <div class="card hero-card">
+                  ${badge("New online service", "indigo")}
+                  <h1 class="hero-title">Applied for a business loan but not getting a proper response?</h1>
+                  <p class="hero-copy">Submit your loan application issue online. CIMSME can review your case and take up your application query with the concerned Bank, NBFC, Financial Institution or stakeholder on your behalf.</p>
+                  <div class="btn-row">
+                    <button class="btn btn-primary" type="button" data-route="apply">Raise Your Loan Response Request</button>
+                    <button class="btn btn-secondary" type="button" data-route="track">Track Existing Complaint</button>
+                  </div>
+                  <p class="note-text">Important: This service does not guarantee loan approval. Final decision remains with the lending institution.</p>
+                </div>
+
+                <div class="side-stack">
+                  ${[1, 2, 3].map((num) => {
+                    const data = [
+                      ["Submit Details", "Fill a simple form and upload proof of your loan application."],
+                      ["Authorise CIMSME", "Give consent so CIMSME can communicate with the concerned institution."],
+                      ["Track Online", "Get a case ID and view transparent status updates."]
+                    ][num - 1];
+                    return `
+                      <div class="process-card">
+                        <div class="process-flex">
+                          <div class="step-num">${num}</div>
+                          <div>
+                            <h3 class="title-lg">${data[0]}</h3>
+                            <p class="copy-sm" style="margin-top:4px;">${data[1]}</p>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+                
+              <div class="info-grid">
+                <div class="dark-card">
+                  <h2 class="title-xl" style="color:#ffffff;">What CIMSME will do</h2>
+                  <ul class="simple-list dark">
+                    <li>- Review submitted loan application issue and supporting documents.</li>
+                    <li>- Send representation to the concerned Bank / NBFC / stakeholder.</li>
+                    <li>- Seek status, reason, clarification, response or resolution.</li>
+                    <li>- Update applicant through online case tracking.</li>
+                  </ul>
+                </div>
+                <div class="amber-card">
+                  <h2 class="title-xl">Clear transparency policy</h2>
+                  <ul class="simple-list normal">
+                    <li>- No guarantee of loan approval or sanction amount.</li>
+                    <li>- No false assurance or influence over bank decision.</li>
+                    <li>- No case will be taken up without applicant authorization.</li>
+                    <li>- Every update is visible in the case timeline.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderApply() {
+        complaintSubmitInFlight = false;
+
+        app.innerHTML = `
+          <section class="page">
+            <div class="container narrow">
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    ${badge("Step 1 of 3", "green")}
+                    <h1 class="title-3xl" style="margin-top:12px;">Submit Complaint</h1>
+                    <p class="copy-sm" style="margin-top:8px; max-width:672px;">Fill only essential details. Your case ID will be generated immediately after submission.</p>
+                  </div>
+                </div>
+
+                <div id="applyError" class="alert-error hide"></div>
+
+                <form id="loanForm" class="form" novalidate>
+                  <section class="form-section">
+                    <h2 class="title-lg">Applicant Details</h2>
+                    <div class="form-grid">
+                      ${field("Applicant Name", "name", '<input id="name" name="name" class="input" placeholder="Enter full name" maxlength="80" autocomplete="name" aria-invalid="false" />', true)}
+                      ${field("Business Name", "businessName", '<input id="businessName" name="businessName" class="input" placeholder="Business / firm name" maxlength="120" autocomplete="organization" aria-invalid="false" />', true)}
+                      ${field("Mobile Number", "mobile", '<input id="mobile" name="mobile" class="input" placeholder="10 digit mobile" maxlength="10" inputmode="numeric" autocomplete="tel" aria-invalid="false" />', true)}
+                      ${field("Email", "email", '<input id="email" name="email" type="email" class="input" placeholder="name@example.com " maxlength="100" autocomplete="email" aria-invalid="false" />', false)}
+                      ${field("Pincode", "applicantPincode", '<input id="applicantPincode" name="applicantPincode" class="input" placeholder="6 digit PIN code" maxlength="6" inputmode="numeric" autocomplete="postal-code" aria-invalid="false" />', true, '<span class="field-hint hide" id="applicantPinLookup" aria-live="polite"></span>')}
+                      ${field("State", "applicantState", '<input id="applicantState" name="applicantState" class="input" placeholder="State" maxlength="60" autocomplete="address-level1" aria-invalid="false" />', true)}
+                      ${field("City", "applicantCity", '<input id="applicantCity" name="applicantCity" class="input" placeholder="City" maxlength="60" autocomplete="address-level2" aria-invalid="false" />', true)}
+                      ${field("Udhyam Registration Number", "udhyam", '<input id="udhyam" name="udhyam" class="input" placeholder="UDYAM-DL-01-0001234 " maxlength="19" spellcheck="false" aria-invalid="false" />', false)}
+                    </div>
+                  </section>
+
+                  <section class="form-section">
+                    <h2 class="title-lg">Bank Details</h2>
+                    <div class="form-grid">
+                      ${field("Bank / NBFC / Institution Name", "lenderName", '<input id="lenderName" name="lenderName" class="input" placeholder="Bank / NBFC / Institution name" maxlength="120" aria-invalid="false" />', true)}
+                      ${field("IFSC Code of Bank", "ifsc", '<input id="ifsc" name="ifsc" class="input" placeholder="Enter IFSC code " maxlength="11" spellcheck="false" aria-invalid="false" />', false)}
+                      ${field("Pincode", "bankPincode", '<input id="bankPincode" name="bankPincode" class="input" placeholder="6 digit PIN code" maxlength="6" inputmode="numeric" autocomplete="postal-code" aria-invalid="false" />', true, '<span class="field-hint hide" id="bankPinLookup" aria-live="polite"></span>')}
+                      ${field("State", "bankState", '<input id="bankState" name="bankState" class="input" placeholder="State" maxlength="60" autocomplete="address-level1" aria-invalid="false" />', true)}
+                      ${field("City", "bankCity", '<input id="bankCity" name="bankCity" class="input" placeholder="City" maxlength="60" autocomplete="address-level2" aria-invalid="false" />', true)}
+                      ${field("Address", "bankAddress", '<input id="bankAddress" name="bankAddress" class="input" placeholder="Branch address" maxlength="200" autocomplete="street-address" aria-invalid="false" />', true)}
+                      
+                    </div>
+                  </section>
+
+                  <section class="form-section">
+                    <h2 class="title-lg">Loan Application Details</h2>
+                    <div class="form-grid">
+                      ${field("Loan Type", "loanType", `<select id="loanType" name="loanType" class="select" aria-invalid="false">${optionList(loanTypes, "Select")}</select>`, true)}
+                      ${field("Loan Amount Applied", "amount", '<input id="amount" name="amount" class="input" placeholder="Example: 2500000" maxlength="14" inputmode="numeric" aria-invalid="false" />', true)}
+                      ${field("Application Date", "applicationDate", '<input id="applicationDate" name="applicationDate" type="date" class="input" aria-invalid="false" />', false)}
+                      ${field("Your Application Reference Number", "referenceNo", '<input id="referenceNo" name="referenceNo" class="input" placeholder="Acknowledgement / ref no." maxlength="50" spellcheck="false" aria-invalid="false" />', false)}
+                      ${field("Bank Officer Name", "officerName", '<input id="officerName" name="officerName" class="input" placeholder="Officer name" maxlength="80" autocomplete="name" aria-invalid="false" />', false)}
+                      ${field("Designation", "officerDesignation", '<input id="officerDesignation" name="officerDesignation" class="input" placeholder="Officer designation" maxlength="80" aria-invalid="false" />', false)}
+                      ${field("Mobile Number", "officerMobile", '<input id="officerMobile" name="officerMobile" class="input" placeholder=" 10 digit mobile Number" maxlength="10" inputmode="numeric" autocomplete="tel" aria-invalid="false" />', false)}
+                      ${field("Email", "officerEmail", '<input id="officerEmail" name="officerEmail" type="email" class="input" placeholder="Officer email" maxlength="100" autocomplete="email" aria-invalid="false" />', false)}
+                      ${field("Problem Faced", "issue", `<select id="issue" name="issue" class="select" aria-invalid="false">${optionList(issueOptions, "No response received")}</select>`, true)}
+                    </div>
+                    <div style="margin-top:16px;">
+                      ${field("Brief Details", "issueDetails", '<textarea id="issueDetails" name="issueDetails" class="textarea" placeholder="Write short details of your issue, delay, rejection or pending response." maxlength="1000" aria-invalid="false"></textarea>', true)}
+                    </div>
+                  </section>
+
+                  <section class="form-section">
+                    <h2 class="title-lg">Upload Documents</h2>
+                    <p class="copy-sm" style="margin-top:4px; color:var(--slate-500);"> Upload any bank-related proof, acknowledgement, communication, or supporting documents merged into a single file. Maximum <strong>5 MB file</strong>.</p>
+                    <div class="upload-box">
+                      <input id="documents" name="documents" type="file" multiple class="input-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.webp" />
+                      <span class="field-error hide" id="documentsError" role="alert" aria-live="polite"></span>
+                      <div id="fileList" class="file-list"></div>
+                    </div>
+                  </section>
+
+                  <section class="consent-box" id="consentSection">
+                    <p class="field-label" style="margin-bottom:12px;">Authorization &amp; Consent <span class="required">*</span></p>
+                    <label class="consent-label">
+                      <input id="consent" name="consent" type="checkbox" class="checkbox" required aria-invalid="false" aria-describedby="consentError" />
+                      <span><strong>I/We authorize Chamber of Indian Micro Small & Medium Enterprises </strong> to review my/our submitted loan case and communicate with the concerned Bank, NBFC, Financial Institution, Government Department or stakeholder on my/our behalf for seeking status, clarification, response or resolution. I/We understand that CIMSME does not guarantee loan approval or sanction.</span>
+                    </label>
+                    <span class="field-error hide" id="consentError" role="alert" aria-live="polite"></span>
+                  </section>
+
+                  <div class="actions">
+                    <button type="reset" class="btn btn-secondary">Reset Form</button>
+                    <button type="submit" class="btn btn-primary" id="submitComplaintBtn">Submit &amp; Generate Case ID</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+        `;
+
+        bindLoanFormValidation();
+      }
+
+      function showApplyError(message) {
+        const errorBox = document.getElementById("applyError");
+        if (!errorBox) return;
+        errorBox.textContent = message;
+        errorBox.classList.remove("hide");
+      }
+
+      function renderSuccess() {
+        if (!state.lastCreated) {
+          app.innerHTML = `
+            <section class="page">
+              <div class="container success-wrap">
+                <div class="success-card">
+                  <h1 class="title-2xl">No recent case found</h1>
+                  <button class="btn btn-primary" type="button" data-route="apply" style="margin-top:24px;">Submit Complaint</button>
+                </div>
+              </div>
+            </section>
+          `;
+          return;
+        }
+
+        const item = state.lastCreated;
+        app.innerHTML = `
+          <section class="page">
+            <div class="container success-wrap">
+              <div class="success-card">
+                <div class="success-icon">✓</div>
+                <h1 class="title-3xl" style="margin-top:20px;">Request Submitted Successfully</h1>
+                <p class="copy-sm" style="margin-top:12px;">Please save your case ID. You can track your request online anytime.</p>
+                <div class="case-id-box">
+                  <p class="case-id-label">Your Case ID</p>
+                  <p class="case-id-text">${escapeHtml(item.caseId)}</p>
+                  <p class="copy-sm" style="margin-top:8px;">Mobile: ${escapeHtml(item.mobile)}</p>
+                </div>
+                <div class="btn-row" style="justify-content:center; margin-top:28px;">
+                  <button class="btn btn-primary" type="button" data-route="track">Track Complaint</button>
+                  <button class="btn btn-secondary" type="button" data-route="home">Back to Home</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderCaseCard(item) {
+        return `
+          <div class="case-card">
+            <div class="case-head">
+              <div>
+                <h2 class="title-2xl">${escapeHtml(item.caseId)}</h2>
+                <p class="copy-sm" style="color:var(--slate-500); margin-top:4px;">Created: ${escapeHtml(item.createdAt)} - Updated: ${escapeHtml(item.updatedAt)}</p>
+              </div>
+              ${badge(item.status, badgeTone(item.status))}
+            </div>
+
+            <div class="detail-grid">
+              ${infoTile("Applicant", item.name)}
+              ${infoTile("Business", item.businessName)}
+              ${infoTile("Mobile", item.mobile)}
+              ${infoTile("Bank / NBFC", item.lenderName)}
+              ${infoTile("Loan Type", item.loanType)}
+              ${infoTile("Amount", "Rs. " + item.amount)}
+              ${infoTile("Issue", item.issue)}
+              ${optionalInfoTile("Reference No.", item.referenceNo)}
+              ${optionalInfoTile("Assigned Officer", item.assignedTo)}
+              ${optionalInfoTile("Assigned Officer Number", item.assignedOfficerMobile)}
+              ${optionalInfoTile("Next Follow-up", item.followUpDate)}
+            </div>
+
+            <h3 class="timeline-title">Status Updates</h3>
+            <div class="timeline">
+              ${(item.timeline || []).map((row) => `
+                <div class="timeline-row">
+                  <div class="timeline-dot"></div>
+                  <div>
+                    <p class="timeline-status">${escapeHtml(row.status)}</p>
+                    <p class="timeline-time">${escapeHtml(row.time)}</p>
+                    ${hasTrackDisplayValue(row.note) ? `<p class="timeline-note">${escapeHtml(row.note)}</p>` : ""}
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderTrack() {
+        let resultHtml = "";
+        if (state.trackLoading) {
+          resultHtml = '<div class="copy-sm" style="text-align:center;padding:24px;">Loading case details...</div>';
+        } else if (state.trackSearched) {
+          resultHtml = state.trackResult
+            ? renderCaseCard(state.trackResult)
+            : `<div class="empty-error">${escapeHtml(state.trackError || "No case found. Please check your Case ID or registered mobile number.")}</div>`;
+        }
+
+        app.innerHTML = `
+          <section class="page">
+            <div class="container track-wrap">
+              <div class="panel">
+                <h1 class="title-3xl">Track Your Complaint</h1>
+                <p class="copy-sm" style="margin-top:8px;">Enter your <strong>Case ID</strong> or <strong>registered mobile number</strong> to view status and timeline. You do not need both.</p>
+                <div class="track-input-grid">
+                  ${field("Case ID", "trackCaseId", `<input id="trackCaseId" class="input" placeholder="LRH-YYYYMMDD-0000 (optional)" value="${escapeHtml(state.trackCaseId)}" maxlength="32" spellcheck="false" />`, false, '<span class="field-hint">Optional if mobile is entered</span>')}
+                  ${field("Registered Mobile", "trackMobile", `<input id="trackMobile" class="input" placeholder="10 digit mobile (optional)" value="${escapeHtml(state.trackMobile)}" maxlength="10" inputmode="numeric" />`, false, '<span class="field-hint">Optional if Case ID is entered</span>')}
+                  <button id="trackBtn" type="button" class="btn btn-primary"${state.trackLoading ? " disabled" : ""}>${state.trackLoading ? "Tracking..." : "Track"}
+                </div>
+              </div>
+              <div class="result-area">${resultHtml}</div>
+            </div>
+          </section>
+        `;
+      }
+
+      async function performTrackSearch() {
+        state.trackCaseId = String(document.getElementById("trackCaseId")?.value || "").trim();
+        state.trackMobile = String(document.getElementById("trackMobile")?.value || "").replace(/\D/g, "").slice(0, 10);
+        state.trackSearched = true;
+        state.trackResult = null;
+        state.trackError = "";
+
+        if (!state.trackCaseId && !state.trackMobile) {
+          state.trackError = "Enter your Case ID or registered mobile number to track your complaint.";
+          renderTrack();
+          return;
+        }
+
+        if (state.trackMobile && !/^[6-9]\d{9}$/.test(state.trackMobile)) {
+          state.trackError = "Enter a valid 10-digit mobile number starting with 6-9.";
+          renderTrack();
+          return;
+        }
+
+        state.trackLoading = true;
+        renderTrack();
+
+        try {
+          const params = new URLSearchParams();
+          if (state.trackCaseId) params.set("caseId", state.trackCaseId);
+          if (state.trackMobile) params.set("mobile", state.trackMobile);
+
+          const response = await fetch("/api/loan-helpdesk/track?" + params.toString(), {
+            headers: { Accept: "application/json" }
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok && payload.success) {
+            state.trackResult = payload.data;
+          } else {
+            state.trackError = payload.message || "No case found. Please check your Case ID or registered mobile number.";
+          }
+        } catch (error) {
+          state.trackError = "Unable to track complaint right now. Please try again.";
+        } finally {
+          state.trackLoading = false;
+          renderTrack();
+        }
+      }
+
+      let complaintSubmitInFlight = false;
+
+      function resolveLoanForm(source) {
+        if (source instanceof HTMLFormElement) return source;
+        if (source && source.currentTarget instanceof HTMLFormElement) return source.currentTarget;
+        if (source && source.target instanceof HTMLFormElement) return source.target;
+        const fallback = document.getElementById("loanForm");
+        return fallback instanceof HTMLFormElement ? fallback : null;
+      }
+
+      function buildComplaintPayload(form) {
+        const resolvedForm = resolveLoanForm(form);
+        if (!resolvedForm) {
+          throw new Error("Complaint form is not available. Please refresh the page and try again.");
+        }
+
+        const data = new FormData(resolvedForm);
+        const documentsInput = resolvedForm.querySelector("#documents");
+        const consentInput = resolvedForm.querySelector("#consent");
+        const documentCheck = validateSelectedDocuments(documentsInput ? documentsInput.files : []);
+        if (!documentCheck.valid) {
+          throw new Error(documentCheck.error);
+        }
+
+        return {
+          name: String(data.get("name") || "").trim(),
+          mobile: String(data.get("mobile") || "").trim(),
+          email: String(data.get("email") || "").trim(),
+          businessName: String(data.get("businessName") || "").trim(),
+          applicantPincode: String(data.get("applicantPincode") || "").trim(),
+          applicantCity: String(data.get("applicantCity") || "").trim(),
+          applicantState: String(data.get("applicantState") || "").trim(),
+          udhyam: String(data.get("udhyam") || "").trim().toUpperCase(),
+          lenderName: String(data.get("lenderName") || "").trim(),
+          ifsc: String(data.get("ifsc") || "").trim().toUpperCase(),
+          bankPincode: String(data.get("bankPincode") || "").trim(),
+          bankCity: String(data.get("bankCity") || "").trim(),
+          bankState: String(data.get("bankState") || "").trim(),
+          bankAddress: String(data.get("bankAddress") || "").trim(),
+          loanType: String(data.get("loanType") || "").trim(),
+          amount: String(data.get("amount") || "").replace(/,/g, "").trim(),
+          applicationDate: String(data.get("applicationDate") || "").trim(),
+          referenceNo: String(data.get("referenceNo") || "").trim(),
+          officerName: String(data.get("officerName") || "").trim(),
+          officerDesignation: String(data.get("officerDesignation") || "").trim(),
+          officerMobile: String(data.get("officerMobile") || "").trim(),
+          officerEmail: String(data.get("officerEmail") || "").trim(),
+          issue: String(data.get("issue") || "No response received"),
+          issueDetails: String(data.get("issueDetails") || "").trim(),
+          consent: data.get("consent") === "on" || Boolean(consentInput && consentInput.checked)
+        };
+      }
+
+      async function submitLoanForm(event) {
+        event.preventDefault();
+        if (complaintSubmitInFlight) return;
+
+        const form = resolveLoanForm(event);
+        if (!form) {
+          showApplyError("Complaint form is not available. Please refresh the page and try again.");
+          return;
+        }
+
+        const submitBtn = form.querySelector("#submitComplaintBtn");
+        const submitBtnLabel = submitBtn ? submitBtn.textContent : "";
+        const errorBox = document.getElementById("applyError");
+        if (errorBox) errorBox.classList.add("hide");
+
+        const validation = validateLoanForm(true);
+        if (!validation.valid) {
+          const consentError = validateConsent(true);
+          showApplyError(
+            validation.firstInvalid === "consent" && consentError
+              ? consentError
+              : "Please correct the highlighted fields before submitting your complaint."
+          );
+          const firstField = validation.firstInvalid === "consent"
+            ? document.getElementById("consent")
+            : document.getElementById(validation.firstInvalid);
+          if (firstField && typeof firstField.scrollIntoView === "function") {
+            firstField.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (firstField.focus) firstField.focus();
+          }
+          return;
+        }
+
+        const documentsInput = form.querySelector("#documents");
+        const documentCheck = validateSelectedDocuments(documentsInput ? documentsInput.files : []);
+        if (!documentCheck.valid) {
+          setDocumentsUploadError(documentCheck.error);
+          showApplyError(documentCheck.error);
+          if (documentsInput && typeof documentsInput.scrollIntoView === "function") {
+            documentsInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          return;
+        }
+
+        let payload;
+        try {
+          payload = buildComplaintPayload(form);
+        } catch (buildError) {
+          console.error("[loan-helpdesk] Failed to prepare complaint payload:", buildError);
+          showApplyError(buildError.message || "Could not prepare your complaint for submission. Please refresh and try again.");
+          return;
+        }
+
+        if (window.location.protocol === "file:") {
+          showApplyError("Open this form from the website (for example http://localhost:3000/loan-helpdesk), not as a saved file.");
+          return;
+        }
+
+        complaintSubmitInFlight = true;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Submitting...";
+        }
+
+        const submitUrl = `${window.location.origin}/api/loan-helpdesk/submit`;
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch(submitUrl, {
+            method: "POST",
+            headers: {
+              Accept: "application/json"
+            },
+            body: formData
+          });
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok || !result.success) {
+            showApplyError(result.message || "Failed to submit complaint. Please try again.");
+            return;
+          }
+
+          state.lastCreated = result.data;
+          setRoute("success");
+        } catch (networkError) {
+          console.error("[loan-helpdesk] Submit request failed before server response:", networkError);
+          showApplyError(
+            "Could not reach the server at " + window.location.origin +
+            ". Confirm the site is running, then try again."
+          );
+        } finally {
+          complaintSubmitInFlight = false;
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = submitBtnLabel || "Submit & Generate Case ID";
+          }
+        }
+      }
+
+      function render() {
+        if (state.active === "home") renderHome();
+        if (state.active === "apply") renderApply();
+        if (state.active === "success") renderSuccess();
+        if (state.active === "track") renderTrack();
+      }
+
+      document.addEventListener("click", (event) => {
+        const routeButton = event.target.closest("[data-route]");
+        if (routeButton) {
+          setRoute(routeButton.dataset.route);
+          return;
+        }
+
+        if (event.target.id === "trackBtn") {
+          performTrackSearch();
+          return;
+        }
+      });
+
+      updateNav();
+      render();
+    })();
+  </script>
+</body>
+</html>
