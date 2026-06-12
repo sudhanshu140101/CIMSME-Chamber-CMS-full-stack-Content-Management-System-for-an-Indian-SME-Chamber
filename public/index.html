@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>CIMSME - Chamber of Indian Micro, Small and Medium Enterprises</title>
 
       <!--  LORA FONT -->
@@ -10,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-
+     <script src="/js/api-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
   
@@ -41,7 +42,7 @@
     box-sizing: border-box;
 }
 
-
+/* Ensure texture shows full page: html/body are the canvas (win over Tailwind) */
 html {
     min-height: 100% !important;
     background-color: #ffffff !important;
@@ -106,8 +107,125 @@ img {
     margin-top: 0.25em;
 }
 
-  
+/* News article body (CKEditor HTML from admin) — spacing & typography on the public site */
+.news-content-richtext {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.news-content-richtext > *:first-child {
+    margin-top: 0 !important;
+}
+.news-content-richtext p {
+    margin-bottom: 0.75em;
+}
+.news-content-richtext p:last-child {
+    margin-bottom: 0;
+}
+.news-content-richtext h1,
+.news-content-richtext h2,
+.news-content-richtext h3,
+.news-content-richtext h4,
+.news-content-richtext h5,
+.news-content-richtext h6 {
+    font-weight: 600;
+    line-height: 1.3;
+    color: #111827;
+    margin-top: 1.1em;
+    margin-bottom: 0.45em;
+}
+.news-content-richtext h1 { font-size: 1.75rem; }
+.news-content-richtext h2 { font-size: 1.5rem; }
+.news-content-richtext h3 { font-size: 1.25rem; }
+.news-content-richtext h4 { font-size: 1.125rem; }
+.news-content-richtext h5 { font-size: 1.05rem; }
+.news-content-richtext h6 { font-size: 1rem; }
+.news-content-richtext ul,
+.news-content-richtext ol {
+    margin: 0.5em 0 0.75em 0;
+    padding-left: 1.5em;
+}
+.news-content-richtext ul {
+    list-style-type: disc;
+}
+.news-content-richtext ol {
+    list-style-type: decimal;
+}
+.news-content-richtext li {
+    margin-bottom: 0.35em;
+}
+.news-content-richtext li > p {
+    margin-bottom: 0.35em;
+}
+.news-content-richtext blockquote {
+    margin: 1em 0;
+    padding: 0.5em 0 0.5em 1em;
+    border-left: 4px solid #e5e7eb;
+    color: #4b5563;
+}
+.news-content-richtext a {
+    color: #dc2626;
+    text-decoration: underline;
+}
+.news-content-richtext a:hover {
+    color: #991b1b;
+}
+.news-content-richtext img {
+    max-width: 100%;
+    height: auto;
+    margin: 0.75em 0;
+    border-radius: 0.5rem;
+}
+.news-content-richtext table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+    font-size: 0.95em;
+}
+.news-content-richtext th,
+.news-content-richtext td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5em 0.65em;
+    text-align: left;
+    vertical-align: top;
+}
+.news-content-richtext th {
+    background: #f9fafb;
+    font-weight: 600;
+}
+.news-content-richtext pre {
+    background: #f3f4f6;
+    padding: 1em;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 0.75em 0;
+    white-space: pre-wrap;
+    font-size: 0.9em;
+}
+.news-content-richtext code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.9em;
+    background: #f3f4f6;
+    padding: 0.15em 0.35em;
+    border-radius: 0.25rem;
+}
+.news-content-richtext pre code {
+    background: transparent;
+    padding: 0;
+}
+.news-content-richtext hr {
+    margin: 1.25em 0;
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+}
+.news-content-richtext br {
+    display: block;
+    content: "";
+    margin-top: 0.35em;
+}
 
+  
+  
      
 .btn-primary {
     background: linear-gradient(135deg, #e28940, #e9853e);
@@ -134,7 +252,7 @@ img {
 }
 
   
-
+ 
      
 .hero-bg-1 { background: linear-gradient(135deg, #2466d7 0%, #ea7d10 100%); }
 .hero-bg-2 { background: linear-gradient(135deg, #4fdda4 0%, #138deb 100%); }
@@ -143,7 +261,7 @@ img {
 .hero-bg-5 { background: linear-gradient(135deg, #5b48cb 0%, #e78626 100%); }
 
   
-   /* UTILITY CLASSES */
+   
      
 .card-hover {
     transition: all 0.3s ease;
@@ -194,6 +312,7 @@ img {
 #events.section-padding,
 #advisory.section-padding,
 #news.section-padding,
+#tvInterviews.section-padding,
 #aboutUs.section-padding {
     padding-top: 0.65rem;
     padding-bottom: 0.9rem;
@@ -203,6 +322,7 @@ img {
 #home,
 #events,
 #news,
+#tvInterviews,
 #aboutUs,
 #advisory,
 #testimonials {
@@ -227,6 +347,7 @@ img {
     #events.section-padding,
     #advisory.section-padding,
     #news.section-padding,
+    #tvInterviews.section-padding,
     #aboutUs.section-padding {
         padding-top: 1.05rem;
         padding-bottom: 1.3rem;
@@ -237,22 +358,25 @@ img {
     #events.section-padding,
     #advisory.section-padding,
     #news.section-padding,
+    #tvInterviews.section-padding,
     #aboutUs.section-padding {
         padding-top: 1.25rem;
         padding-bottom: 1.5rem;
     }
 }
 
-
+/* Reduce section header spacing */
 #events .text-center.mb-12,
 #advisory .text-center.mb-12,
 #news .text-center.mb-12,
+#tvInterviews .text-center.mb-12,
 #aboutUs .text-center.mb-12 { margin-bottom: 0.65rem !important; }
 
 @media (min-width: 768px) {
 #events .text-center.mb-12,
 #advisory .text-center.mb-12,
 #news .text-center.mb-12,
+#tvInterviews .text-center.mb-12,
 #aboutUs .text-center.mb-12 { margin-bottom: 1rem !important; }
 }
 
@@ -274,14 +398,14 @@ img {
 .event-date-filter-wrap:not(.date-filter-empty) .event-date-format-hint { display: none; }
 
   
-   /* HERO SLIDER */
+   
      
 #home {
     position: relative;
     box-sizing: border-box;
     overflow: hidden;
     height: auto !important;
-
+   
     background: rgba(255, 255, 255, 0.5);
     border: 1px solid #e5e7eb;
     border-radius: 1rem;
@@ -289,7 +413,7 @@ img {
     width: calc(100% - 1rem);
     max-width: 1600px;
     margin: 0.75rem auto 0.5rem;
-
+   
     aspect-ratio: 4 / 3;
     min-height: 260px;
     max-height: 62vh;
@@ -391,7 +515,7 @@ img {
     z-index: 10;
 }
 
-
+/* Old .active class support (if used in JS) */
 .hero-slide.active {
     opacity: 1;
     visibility: visible;
@@ -404,7 +528,7 @@ img {
     left: 0;
     width: 100%;
     height: 100%;
-  
+    /* Cover: photo fills whole frame */
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
@@ -706,6 +830,22 @@ button[onclick*="Slide"] {
     color: #1a4b9a;
 }
 
+.nav-news-dropdown {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: visibility 0.2s, opacity 0.2s, transform 0.2s;
+}
+.nav-news-wrap:hover .nav-news-dropdown,
+.nav-news-wrap:focus-within .nav-news-dropdown {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+.nav-news-dropdown a:hover {
+    background: rgba(26, 75, 154, 0.08);
+    color: #1a4b9a;
+}
 
 .nav-committee-dropdown {
     visibility: hidden;
@@ -729,7 +869,7 @@ button[onclick*="Slide"] {
     min-width: 220px;
 }
 
-
+/* Many committees: wide multi-column panel (like Sectors example) */
 .nav-committee-dropdown .nav-committee-panel {
     min-width: 220px;
     max-width: 920px;
@@ -763,7 +903,7 @@ button[onclick*="Slide"] {
     background: rgba(26, 75, 154, 0.08);
     color: #1a4b9a;
 }
-
+/* Fewer columns on smaller desktop so it doesn’t overflow */
 @media (min-width: 768px) and (max-width: 1023px) {
     .nav-committee-columns {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -776,7 +916,7 @@ button[onclick*="Slide"] {
     }
 }
 
-
+/* Chapter dropdown - same as Committee */
 .nav-chapter-dropdown {
     visibility: hidden;
     opacity: 0;
@@ -883,7 +1023,7 @@ button[onclick*="Slide"] {
     width: 100%;
 }
 
-
+/* Force single column on mobile */
 @media (max-width: 767px) {
     .md\:grid-cols-2,
     .md\:grid-cols-3,
@@ -901,7 +1041,7 @@ button[onclick*="Slide"] {
     }
 }
 
-
+/* Two columns on tablet */
 @media (min-width: 768px) and (max-width: 1023px) {
     .lg\:grid-cols-3,
     .lg\:grid-cols-4 {
@@ -910,7 +1050,7 @@ button[onclick*="Slide"] {
 }
 
   
-
+   /* FORMS & INPUTS  */
      
 input[type="text"],
 input[type="email"],
@@ -919,11 +1059,11 @@ input[type="password"],
 input[type="date"],
 select,
 textarea {
-    font-size: 16px !important;
+    font-size: 16px !important; /* Prevents zoom on iOS */
     width: 100%;
 }
 
-
+/* Membership form validation: invalid field border and error message */
 .membership-input-invalid {
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 1px #dc2626;
@@ -936,14 +1076,14 @@ textarea {
 }
 .membership-field-error.hidden { display: none !important; }
 
-
+/* Touch-friendly buttons on mobile */
 @media (max-width: 480px) {
     button,
     .btn-primary,
     .btn-secondary,
     a.btn-primary,
     a.btn-secondary {
-        min-height: 44px; 
+        min-height: 44px; /* iOS touch target */
         font-size: 0.9rem;
         padding-left: 1.25rem;
         padding-right: 1.25rem;
@@ -951,7 +1091,7 @@ textarea {
 }
 
   
-
+   /* TEXT OVERFLOW PREVENTION */
      
 p, span, div, a {
     word-wrap: break-word;
@@ -959,7 +1099,7 @@ p, span, div, a {
 }
 
   
-
+   /* RESPONSIVE TABLES */
      
 table {
     width: 100%;
@@ -974,7 +1114,7 @@ table {
 }
 
   
-
+   /* LOADING ANIMATION */
      
 .loading {
     width: 3rem;
@@ -990,14 +1130,14 @@ table {
 }
 
   
- 
+   /* SMOOTH SCROLLING */
      
 html {
     scroll-behavior: smooth;
 }
 
   
-
+   /* ACCESSIBILITY */
      
 :focus-visible {
     outline: 2px solid #3b82f6;
@@ -1022,7 +1162,7 @@ textarea:focus-visible {
 }
 
   
-
+   /* PRINT STYLES */
      
 @media print {
     .no-print,
@@ -1033,10 +1173,10 @@ textarea:focus-visible {
     }
 }
   
-
+   /* ENHANCED MOBILE NAVIGATION */
      
 
-
+/* Animated Hamburger Menu */
 .mobile-menu-btn {
     position: relative;
     z-index: 9999;
@@ -1068,7 +1208,7 @@ textarea:focus-visible {
     transform-origin: center;
 }
 
-
+/* Hamburger to X animation */
 .mobile-menu-btn.active .hamburger-line:nth-child(1) {
     transform: translateY(7.5px) rotate(45deg);
 }
@@ -1082,7 +1222,7 @@ textarea:focus-visible {
     transform: translateY(-7.5px) rotate(-45deg);
 }
 
-
+/* Mobile menu animations */
 .mobile-menu-hidden {
     max-height: 0;
     opacity: 0;
@@ -1095,7 +1235,7 @@ textarea:focus-visible {
     visibility: visible;
 }
 
-
+/* Stagger animation for menu items */
 @keyframes slideInFromLeft {
     from {
         opacity: 0;
@@ -1117,13 +1257,13 @@ textarea:focus-visible {
 .mobile-menu-item:nth-child(3) { animation-delay: 0.15s; }
 .mobile-menu-item:nth-child(4) { animation-delay: 0.2s; }
 
-
+/* Desktop nav underline effect */
 .nav-link {
     position: relative;
     overflow: hidden;
 }
 
-
+/* Keep top navigation readable and prevent overlap with many items */
 .top-nav-menu > .nav-link,
 .top-nav-menu > .nav-committee-wrap,
 .top-nav-menu > .nav-chapter-wrap,
@@ -1134,20 +1274,20 @@ textarea:focus-visible {
 
 @media (min-width: 1280px) {
     .top-nav-menu .nav-link {
-        font-size: 0.98rem !important; 
+        font-size: 0.98rem !important; /* normal readable size */
         line-height: 1.35;
         padding-left: 0.65rem !important;
         padding-right: 0.65rem !important;
     }
 }
 
-
+/* Backdrop blur for nav */
 nav {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-
+/* India tricolor gradient line – top of nav */
 nav::before {
     content: '';
     position: absolute;
@@ -1165,23 +1305,23 @@ nav:hover::before {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-
+/* Smooth scrolling when clicking nav links */
 html {
     scroll-behavior: smooth;
 }
 
-
+/* Active state for mobile menu */
 .mobile-menu-item:active {
     transform: scale(0.98);
     background-color: #f3f4f6;
 }
 
-
+/* Logo hover effect */
 nav img:hover {
     filter: brightness(1.1);
 }
 
-
+/* Compact nav header height – logo and link sizes unchanged */
 nav .max-w-7xl > div {
     min-height: 0;
 }
@@ -1194,7 +1334,7 @@ nav .max-w-7xl > div {
     }
 }
 
-
+/* Mobile: committees list scrollable so nav doesn't grow with many committees */
 .mobile-committee-list-wrap {
     max-height: min(50vh, 280px);
     overflow-y: auto;
@@ -1204,7 +1344,7 @@ nav .max-w-7xl > div {
     border: 1px solid rgba(0, 0, 0, 0.06);
     background: rgba(249, 250, 251, 0.8);
 }
-
+/* Mobile only: hide committee list until user taps "Committee" */
 @media (max-width: 767px) {
     .mobile-committee-list-wrap {
         max-height: 0;
@@ -1234,7 +1374,7 @@ nav .max-w-7xl > div {
     }
 }
 
-
+/* Mobile: chapters list (same as committees) */
 .mobile-chapter-list-wrap {
     max-height: min(50vh, 280px);
     overflow-y: auto;
@@ -1273,7 +1413,7 @@ nav .max-w-7xl > div {
     }
 }
 
-
+/* Prevent menu overflow on very small screens */
 @media (max-width: 320px) {
     .mobile-menu-content {
         padding-left: 0.75rem;
@@ -1287,14 +1427,14 @@ nav .max-w-7xl > div {
     }
 }
 
-
+/* Make mobile nav list scrollable on small screens */
 #mobileMenu {
-   
+    /* Container follows height animation but never exceeds viewport */
     max-height: 100vh;
 }
 
 .mobile-menu-content {
-    max-height: calc(100vh - 64px); 
+    max-height: calc(100vh - 64px); /* leave space for nav/header */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -1327,12 +1467,23 @@ nav .max-w-7xl > div {
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
-                <a href="#news" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
-                    News
-                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                <!-- News dropdown: Articles + TV Interviews + Positive Talk Show -->
+                <div class="nav-news-wrap relative" tabindex="0">
+                    <span class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group cursor-default flex items-center inline-flex whitespace-nowrap">
+                        News
+                        <svg class="w-4 h-4 ml-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
+                    </span>
+                    <div class="nav-news-dropdown absolute left-0 top-full pt-1 min-w-[220px] z-50">
+                        <div class="bg-white rounded-xl shadow-lg border border-gray-100 py-2 overflow-hidden">
+                            <a href="#news" onclick="ensureNewsNavSectionLoaded('news')" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue">Articles</a>
+                            <a href="#tvInterviews" onclick="ensureNewsNavSectionLoaded('tvInterviews')" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue">TV Interviews</a>
+                            <a href="/positive-talk" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue">Positive Talk Show</a>
+                        </div>
+                    </div>
+                </div>
 
-                
+                <!-- Committee: click = all committees page; hover = dropdown with each committee -->
                 <div class="nav-committee-wrap relative" tabindex="0">
                     <a href="/committees" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">
                         Committee
@@ -1346,7 +1497,7 @@ nav .max-w-7xl > div {
                     </div>
                 </div>
 
-             
+                <!-- Chapter: click = all chapters page; hover = dropdown with each chapter -->
                 <div class="nav-chapter-wrap relative" tabindex="0">
                     <a href="/chapters" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group flex items-center inline-flex whitespace-nowrap">
                         Chapter
@@ -1372,6 +1523,7 @@ nav .max-w-7xl > div {
                             <a href="#aboutUs" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue"> About Us</a>
                             <a href="#advisory" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue"> Advisory Board</a>
                             <a href="#testimonials" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue">Testimonials</a>
+                            <a href="/assets/Our-Donors.pdf" target="_blank" rel="noopener noreferrer" class="nav-link block px-4 py-2.5 text-base text-gray-700 hover:text-cimsme-blue">Our Donors</a>
                         </div>
                     </div>
                 </div>
@@ -1386,10 +1538,12 @@ nav .max-w-7xl > div {
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
 
-                <a href="assets/Our-Donors.pdf" target="_blank" rel="noopener noreferrer" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
-                    Our Donors
+                <a href="/loan-helpdesk" class="nav-link text-gray-700 hover:text-cimsme-blue px-2 md:px-2 lg:px-2.5 py-1.5 md:py-2 rounded-lg text-sm md:text-base lg:text-lg font-medium transition-all duration-300 hover:bg-gray-50 relative group whitespace-nowrap">
+                    Loan Helpdesk
                     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-cimsme-blue transition-all duration-300 group-hover:w-full"></span>
                 </a>
+
+                
 
                 <!-- Member Login Button -->
                  <button onclick="showLogin()" type="button" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 md:px-4 lg:px-6 py-2 md:py-2.5 lg:py-3 rounded-xl lg:rounded-2xl text-xs md:text-sm lg:text-base font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 whitespace-nowrap shrink-0 ml-0.5 lg:ml-1">
@@ -1429,12 +1583,26 @@ nav .max-w-7xl > div {
                     <span>Events</span>
                 </a>
                 
-                <a href="#news" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
-                    <span class="text-xl group-hover:scale-110 transition-transform duration-300">📰</span>
-                    <span>News</span>
-                </a>
+                <!-- News submenu (mobile) -->
+                <div class="px-4 py-2">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">News</p>
+                    <div class="space-y-1 pl-2 border-l-2 border-gray-200">
+                        <a href="#news" onclick="navigateNewsSubnav('news')" class="mobile-menu-item flex items-center gap-3 text-gray-600 hover:text-cimsme-blue px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
+                            <span class="text-lg">📰</span>
+                            <span>Articles</span>
+                        </a>
+                        <a href="#tvInterviews" onclick="navigateNewsSubnav('tvInterviews')" class="mobile-menu-item flex items-center gap-3 text-gray-600 hover:text-cimsme-blue px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
+                            <span class="text-lg">📺</span>
+                            <span>TV Interviews</span>
+                        </a>
+                        <a href="/positive-talk" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-600 hover:text-cimsme-blue px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
+                            <span class="text-lg">🎙️</span>
+                            <span>Positive Talk Show</span>
+                        </a>
+                    </div>
+                </div>
                 
-               
+                <!-- Committee submenu (mobile) - list hidden until user taps "Committee"; then show scrollable list -->
                 <div class="px-4 py-2">
                     <button type="button" onclick="toggleMobileCommitteeList(event)" class="mobile-committee-trigger w-full text-left mb-0 flex items-center justify-between gap-2 py-2 rounded-lg hover:bg-gray-100 transition-colors" aria-expanded="false" aria-controls="mobileCommitteeListWrap" id="mobileCommitteeTrigger">
                         <p class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Committee</p>
@@ -1476,6 +1644,10 @@ nav .max-w-7xl > div {
                             <span class="text-lg">💬</span>
                             <span>Testimonials</span>
                         </a>
+                        <a href="/assets/Our-Donors.pdf" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-600 hover:text-cimsme-blue px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
+                            <span class="text-lg">📄</span>
+                            <span>Our Donors</span>
+                        </a>
                     </div>
                 </div>
                 
@@ -1489,9 +1661,9 @@ nav .max-w-7xl > div {
                     <span>SME Assurance</span>
                 </a>
 
-                <a href="assets/Our-Donors.pdf" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
-                    <span class="text-xl group-hover:scale-110 transition-transform duration-300">📄</span>
-                    <span>Our Donors</span>
+                <a href="/loan-helpdesk" onclick="closeMobileMenu()" class="mobile-menu-item flex items-center gap-3 text-gray-700 hover:text-cimsme-blue px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 hover:bg-white hover:shadow-md group">
+                    <span class="text-xl group-hover:scale-110 transition-transform duration-300">🏦</span>
+                    <span>Loan Helpdesk</span>
                 </a>
                 
                 <!-- Member Login Button -->
@@ -1547,10 +1719,16 @@ nav .max-w-7xl > div {
             <p class="text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">Connect with industry leaders and grow your business through our exclusive events</p>
         </div>
 
+
+
         <!-- Upcoming Events heading (above filter), populated by JS -->
+
+
         <div id="eventsUpcomingHeading" class="mb-4"></div>
 
         <!-- Filter: compact, fixed-size, just above event cards -->
+
+
         <div id="eventFiltersBar" class="flex flex-wrap items-center gap-2 sm:gap-3 mb-6 justify-start">
             <div id="eventDateFilterWrap" class="event-date-filter-wrap date-filter-empty inline-flex items-center gap-1.5 bg-gray-50 rounded-lg border border-gray-200 px-2.5 py-1.5 hover:border-blue-300 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-200 transition-all w-full sm:w-[168px] max-w-full">
                 <span class="text-sm flex-shrink-0">📅</span>
@@ -1578,7 +1756,11 @@ nav .max-w-7xl > div {
             </div>
         </div>
 
+
+
         <!-- Past Events -->
+        
+
         
     </div>
 </section>
@@ -1864,6 +2046,35 @@ nav .max-w-7xl > div {
         <!-- Error State -->
         <div id="newsError" class="hidden text-center py-12">
             <p class="text-gray-500 text-lg">Unable to load news.</p>
+        </div>
+    </div>
+</section>
+
+<!-- TV Interviews Section -->
+<section id="tvInterviews" class="section-padding section-over-texture">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 md:mb-16">
+            <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">TV Interviews</h2>
+            <p class="text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">Watch featured interviews and conversations from CIMSME</p>
+        </div>
+
+        <div id="tvInterviewsLoading" class="flex justify-center py-12">
+            <div class="text-center">
+                <div class="loading mx-auto mb-4"></div>
+                <p class="text-gray-600">Loading TV interviews...</p>
+            </div>
+        </div>
+
+        <div id="tvInterviewsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"></div>
+
+        <div class="text-center mt-10">
+            <button id="tvInterviewsShowMoreBtn" onclick="toggleTvInterviewsShowMore()" class="hidden bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-all shadow-lg hover:shadow-xl">
+                Show More
+            </button>
+        </div>
+
+        <div id="tvInterviewsError" class="hidden text-center py-12">
+            <p class="text-gray-500 text-lg">Unable to load TV interviews. Please try again later.</p>
         </div>
     </div>
 </section>
@@ -2157,7 +2368,7 @@ nav .max-w-7xl > div {
 </div>
 
 <style>
- 
+  /* Member dashboard: mobile-friendly and interactive */
   #memberDashboard {
     min-height: 100vh;
     min-height: 100dvh;
@@ -2847,7 +3058,7 @@ function hideEventDetails() {
     }
     
     // Show all main sections including testimonials
-    const sectionsToShow = ['home', 'events', 'advisory', 'testimonials', 'news', 'aboutUs'];
+    const sectionsToShow = ['home', 'events', 'advisory', 'testimonials', 'news', 'tvInterviews', 'aboutUs'];
     sectionsToShow.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -2887,6 +3098,7 @@ const sectionLoadedFlags = {
     events: false,
     advisory: false,
     news: false,
+    tvInterviews: false,
     testimonials: false
 };
 
@@ -2919,7 +3131,7 @@ function setCachedData(key, data) {
     }
 }
 
-
+// ⚡ OPTIMIZED PAGE LOAD - Hero does not block first paint
 document.addEventListener('DOMContentLoaded', () => {
     console.log('⚡ Loading CIMSME - Optimized Mode...');
     
@@ -2930,7 +3142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             siteFooter.style.display = 'block';
             siteFooter.classList.remove('hidden');
         }
-    
+        // Show hero from cache immediately if available, else keep static/skeleton hero visible
         initHeroFirstPaint();
         // Fetch hero in background; when done, update slides without blocking
         loadHeroInBackground();
@@ -2953,7 +3165,8 @@ function setupLazyLoading() {
         { id: 'events', loader: loadEvents, priority: 1 },
         { id: 'advisory', loader: loadAdvisoryBoard, priority: 2 },
         { id: 'news', loader: loadNews, priority: 3 },
-        { id: 'testimonials', loader: loadTestimonials, priority: 4 }
+        { id: 'tvInterviews', loader: loadTvInterviews, priority: 4 },
+        { id: 'testimonials', loader: loadTestimonials, priority: 5 }
     ];
     
     // Use Intersection Observer for automatic lazy loading
@@ -2983,6 +3196,20 @@ function setupLazyLoading() {
     });
     
     // Events load only when user scrolls near #events (Intersection Observer above)
+}
+
+function ensureNewsNavSectionLoaded(sectionId) {
+    if (sectionLoadedFlags[sectionId]) return;
+    const loaders = { news: loadNews, tvInterviews: loadTvInterviews };
+    if (loaders[sectionId]) {
+        sectionLoadedFlags[sectionId] = true;
+        loaders[sectionId]();
+    }
+}
+
+function navigateNewsSubnav(sectionId) {
+    ensureNewsNavSectionLoaded(sectionId);
+    if (typeof closeMobileMenu === 'function') closeMobileMenu();
 }
 
 let totalSlides = 0; 
@@ -3540,7 +3767,7 @@ async function loadCommittees() {
     }
 }
 
-// CHAPTERS - Nav dropdown 
+// CHAPTERS - Nav dropdown + mobile (same as committees)
 let chaptersList = [];
 var CHAPTER_MULTI_COLUMN_THRESHOLD = 8;
 
@@ -3655,9 +3882,14 @@ function createNewsCard(news) {
         ? news.photo_url 
         : `${window.location.origin}${news.photo_url}`;
     
-    const truncatedContent = news.content.length > 120 
-        ? news.content.substring(0, 120) + '...' 
-        : news.content;
+    var plainExcerpt = typeof stripHtmlToText === 'function'
+        ? stripHtmlToText(news.content || '')
+        : String(news.content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    var truncatedContent = plainExcerpt.length > 120
+        ? plainExcerpt.substring(0, 120) + '...'
+        : plainExcerpt;
+    var safeTitle = typeof escapeHtml === 'function' ? escapeHtml(news.title) : String(news.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var safeExcerpt = typeof escapeHtml === 'function' ? escapeHtml(truncatedContent) : truncatedContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
     const formattedDate = news.published_date 
         ? new Date(news.published_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -3666,7 +3898,7 @@ function createNewsCard(news) {
     div.innerHTML = `
         <div class="h-48 md:h-56 overflow-hidden bg-gray-100 flex items-center justify-center">
             <img src="${photoUrl}" 
-                 alt="${news.title}" 
+                 alt="${safeTitle.replace(/"/g, '&quot;')}" 
                  class="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
                  loading="lazy"
                  decoding="async"
@@ -3681,8 +3913,8 @@ function createNewsCard(news) {
                 ${formattedDate}
             </div>
             
-            <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-3 line-clamp-2">${news.title}</h3>
-            <p class="text-gray-600 text-sm md:text-base mb-4 line-clamp-3">${truncatedContent}</p>
+            <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-3 line-clamp-2">${safeTitle}</h3>
+            <p class="text-gray-600 text-sm md:text-base mb-4 line-clamp-3">${safeExcerpt}</p>
             
             <button onclick="openNewsDetail(${news.id})" class="text-red-600 hover:text-red-800 font-semibold text-sm flex items-center group">
                 Read More 
@@ -3727,6 +3959,7 @@ function openNewsDetail(newsId) {
     const isValidSourceUrl = sourceLinkUrl.length > 0 && sourceLinkUrl.length <= 500 && (sourceLinkUrl.toLowerCase().startsWith('https://') || sourceLinkUrl.toLowerCase().startsWith('http://'));
     const displayLinkName = sourceLinkName || 'Read full article';
     function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    var safeNewsTitle = esc(news.title || '');
     
     const sourceLinkBlock = isValidSourceUrl
         ? `<div class="mt-6 pt-6 border-t border-gray-200">
@@ -3741,14 +3974,14 @@ function openNewsDetail(newsId) {
     content.innerHTML = `
         <div class="mb-6 bg-gray-100 rounded-xl flex items-center justify-center min-h-64 md:min-h-96 overflow-hidden">
             <img src="${photoUrl}" 
-                 alt="${news.title}" 
+                 alt="${safeNewsTitle}" 
                  class="w-full h-full max-h-[70vh] object-contain rounded-xl"
                  loading="lazy"
                  decoding="async"
                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%23f3f4f6%22 width=%22400%22 height=%22300%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2248%22>📰</text></svg>';">
         </div>
         
-        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">${news.title}</h2>
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">${safeNewsTitle}</h2>
         
         <div class="flex items-center text-gray-600 mb-6">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3757,7 +3990,7 @@ function openNewsDetail(newsId) {
             <span class="text-sm md:text-base">${formattedDate}</span>
         </div>
         
-        <div class="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-line text-base md:text-lg">
+        <div class="news-content-richtext max-w-none text-gray-700 leading-relaxed text-base md:text-lg">
             ${news.content}
         </div>
         
@@ -3785,6 +4018,203 @@ function closeNewsDetail(event) {
         document.body.style.overflow = '';
     }
 }
+
+// TV INTERVIEWS SECTION FUNCTIONS
+
+function extractYouTubeVideoIdPublic(url) {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    const patterns = [
+        /(?:youtube\.com\/watch\?(?:[^&]*&)*v=|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+    ];
+    for (const pattern of patterns) {
+        const match = trimmed.match(pattern);
+        if (match && match[1]) return match[1];
+    }
+    return null;
+}
+
+function getYouTubeThumbnailMax(videoId) {
+    return `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+}
+
+function getYouTubeThumbnailFallback(videoId) {
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
+
+function getYouTubeWatchUrl(videoId) {
+    return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+function getYouTubeEmbedUrl(videoId) {
+    const params = new URLSearchParams({
+        autoplay: '1',
+        rel: '0',
+        modestbranding: '1',
+        playsinline: '1'
+    });
+    if (typeof window !== 'undefined' && window.location && window.location.origin) {
+        params.set('origin', window.location.origin);
+    }
+    return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+}
+
+let allTvInterviews = [];
+let showingAllTvInterviews = false;
+
+async function loadTvInterviews() {
+    const container = document.getElementById('tvInterviewsContainer');
+    if (!container) return;
+
+    const loading = document.getElementById('tvInterviewsLoading');
+    const errorDiv = document.getElementById('tvInterviewsError');
+
+    try {
+        const cached = getCachedData('tvInterviews');
+        if (cached) {
+            allTvInterviews = cached;
+            if (loading) loading.style.display = 'none';
+            displayTvInterviews();
+            apiCall('/tv-interviews').then(response => {
+                if (response.data) {
+                    allTvInterviews = response.data;
+                    setCachedData('tvInterviews', response.data);
+                    displayTvInterviews();
+                }
+            }).catch(err => console.warn('Background TV interviews refresh failed:', err));
+            return;
+        }
+
+        const response = await apiCall('/tv-interviews');
+        allTvInterviews = response.data || [];
+        setCachedData('tvInterviews', allTvInterviews);
+
+        if (loading) loading.style.display = 'none';
+        if (errorDiv) errorDiv.classList.add('hidden');
+        displayTvInterviews();
+    } catch (error) {
+        console.error('Failed to load TV interviews:', error);
+        if (loading) loading.style.display = 'none';
+        if (errorDiv) errorDiv.classList.remove('hidden');
+    }
+}
+
+function displayTvInterviews() {
+    const container = document.getElementById('tvInterviewsContainer');
+    const btn = document.getElementById('tvInterviewsShowMoreBtn');
+    if (!container) return;
+
+    const sorted = [...allTvInterviews].sort((a, b) => (a.order_index || 999) - (b.order_index || 999));
+    container.innerHTML = '';
+
+    if (sorted.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <div class="text-gray-400 text-6xl mb-4">📺</div>
+                <p class="text-gray-500 text-lg">No TV interviews available at the moment.</p>
+            </div>
+        `;
+        if (btn) btn.classList.add('hidden');
+        return;
+    }
+
+    const toShow = showingAllTvInterviews ? sorted : sorted.slice(0, 3);
+    toShow.forEach(item => container.appendChild(createTvInterviewCard(item)));
+
+    if (btn) {
+        if (sorted.length > 3) {
+            btn.classList.remove('hidden');
+            btn.textContent = showingAllTvInterviews ? 'Show Less' : 'Show More';
+        } else {
+            btn.classList.add('hidden');
+        }
+    }
+}
+
+function toggleTvInterviewsShowMore() {
+    showingAllTvInterviews = !showingAllTvInterviews;
+    displayTvInterviews();
+    if (!showingAllTvInterviews) {
+        const section = document.getElementById('tvInterviews');
+        if (section) section.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function createTvInterviewCard(interview) {
+    const div = document.createElement('div');
+    div.className = 'bg-white rounded-2xl overflow-hidden shadow-lg card-hover transition-all duration-300 hover:shadow-xl';
+
+    const videoId = interview.youtube_video_id || extractYouTubeVideoIdPublic(interview.youtube_url);
+    if (!videoId) return div;
+
+    const playerId = `tv-interview-player-${interview.id}`;
+    const safeTitle = typeof escapeHtml === 'function' ? escapeHtml(interview.title) : String(interview.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeTitleAttr = safeTitle.replace(/"/g, '&quot;');
+    const thumbPrimary = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    const thumbFallback = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+    const watchUrl = getYouTubeWatchUrl(videoId);
+
+    div.innerHTML = `
+        <div class="relative h-48 md:h-56 bg-gray-900 overflow-hidden" id="${playerId}" data-video-id="${videoId}" data-title="${safeTitleAttr}">
+            <button type="button" class="tv-interview-play absolute inset-0 w-full h-full group focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2" aria-label="Play video: ${safeTitleAttr}" onclick="playTvInterviewInline('${playerId}', event)">
+                <img 
+                    src="${thumbPrimary}" 
+                    alt="Thumbnail for ${safeTitleAttr}" 
+                    class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                    loading="lazy" 
+                    decoding="async" 
+                    referrerpolicy="no-referrer"
+                    onerror="this.onerror=null;this.src='${thumbFallback}'"
+                >
+                <span class="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+                    <span class="w-10 h-10 md:w-12 md:h-12 bg-red-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                        <svg class="w-8 h-8 md:w-10 md:h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                </span>
+            </button>
+        </div>
+        <div class="p-6">
+            <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-4 line-clamp-2">${safeTitle}</h3>
+            <a href="${watchUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-red-600 hover:text-red-800 font-semibold text-sm group" aria-label="Watch ${safeTitleAttr} on YouTube (opens in new tab)">
+                Watch Complete Video
+                <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+        </div>
+    `;
+    return div;
+}
+
+function playTvInterviewInline(playerId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const container = document.getElementById(playerId);
+    if (!container || container.querySelector('iframe')) return;
+
+    const videoId = container.getAttribute('data-video-id');
+    const title = container.getAttribute('data-title') || 'TV Interview video';
+    if (!videoId) return;
+
+    const safeTitle = typeof escapeHtml === 'function' ? escapeHtml(title) : title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const embedSrc = getYouTubeEmbedUrl(videoId);
+    container.innerHTML = `
+        <iframe
+            src="${embedSrc}"
+            title="${safeTitle}"
+            class="absolute top-0 left-0 w-full h-full"
+            frameborder="0"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+        </iframe>
+    `;
+}
+window.playTvInterviewInline = playTvInterviewInline;
 
 
 // TESTIMONIALS SECTION FUNCTIONS
@@ -4234,13 +4664,15 @@ Opening secure payment page...`);
     }, 300);
 
     try {
-        const cashfree = await loadCashfree();
-        await cashfree.checkout({
-            paymentSessionId: result.paymentSessionId,
-            redirectTarget: "_self"
+        await openRazorpayCheckout(result.paymentSessionId, result.paymentLink, {
+            razorpayKeyId: result.razorpayKeyId,
+            orderId: result.orderId,
+            name: membershipData.fullName,
+            email: membershipData.email,
+            phone: membershipData.phone
         });
     } catch (e) {
-        console.error('Cashfree checkout error:', e);
+        console.error('Razorpay checkout error:', e);
         alert('Unable to open payment page. Please refresh and try again.');
     }
 
@@ -4283,33 +4715,51 @@ A confirmation email has been sent.`);
 
 
 
-let cashfreeInstance = null;
+let razorpayKeyIdCached = null;
 
-function loadCashfreeScript() {
-    if (window.Cashfree) return Promise.resolve();
+function loadRazorpayScript() {
+    if (window.Razorpay) return Promise.resolve();
     return new Promise((resolve, reject) => {
         const s = document.createElement('script');
-        s.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+        s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        s.async = true;
         s.onload = () => resolve();
-        s.onerror = () => reject(new Error('Failed to load Cashfree SDK'));
+        s.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
         document.head.appendChild(s);
     });
 }
 
-async function loadCashfree() {
-    if (cashfreeInstance) return cashfreeInstance;
-    await loadCashfreeScript();
-    if (!window.Cashfree) throw new Error('Cashfree SDK not loaded');
-    let mode = 'test';
-    try {
+async function openRazorpayCheckout(paymentSessionId, paymentLink, opts = {}) {
+    if (paymentLink) {
+        window.location.href = paymentLink;
+        return;
+    }
+    if (!paymentSessionId) throw new Error('Unable to open payment page');
+    let key = opts.razorpayKeyId || razorpayKeyIdCached;
+    if (!key) {
         const r = await fetch('/api/config');
         if (r.ok) {
             const cfg = await r.json();
-            if (cfg.cashfreeMode) mode = cfg.cashfreeMode;
+            key = cfg.razorpayKeyId;
         }
-    } catch (_) {}
-    cashfreeInstance = await Cashfree({ mode });
-    return cashfreeInstance;
+    }
+    if (!key) throw new Error('Payment gateway is not configured');
+    await loadRazorpayScript();
+    const callbackUrl = window.location.origin + '/payment-status?orderId=' + encodeURIComponent(opts.orderId || '');
+    return new Promise((resolve, reject) => {
+        const rzp = new Razorpay({
+            key,
+            name: 'CIMSME',
+            description: 'Membership Fee (incl. 18% GST)',
+            order_id: paymentSessionId,
+            prefill: { name: opts.name || '', email: opts.email || '', contact: opts.phone || '' },
+            theme: { color: '#3B82F6' },
+            handler: () => { window.location.href = callbackUrl; resolve(); },
+            modal: { ondismiss: () => { const e = new Error('Payment cancelled'); e.code = 'PAYMENT_CANCELLED'; reject(e); } }
+        });
+        rzp.on('payment.failed', (resp) => reject(new Error((resp.error && resp.error.description) || 'Payment failed')));
+        rzp.open();
+    });
 }
 
 
@@ -4733,7 +5183,7 @@ function openVideoLink(url) {
 window.openVideoLink = openVideoLink;
 
 
-// Hide event details 
+// Hide event details - FIXED
 
 // Handle event booking - SECURE VERSION
 async function handleEventBooking(event) {
@@ -6768,6 +7218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 console.log('    Member Dashboard System Loaded');
 
 
+// MEMBER REGISTEREd 
 
 // MEMBER DASHBOARD - EVENTS SECTION (single init in DOMContentLoaded below)
 
@@ -7629,7 +8080,7 @@ async function loadEvents() {
       console.log('✅ Loaded', allEvents.length, 'events from cache');
       displayEvents();
       
-      // Fetch fresh data in background 
+      // Fetch fresh data in background (don't await)
       fetch('/api/events')
         .then(r => r.json())
         .then(result => {
@@ -7701,7 +8152,7 @@ function renderUnifiedEvents(upcoming = upcomingEvents, past = pastEvents) {
   
   let html = '';
 
-  // 1. UPCOMING EVENTS – heading above filter 
+  // 1. UPCOMING EVENTS – heading above filter (in #eventsUpcomingHeading), cards in grid
   if (upcoming.length > 0) {  
     const upcomingHeading = `
       <div class="flex items-center justify-center mb-4 md:mb-6">
@@ -8022,8 +8473,7 @@ window.toggleShowMorePastEvents = toggleShowMorePastEvents;
     lastViewedEventIdForScroll = eventId;
     try {
         const cacheKey = `event_${eventId}`;
-        // Always fetch fresh event details so newly uploaded photos and registration_enabled show up
-        // Prefer full-details API so we get registration_enabled + photos from server in one call
+        
         var fullRes = await fetch('/api/events/' + eventId + '/full-details?_=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.json(); }).catch(function() { return { success: false }; });
         var event;
         if (fullRes.success && fullRes.data) {
@@ -8033,7 +8483,7 @@ window.toggleShowMorePastEvents = toggleShowMorePastEvents;
             event.speakers = Array.isArray(event.speakers) ? event.speakers : [];
             event.videos = Array.isArray(event.videos) ? event.videos : [];
             event.photos = Array.isArray(event.photos) ? event.photos : [];
-            console.log('✅ Event from full-details API:', event.title, 'registration_enabled:', event.registration_enabled, 'photos:', event.photos.length);
+            console.log(' Event from full-details API:', event.title, 'registration_enabled:', event.registration_enabled, 'photos:', event.photos.length);
         } else {
             // Fallback: use list + separate detail calls
             event = allEvents.find(function(e) { return e.id === parseInt(eventId, 10); });
@@ -8061,7 +8511,7 @@ window.toggleShowMorePastEvents = toggleShowMorePastEvents;
         }
         
         setCachedData(cacheKey, event);
-        console.log('✅ Loaded:', { agenda: event.agenda.length, speakers: event.speakers.length, videos: event.videos.length, photos: event.photos.length });
+        console.log(' Loaded:', { agenda: event.agenda.length, speakers: event.speakers.length, videos: event.videos.length, photos: event.photos.length });
         
         hideMainSections();
         showDetailsPage();
@@ -8077,7 +8527,7 @@ window.toggleShowMorePastEvents = toggleShowMorePastEvents;
 }
 
 function hideMainSections() {
-    ['home', 'events', 'advisory', 'testimonials', 'news', 'aboutUs', 'membershipPage'].forEach(id => {
+    ['home', 'events', 'advisory', 'testimonials', 'news', 'tvInterviews', 'aboutUs', 'membershipPage'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.style.display = 'none';
@@ -8119,7 +8569,7 @@ function initializeEventPriceDisplay(event) {
 
 
 
-/** Returns whether registration is enabled. Only true when explicitly 1/true/'1'/'true'; unchecked or missing = false. */
+
 function isRegistrationEnabled(event) {
     if (event == null) return false;
     var v = event.registration_enabled;
@@ -8127,7 +8577,7 @@ function isRegistrationEnabled(event) {
     return false;
 }
 
-/** Returns the first tab that should be visible for this event (only sections with data or enabled registration). */
+
 function getFirstVisibleEventTab(event) {
     var hasAgenda = Array.isArray(event.agenda) && event.agenda.length > 0;
     var hasSpeakers = Array.isArray(event.speakers) && event.speakers.length > 0;
@@ -8266,7 +8716,6 @@ function formatEventDate(dateString) {
     }
 }
 
-
 function showEventBooking(eventId) {
     const event = upcomingEvents.find(e => e.id === eventId);
     if (!event) return;
@@ -8284,8 +8733,6 @@ function showEventBooking(eventId) {
     
     showEventTab('booking');
 }
-
-
 
 
 let selectedEventForRegistration = null;
@@ -8329,7 +8776,6 @@ function showEventRegistrationModal(eventId) {
         }
     }, 300);
 }
-
 
 
 
