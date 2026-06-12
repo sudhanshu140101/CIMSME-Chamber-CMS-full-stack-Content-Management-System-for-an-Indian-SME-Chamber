@@ -19,7 +19,7 @@ const pool = mysql.createPool({
 });
 
 class Database {
-    
+    // Test connection
     static async testConnection() {
         try {
             const connection = await pool.getConnection();
@@ -108,7 +108,7 @@ class Database {
 
         
         try {
-         
+            // Check which columns exist
             const columns = await this.query(`
                 SELECT COLUMN_NAME 
                 FROM INFORMATION_SCHEMA.COLUMNS 
@@ -246,8 +246,53 @@ class Database {
                 INDEX idx_published (published_date),
                 INDEX idx_order (order_index)
             )
+        `);     await this.ensureNewsLinkColumns();
+
+        await this.query(`
+            CREATE TABLE IF NOT EXISTS tv_interviews (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                title VARCHAR(255) NOT NULL,
+                youtube_url VARCHAR(500) NOT NULL,
+                youtube_video_id VARCHAR(11) NOT NULL,
+                order_index INT DEFAULT 0,
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_active (is_active),
+                INDEX idx_order (order_index)
+            )
         `);
-        await this.ensureNewsLinkColumns();
+
+        await this.query(`
+            CREATE TABLE IF NOT EXISTS positive_talk_videos (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                title VARCHAR(255) NOT NULL,
+                youtube_url VARCHAR(500) NOT NULL,
+                youtube_video_id VARCHAR(11) NOT NULL,
+                category ENUM('promo', 'full_episode') NOT NULL DEFAULT 'full_episode',
+                video_date DATE NOT NULL,
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_active (is_active),
+                INDEX idx_category (category),
+                INDEX idx_video_date (video_date),
+                INDEX idx_active_category_date (is_active, category, video_date)
+            )
+        `);
+
+        await this.ensurePositiveTalkVideoDateColumn();
+
+        await this.query(`
+            CREATE TABLE IF NOT EXISTS drive_pdfs (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                pdf_name VARCHAR(255) NOT NULL,
+                file_url VARCHAR(500) NOT NULL,
+                upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                uploaded_by VARCHAR(255) NOT NULL DEFAULT '',
+                INDEX idx_upload_date (upload_date)
+            )
+        `);
 
         await this.query(`
             CREATE TABLE IF NOT EXISTS testimonials (
@@ -354,6 +399,63 @@ class Database {
             )
         `);
 
+        await this.query(`
+            CREATE TABLE IF NOT EXISTS loan_helpdesk_cases (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                case_id VARCHAR(32) NOT NULL UNIQUE,
+                name VARCHAR(80) NOT NULL,
+                business_name VARCHAR(120) NOT NULL,
+                mobile VARCHAR(10) NOT NULL,
+                email VARCHAR(100) NULL,
+                applicant_pincode VARCHAR(6) NOT NULL,
+                applicant_city VARCHAR(60) NOT NULL,
+                applicant_state VARCHAR(60) NOT NULL,
+                udhyam VARCHAR(19) NULL,
+                lender_name VARCHAR(120) NOT NULL,
+                ifsc VARCHAR(11) NULL,
+                bank_pincode VARCHAR(6) NOT NULL,
+                bank_city VARCHAR(60) NOT NULL,
+                bank_state VARCHAR(60) NOT NULL,
+                bank_address VARCHAR(200) NOT NULL,
+                loan_type VARCHAR(50) NOT NULL DEFAULT 'Not specified',
+                amount DECIMAL(15, 0) NOT NULL,
+                application_date DATE NULL,
+                reference_no VARCHAR(50) NULL,
+                officer_name VARCHAR(80) NULL,
+                officer_designation VARCHAR(80) NULL,
+                officer_mobile VARCHAR(10) NULL,
+                officer_email VARCHAR(100) NULL,
+                issue VARCHAR(120) NOT NULL,
+                issue_details TEXT NOT NULL,
+                consent TINYINT(1) NOT NULL DEFAULT 1,
+                status VARCHAR(50) NOT NULL DEFAULT 'Submitted',
+                assigned_to VARCHAR(120) NULL,
+                assigned_officer_mobile VARCHAR(10) NULL,
+                follow_up_date DATE NULL,
+                admin_remark TEXT NULL,
+                files_json JSON NULL,
+                timeline_json JSON NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_case_id (case_id),
+                INDEX idx_mobile (mobile),
+                INDEX idx_status (status),
+                INDEX idx_created (created_at)
+            )
+        `);
+
+        try {
+            await this.query(`ALTER TABLE loan_helpdesk_cases ADD COLUMN admin_remark TEXT NULL AFTER follow_up_date`);
+        } catch (e) {
+            if (e.message && !e.message.includes('Duplicate column')) throw e;
+        }
+
+        try {
+            await this.query(`ALTER TABLE loan_helpdesk_cases ADD COLUMN assigned_officer_mobile VARCHAR(10) NULL AFTER assigned_to`);
+        } catch (e) {
+            if (e.message && !e.message.includes('Duplicate column')) throw e;
+        }
+
         
 
 // PAYMENT ORDERS TABLE
@@ -407,7 +509,6 @@ console.log('Payment transactions table ready');
 
 
 
-
         
         // EVENT AGENDA 
       
@@ -428,7 +529,7 @@ console.log('Payment transactions table ready');
         `);
 
      
-        
+        // EVENT SPEAKERS 
       
         await this.query(`
             CREATE TABLE IF NOT EXISTS event_speakers (
@@ -759,11 +860,11 @@ console.log('Payment transactions table ready');
 
     static validateTableName(tableName) {
         const ALLOWED_TABLES = [
-            'hero', 'events', 'advisors', 'news', 'testimonials', 'coupons', 'newsletter',
-            'submissions', 'membership_applications', 'membership_benefits',
+            'hero', 'events', 'advisors', 'news', 'tv_interviews', 'positive_talk_videos', 'testimonials', 'coupons', 'newsletter',
+            'submissions', 'loan_helpdesk_cases', 'membership_applications', 'membership_benefits',
             'membership_stories', 'member_services', 'event_registrations',
             'event_agenda', 'event_speakers', 'event_photos', 'event_videos',
-            'payment_orders', 'payment_transactions', 'committees', 'committee_leaders', 'committee_subleaders', 'chapters', 'chapter_leaders', 'chapter_subleaders', 'footer_pdf'
+            'payment_orders', 'payment_transactions', 'committees', 'committee_leaders', 'committee_subleaders', 'chapters', 'chapter_leaders', 'chapter_subleaders', 'footer_pdf', 'drive_pdfs'
         ];
         if (!ALLOWED_TABLES.includes(tableName)) {
             throw new Error(`Invalid table name: ${tableName}`);
@@ -1054,7 +1155,7 @@ static async deleteEventVideo(id) {
     return await this.delete('event_videos', id);
 }
 
-
+// MEMBERSHIP BENEFITS METHODS
 
 
 static async getAllBenefits() {
@@ -1123,7 +1224,7 @@ static async createMembershipWithTransaction(memberData, couponCode = null) {
   const connection = await this.beginTransaction();
 
   try {
-
+    // 1. Insert membership application
     const [result] = await connection.execute(
       `INSERT INTO membership_applications (
          memberid, fullname, businessname, email, phone,
@@ -1159,7 +1260,7 @@ static async createMembershipWithTransaction(memberData, couponCode = null) {
       ]
     );
 
-
+    // 2. Update coupon usage if applicable
     if (couponCode) {
       await connection.execute(
         `UPDATE coupons
@@ -1320,12 +1421,98 @@ static async getEventRegistrationsByEmail(email) {
         return await this.delete('news', id);
     }
 
+    // DRIVE (admin PDF library — files under /uploads/pdfs/)
+    static async getAllDrivePdfs() {
+        const sql = 'SELECT * FROM drive_pdfs ORDER BY upload_date DESC, id DESC';
+        return await this.query(sql);
+    }
+
+    static async getDrivePdfById(id) {
+        const rows = await this.query('SELECT * FROM drive_pdfs WHERE id = ? LIMIT 1', [id]);
+        return rows[0] || null;
+    }
+
+    static async createDrivePdf(data) {
+        return await this.create('drive_pdfs', {
+            pdf_name: data.pdf_name,
+            file_url: data.file_url,
+            uploaded_by: data.uploaded_by || ''
+        });
+    }
+
+    static async deleteDrivePdf(id) {
+        return await this.delete('drive_pdfs', id);
+    }
+
     static async toggleNewsActive(id) {
         const sql = `UPDATE news SET is_active = NOT is_active WHERE id = ?`;
         await this.query(sql, [id]);
 
         const news = await this.getById('news', id);
         return { success: true, is_active: news?.is_active };
+    }
+
+    static async getAllTvInterviews() {
+        return await this.getAll('tv_interviews');
+    }
+
+    static async createTvInterview(data) {
+        return await this.create('tv_interviews', data);
+    }
+
+    static async updateTvInterview(id, data) {
+        return await this.update('tv_interviews', id, data);
+    }
+
+    static async deleteTvInterview(id) {
+        return await this.delete('tv_interviews', id);
+    }
+
+    static async toggleTvInterviewActive(id) {
+        const sql = `UPDATE tv_interviews SET is_active = NOT is_active WHERE id = ?`;
+        await this.query(sql, [id]);
+        const item = await this.getById('tv_interviews', id);
+        return { success: true, is_active: item?.is_active };
+    }
+
+    static async getAllPositiveTalkVideos() {
+        return await this.getAll('positive_talk_videos');
+    }
+
+    static async createPositiveTalkVideo(data) {
+        return await this.create('positive_talk_videos', data);
+    }
+
+    static async updatePositiveTalkVideo(id, data) {
+        return await this.update('positive_talk_videos', id, data);
+    }
+
+    static async deletePositiveTalkVideo(id) {
+        return await this.delete('positive_talk_videos', id);
+    }
+
+    static async togglePositiveTalkVideoActive(id) {
+        const sql = `UPDATE positive_talk_videos SET is_active = NOT is_active WHERE id = ?`;
+        await this.query(sql, [id]);
+        const item = await this.getById('positive_talk_videos', id);
+        return { success: true, is_active: item?.is_active };
+    }
+
+    static async ensurePositiveTalkVideoDateColumn() {
+        try {
+            const rows = await this.query(
+                `SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS 
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'positive_talk_videos' AND COLUMN_NAME = 'video_date'`
+            );
+            if (rows && rows[0] && rows[0].cnt === 0) {
+                await this.query(`ALTER TABLE positive_talk_videos 
+                    ADD COLUMN video_date DATE NULL AFTER category`);
+                await this.query(`UPDATE positive_talk_videos SET video_date = DATE(created_at) WHERE video_date IS NULL`);
+                await this.query(`ALTER TABLE positive_talk_videos MODIFY COLUMN video_date DATE NOT NULL`);
+            }
+        } catch (err) {
+            console.warn('Positive Talk video_date migration (non-fatal):', err.message);
+        }
     }
 
     static async ensureNewsLinkColumns() {
@@ -1428,6 +1615,57 @@ static async getEventRegistrationsByEmail(email) {
 
     static async deleteSubmission(id) {
         return await this.delete('submissions', id);
+    }
+
+    static async getAllLoanHelpdeskCases() {
+        return await this.getAll('loan_helpdesk_cases');
+    }
+
+    static async getLoanHelpdeskCaseById(id) {
+        return await this.getById('loan_helpdesk_cases', id);
+    }
+
+    static async getLoanHelpdeskCaseByCaseIdAndMobile(caseId, mobile) {
+        const sql = `
+            SELECT * FROM loan_helpdesk_cases
+            WHERE LOWER(case_id) = LOWER(?) AND mobile = ?
+            LIMIT 1
+        `;
+        const rows = await this.query(sql, [String(caseId || '').trim(), String(mobile || '').trim()]);
+        return rows[0] || null;
+    }
+
+    static async getLoanHelpdeskCaseByCaseId(caseId) {
+        const sql = `
+            SELECT * FROM loan_helpdesk_cases
+            WHERE LOWER(case_id) = LOWER(?)
+            LIMIT 1
+        `;
+        const rows = await this.query(sql, [String(caseId || '').trim()]);
+        return rows[0] || null;
+    }
+
+    static async getLoanHelpdeskCaseByMobile(mobile) {
+        const sql = `
+            SELECT * FROM loan_helpdesk_cases
+            WHERE mobile = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        `;
+        const rows = await this.query(sql, [String(mobile || '').trim()]);
+        return rows[0] || null;
+    }
+
+    static async createLoanHelpdeskCase(data) {
+        return await this.create('loan_helpdesk_cases', data);
+    }
+
+    static async updateLoanHelpdeskCase(id, data) {
+        return await this.update('loan_helpdesk_cases', id, data);
+    }
+
+    static async deleteLoanHelpdeskCase(id) {
+        return await this.delete('loan_helpdesk_cases', id);
     }
 
     // DASHBOARD STATS
@@ -1588,6 +1826,10 @@ static async getEventRegistrationsByEmail(email) {
             console.log('Payment transaction recorded:', transactionData.cf_payment_id);
             return true;
         } catch (error) {
+            if (error.code === 'ER_DUP_ENTRY') {
+                console.log('Payment transaction already recorded:', transactionData.cf_payment_id);
+                return true;
+            }
             console.error('createPaymentTransaction error:', error.message);
             throw error;
         }
@@ -1618,7 +1860,8 @@ static async getEventRegistrationsByEmail(email) {
                     order_id = ?,
                     paid_amount = ?,
                     payment_date = NOW(),
-                    status = 'approved'
+                    status = 'approved',
+                    approveddate = COALESCE(approveddate, NOW())
                 WHERE email = ?
             `;
             
@@ -1813,7 +2056,7 @@ static async getEventRegistrationsByEmail(email) {
         return await this.delete('committee_subleaders', id);
     }
 
-    // CHAPTERS 
+    // CHAPTERS (same as committees)
     static slugifyChapter(text) {
         return String(text || '')
             .trim()
