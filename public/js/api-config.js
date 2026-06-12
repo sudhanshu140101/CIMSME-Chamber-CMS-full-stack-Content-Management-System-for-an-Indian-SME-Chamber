@@ -1,30 +1,25 @@
 (function() {
     'use strict';
     
-    // ENVIRONMENT DETECTION 
     const hostname = window.location.hostname;
-const isLocalhost =
-  hostname === 'localhost' ||
-  hostname === '127.0.0.1';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-// Use current origin 
-window.API_CONFIG = {
-  BASE_URL: isLocalhost
-    ? 'http://localhost:3000'
-    : window.location.origin,
-  API_PATH: '/api',
-  TIMEOUT: 30000,
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000,
+    // Same origin: HTML and API are served by the same Express app (local + production).
+    window.API_CONFIG = {
+      BASE_URL: window.location.origin,
+      API_PATH: '/api',
+      TIMEOUT: 30000,
+      RETRY_ATTEMPTS: 3,
+      RETRY_DELAY: 1000,
 
-  get API_URL() {
-    return this.BASE_URL + this.API_PATH;
-  },
+      get API_URL() {
+        return this.BASE_URL + this.API_PATH;
+      },
 
-  get ENV() {
-    return isLocalhost ? 'development' : 'production';
-  }
-};
+      get ENV() {
+        return isLocalhost ? 'development' : 'production';
+      }
+    };
 
     
   
@@ -32,14 +27,13 @@ window.API_CONFIG = {
     const originalFetch = window.fetch;
     
     window.fetch = function(url, options = {}) {
-        // Only modify API calls
         if (typeof url === 'string' && url.startsWith('/api/')) {
             const fullUrl = `${API_CONFIG.BASE_URL}${url}`;
-            console.log(` API Call: ${url} → ${fullUrl}`);
+            if (API_CONFIG.ENV === 'development') {
+                console.log(` API Call: ${url} → ${fullUrl}`);
+            }
             return originalFetch(fullUrl, options);
         }
-        
-        // Pass through all other fetch calls unchanged
         return originalFetch(url, options);
     };
     
