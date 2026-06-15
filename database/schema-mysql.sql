@@ -27,7 +27,7 @@ CREATE TABLE hero (
 COMMENT='Homepage hero/carousel slides';
 
 
---  EVENTS (Conferences, Webinars, etc.)
+--  EVENTS 
 
 CREATE TABLE events (
     id INT AUTO_INCREMENT PRIMARY KEY,
