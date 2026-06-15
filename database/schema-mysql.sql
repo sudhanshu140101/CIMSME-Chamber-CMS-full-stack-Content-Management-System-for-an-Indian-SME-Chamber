@@ -191,7 +191,7 @@ CREATE TABLE advisors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Advisory board members';
 
--- 📰 NEWS TABLE
+--  NEWS TABLE
 
 CREATE TABLE news (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -213,7 +213,7 @@ CREATE TABLE news (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='News and announcements';
 
--- 📺 TV INTERVIEWS TABLE
+--  TV INTERVIEWS TABLE
 
 CREATE TABLE tv_interviews (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -230,7 +230,7 @@ CREATE TABLE tv_interviews (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='TV interview videos (YouTube)';
 
--- 🎙️ POSITIVE TALK SHOW VIDEOS TABLE
+--  POSITIVE TALK SHOW VIDEOS TABLE
 
 CREATE TABLE positive_talk_videos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -263,7 +263,7 @@ CREATE TABLE drive_pdfs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='PDF library for reusable document links';
 
--- 💬 TESTIMONIALS TABLE
+--  TESTIMONIALS TABLE
 
 CREATE TABLE testimonials (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -511,29 +511,6 @@ CREATE TABLE payment_transactions (
     FOREIGN KEY (order_id) REFERENCES payment_orders(order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Payment transaction records';
-
-
-
-
--- DEFAULT DATA
-
-
--- Sample hero slide
-INSERT INTO hero (title, subtitle, button_text, button_link, is_active, order_index) VALUES
-('Welcome to CIMSME', 'Chamber of Indian Micro, Small and Medium Enterprises', 'Join Now', '/membership', true, 1);
-
--- Sample advisor
-INSERT INTO advisors (name, designation, bio, initials, color_scheme, is_active, order_index) VALUES
-('Dr. Rajesh Kumar', 'Chairman & CEO', '25+ years of experience in MSME development and policy making.', 'RK', 'blue-600', true, 1);
-
--- Sample membership benefit
-INSERT INTO membership_benefits (title, description, icon, category, order_index, is_active) VALUES
-('Networking Opportunities', 'Connect with 10,000+ MSME members across India', 'users', 'networking', 1, true),
-('Business Growth Support', 'Access to funding, mentorship, and growth programs', 'trending-up', 'growth', 2, true),
-('Policy Advocacy', 'Represent your interests at state and national levels', 'shield', 'advocacy', 3, true);
-
-
-
 
 SELECT '✓ Schema created successfully!' as status;
 
