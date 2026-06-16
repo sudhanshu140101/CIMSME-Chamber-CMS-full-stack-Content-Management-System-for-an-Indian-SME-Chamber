@@ -8,7 +8,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   process.exit(1);
 }
 
-//  OPTIONAL Redis - only load if configured
+//Redis - only load if configured
 let redis = null;
 if (process.env.REDIS_HOST && process.env.NODE_ENV === 'production') {
   try {
@@ -211,7 +211,7 @@ async function verifyAdminToken(req, res, next) {
  
 
   try {
-    // Check if token is blacklisted
+ 
     if (await isTokenBlacklisted(token)) {
       return res.status(401).json({ 
         success: false, 
@@ -221,15 +221,11 @@ async function verifyAdminToken(req, res, next) {
 
     // Verify JWT
     const decoded = jwt.verify(token, JWT_SECRET);
-    
-    // Validate payload structure
     validateTokenPayload(decoded, 'admin');
-    
-    // Check session exists
     let session = await getSession(token, 'admin');
     
     if (!session) {
-      // Re-create session from token
+
       session = {
         email: decoded.email,
         role: decoded.role,
@@ -280,9 +276,7 @@ async function verifyAdminToken(req, res, next) {
   }
 }
 
-
 // MEMBER TOKEN FUNCTIONS
-
 
 function generateMemberToken(memberData) {
   try {
@@ -412,9 +406,7 @@ async function verifyMemberToken(req, res, next) {
   }
 }
 
-
 // CLEANUP & UTILITIES
-
 
 async function cleanupExpiredTokens() {
   if (redis) return; 
