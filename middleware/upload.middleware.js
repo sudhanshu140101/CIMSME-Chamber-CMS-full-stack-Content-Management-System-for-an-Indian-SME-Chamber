@@ -250,9 +250,7 @@ async function validatePdfMagicAndMime(filePath) {
   }
 }
 
-/**
- * PDF uploads to public/uploads/{folder} — no image processing; validates PDF mime + %PDF header.
- */
+
 function createPdfUploadMiddleware(folder = 'pdfs', fieldName = 'pdf', maxSizeMB = MAX_PDF_SIZE_MB) {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
