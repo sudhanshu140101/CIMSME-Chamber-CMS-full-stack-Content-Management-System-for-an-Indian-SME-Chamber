@@ -700,17 +700,6 @@ initDb().then(() => {
   });
 });
 
-
-
-
-
-
-
-
-
-
-
-
 app.get('/signature/:filename', (req, res) => {
     const filename = req.params.filename;
     const safeName = path.basename(filename);
