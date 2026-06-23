@@ -128,9 +128,7 @@ async function blacklistToken(token) {
   }
 }
 
-
 // TOKEN VALIDATION
-
 
 function validateTokenPayload(decoded, expectedType) {
   const requiredFields = ['id', 'email', 'type', 'iat'];
