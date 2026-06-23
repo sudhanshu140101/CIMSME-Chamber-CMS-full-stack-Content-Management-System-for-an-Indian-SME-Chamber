@@ -451,7 +451,6 @@ CREATE TABLE newsletter (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Newsletter email subscribers';
 
-
 --  CONTACT SUBMISSIONS 
 
 CREATE TABLE submissions (
