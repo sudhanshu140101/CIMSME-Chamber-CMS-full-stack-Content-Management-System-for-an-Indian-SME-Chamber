@@ -4103,7 +4103,7 @@ app.get('/api/committees/admin/all', verifyAdmin, async (req, res) => {
   }
 });
 
-// Sanitize apply_link: only allow relative path or https? URL (prevent javascript: etc)
+
 function sanitizeApplyLink(link) {
   const s = (link && typeof link === 'string') ? link.trim() : '';
   if (!s) return '/membership';
