@@ -330,7 +330,7 @@ async function verifyMemberToken(req, res, next) {
   }
 
   try {
-    // Check if token is blacklisted
+    
     if (await isTokenBlacklisted(token)) {
       return res.status(401).json({ 
         success: false, 
