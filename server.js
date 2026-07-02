@@ -1524,7 +1524,7 @@ app.put('/api/admin/footer-pdf', verifyAdmin, async (req, res) => {
   }
 });
 
-/** Resolve a drive PDF DB path to an absolute path under public/uploads/pdfs only. */
+
 function resolveDrivePdfAbsolutePath(fileUrl) {
   if (typeof fileUrl !== 'string' || !fileUrl.startsWith('/uploads/pdfs/') || fileUrl.includes('..')) {
     return null;
