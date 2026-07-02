@@ -2039,7 +2039,7 @@ app.post('/api/admin/membership/applications/:id/approve', verifyAdmin, async (r
   }
 });
 
-// Reject membership application
+// Reject membership 
 app.post('/api/admin/membership/applications/:id/reject', verifyAdmin, async (req, res) => {
   try {
     await Database.update('membership_applications', req.params.id, {
