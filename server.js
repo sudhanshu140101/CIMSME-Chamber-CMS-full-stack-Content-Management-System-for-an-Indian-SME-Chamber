@@ -2408,7 +2408,7 @@ app.delete('/api/services/delete/:id', verifyAdmin, async (req, res) => {
 // NEWSLETTER ROUTES 
 
 
-// Get all newsletter subscribers (Admin)
+// Get all newsletter subscribers 
 app.get('/api/admin/newsletter/subscribers', verifyAdmin, async (req, res) => {
   try {
     const subscribers = await Database.getAllNewsletter();
