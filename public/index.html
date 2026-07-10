@@ -7444,7 +7444,6 @@ function displayMemberRegisteredEvents(events, filterType) {
     });
 }
 
-// View Event Details - Opens full event details page (from member dashboard; uses full-details API for registration_enabled + photos)
 async function viewEventDetails(eventId) {
   try {
     var fullRes = await fetch('/api/events/' + eventId + '/full-details?_=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.json(); }).catch(function() { return { success: false }; });
