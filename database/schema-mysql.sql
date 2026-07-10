@@ -316,7 +316,6 @@ COMMENT='Customer testimonials and reviews';
         paid_amount DECIMAL(10, 2),
         payment_date TIMESTAMP NULL,
 
-   
     
     status ENUM('pending','approved','rejected') DEFAULT 'pending' NOT NULL,
     applicationdate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
