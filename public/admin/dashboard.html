@@ -2909,8 +2909,7 @@ async function deleteDrivePdf(id) {
     try {
         console.log('📊 Loading dashboard data...');
         
-        // Use cache if available - instant, no delays needed
-        // Only fetch from API if cache is empty (request deduplication handles concurrent calls)
+        
         const promises = [];
         
         if (!isCached('hero')) {
