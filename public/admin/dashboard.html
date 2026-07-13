@@ -2650,8 +2650,7 @@ async function apiCall(endpoint, options = {}, retries = 3, forceRefresh = false
     return;
   }
 
-  // Don't load all data on page load - use lazy loading instead
-  // Only show dashboard section by default
+
   console.log('✅ Dashboard initialized - using lazy loading');
     hideLoading();  
   
