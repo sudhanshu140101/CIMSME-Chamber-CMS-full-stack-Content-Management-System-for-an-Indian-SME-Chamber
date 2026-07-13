@@ -2654,7 +2654,7 @@ async function apiCall(endpoint, options = {}, retries = 3, forceRefresh = false
   console.log('✅ Dashboard initialized - using lazy loading');
     hideLoading();  
   
-  // Show dashboard section by default
+
   showSection('dashboard');
 });
 
@@ -2663,7 +2663,7 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Helper function to show messages (toast notifications)
+
 function showMessage(message, type = 'info') {
   const toast = document.createElement('div');
   const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500';
@@ -2968,19 +2968,19 @@ function showSection(sectionName) {
 
 
  
-    // LAZY LOADING - Only load data when section is opened
+  
     switch(sectionName) {
         case 'dashboard':
-            // Dashboard section - load hero data if needed
+           
             if (typeof loadDashboardData === 'function') {
                 loadDashboardData();
             }
             break;
             
         case 'advisory':
-            // Load advisory board only when section is opened (lazy loading)
+           
             if (typeof loadAdvisoryBoard === 'function') {
-                loadAdvisoryBoard(); // Will use cache if available
+                loadAdvisoryBoard(); 
             }
             break;
 
