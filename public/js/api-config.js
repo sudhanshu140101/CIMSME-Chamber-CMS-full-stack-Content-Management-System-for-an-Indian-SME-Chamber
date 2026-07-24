@@ -23,7 +23,7 @@
 
     
   
-    // Automatically intercepts ALL fetch calls to /api/routes
+
     const originalFetch = window.fetch;
     
     window.fetch = function(url, options = {}) {
