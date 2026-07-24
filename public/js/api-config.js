@@ -187,7 +187,7 @@
         window.showToast('No internet connection', 'error');
     });
     
-    //  ADD REQUIRED CSS 
+ 
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideInRight {
