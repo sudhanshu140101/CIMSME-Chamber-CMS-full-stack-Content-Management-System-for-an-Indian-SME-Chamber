@@ -42,7 +42,7 @@ if (process.env.REDIS_HOST && process.env.NODE_ENV === 'production') {
   console.log('Using in-memory session storage (development mode)');
 }
 
-// Fallback to in-memory storage
+
 const activeAdminTokens = new Map();
 const activeMemberTokens = new Map();
 const blacklistedTokens = new Set();
