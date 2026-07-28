@@ -316,7 +316,7 @@ async function sendMembershipPaymentConfirmationEmail(orderId) {
     if (appRows[0]) {
       sendMembershipApplicationEmail(appRows[0], appRows[0].finalamount || appRows[0].membershipfee).catch(() => {});
     }
-  } catch (_) { /* non-blocking */ }
+  } catch (_) { }
 }
 
 //  JWT_SECRET IS 
