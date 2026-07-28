@@ -635,7 +635,7 @@ const allowedOrigins = allowedOriginsRaw.map(o => (o || '').toString().replace(/
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
-  // YouTube embeds require a referrer; helmet's default "no-referrer" causes Error 153
+ 
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 app.use(compression());
