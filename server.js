@@ -10,7 +10,6 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { SendMailClient } = require("zeptomail");
 
-
 const axios = require("axios");
 const crypto = require('crypto');
 const https = require('https');
@@ -297,6 +296,11 @@ async function finalizeSuccessfulPayment(merchantOrderId, payment) {
   const completed = await Database.completeMembershipPayment(merchantOrderId, payment.payment_amount);
   if (completed) {
     sendMembershipPaymentConfirmationEmail(merchantOrderId);
+    queueSalesforcePaymentSync(merchantOrderId, 'paid', {
+      razorpayOrderId: payment.bank_reference || '',
+      razorpayPaymentId: payment.cf_payment_id || '',
+      paymentDate: payment.payment_time || new Date()
+    });
   }
   return !!completed;
 }
@@ -325,6 +329,15 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 const Database = require('./models/database');
+const {
+  isSalesforceEnabled,
+  syncMembershipLeadAsync,
+  syncMembershipLeadForOrder
+} = require('./services/salesforce.service');
+
+function queueSalesforcePaymentSync(orderId, paymentStatus, paymentMeta = {}) {
+  syncMembershipLeadForOrder(Database, orderId, paymentStatus, paymentMeta);
+}
 
 const {
 verifyAdminToken,
@@ -670,6 +683,7 @@ initDb().then(() => {
   const server = app.listen(PORT, () => {
     console.log(` Server running on port ${PORT}`);
     console.log(` Razorpay config: ${razorpayRuntime.mode} mode | Payments: ${isPaymentsEnabled() ? 'enabled' : 'disabled'}`);
+    console.log(` Salesforce sync: ${isSalesforceEnabled() ? 'enabled' : 'disabled'}`);
     if (isDevelopment) {
       console.log(`Main Website:    http://localhost:${PORT}`);
       console.log(` Admin Dashboard: http://localhost:${PORT}/admin`);
@@ -700,6 +714,17 @@ initDb().then(() => {
     throw err;
   });
 });
+
+
+
+
+
+
+
+
+
+
+
 
 app.get('/signature/:filename', (req, res) => {
     const filename = req.params.filename;
@@ -1525,7 +1550,7 @@ app.put('/api/admin/footer-pdf', verifyAdmin, async (req, res) => {
   }
 });
 
-
+/** Resolve a drive PDF DB path to an absolute path under public/uploads/pdfs only. */
 function resolveDrivePdfAbsolutePath(fileUrl) {
   if (typeof fileUrl !== 'string' || !fileUrl.startsWith('/uploads/pdfs/') || fileUrl.includes('..')) {
     return null;
@@ -2040,7 +2065,7 @@ app.post('/api/admin/membership/applications/:id/approve', verifyAdmin, async (r
   }
 });
 
-// Reject membership 
+// Reject membership application
 app.post('/api/admin/membership/applications/:id/reject', verifyAdmin, async (req, res) => {
   try {
     await Database.update('membership_applications', req.params.id, {
@@ -2409,7 +2434,7 @@ app.delete('/api/services/delete/:id', verifyAdmin, async (req, res) => {
 // NEWSLETTER ROUTES 
 
 
-// Get all newsletter subscribers 
+// Get all newsletter subscribers (Admin)
 app.get('/api/admin/newsletter/subscribers', verifyAdmin, async (req, res) => {
   try {
     const subscribers = await Database.getAllNewsletter();
@@ -2773,6 +2798,11 @@ app.post('/api/payment/verify', async (req, res) => {
                     } catch (e) {
                         console.error('setMembershipPaymentFailed:', e.message);
                     }
+                    queueSalesforcePaymentSync(merchantOrderId, 'failed', {
+                      razorpayOrderId: razorpayOrderId || '',
+                      razorpayPaymentId: paymentEntity?.id || '',
+                      paymentDate: razorpayTimestampToMysql(paymentEntity?.created_at) || new Date()
+                    });
                     console.log('Webhook: order marked FAILED:', merchantOrderId);
                 }
             }
@@ -4104,7 +4134,7 @@ app.get('/api/committees/admin/all', verifyAdmin, async (req, res) => {
   }
 });
 
-
+// Sanitize apply_link: only allow relative path or https? URL (prevent javascript: etc)
 function sanitizeApplyLink(link) {
   const s = (link && typeof link === 'string') ? link.trim() : '';
   if (!s) return '/membership';
@@ -5285,6 +5315,16 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
           businessCategoryL
         });
 
+        syncMembershipLeadAsync(savedRecord, {
+          paymentStatus: 'pending',
+          orderId: payment.orderId,
+          razorpayOrderId: payment.paymentSessionId || payment.cfOrderId || '',
+          membershipFee: payment.baseFee,
+          gstAmount: payment.gstAmount,
+          paymentAmount: payment.finalAmount,
+          password: String(password)
+        });
+
         return res.json({
           success: true,
           message: isPaymentRetry
@@ -5334,6 +5374,12 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
           await Database.update('membership_applications', savedId, { payment_status: 'failed' });
         } catch (_) { /* ignore */ }
 
+        syncMembershipLeadAsync({ ...savedRecord, payment_status: 'failed' }, {
+          paymentStatus: 'failed',
+          orderId,
+          password: String(password)
+        });
+
         const isGatewaySetup = /not enabled|not configured|invalid.*credentials|authentication|unauthorized|bad_request/i.test(pgErr.message || '');
         const userMessage = isGatewaySetup
           ? `Your application is saved (Member ID: ${memberId}). Payment gateway setup is in progress on our side — please try again in a few hours or contact support at info@indiansmechamber.com with your Member ID.`
@@ -5354,6 +5400,14 @@ app.post('/api/membership/apply', membershipLimiter, async (req, res) => {
       status: 'approved',
       payment_status: 'paid',
       approveddate: getMySQLDateTime()
+    });
+    syncMembershipLeadAsync({ ...savedRecord, payment_status: 'paid', status: 'approved' }, {
+      paymentStatus: 'paid',
+      paymentDate: new Date(),
+      membershipFee: paymentTotals.baseFee,
+      gstAmount: paymentTotals.gstAmount,
+      paymentAmount: paymentTotals.totalPayable,
+      password: String(password)
     });
     return res.json({
       success: true,
