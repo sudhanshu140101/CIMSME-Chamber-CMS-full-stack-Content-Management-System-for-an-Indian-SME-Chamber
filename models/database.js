@@ -505,7 +505,7 @@ await this.query(`
     )
 `);
 
-console.log('Payment transactions table ready');
+
 
 
 
