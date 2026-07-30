@@ -508,7 +508,6 @@ await this.query(`
 
 
 
-
         
         // EVENT AGENDA 
       
