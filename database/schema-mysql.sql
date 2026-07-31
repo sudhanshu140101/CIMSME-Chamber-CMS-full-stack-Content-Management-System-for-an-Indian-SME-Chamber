@@ -71,7 +71,6 @@ CREATE TABLE event_agenda (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Event schedule/agenda items';
 
-
 --  EVENT SPEAKERS
 
 CREATE TABLE event_speakers (
