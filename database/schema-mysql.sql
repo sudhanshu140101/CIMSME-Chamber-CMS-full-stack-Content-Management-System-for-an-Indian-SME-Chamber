@@ -23,7 +23,6 @@ CREATE TABLE hero (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Homepage hero/carousel slides';
 
-
 --  EVENTS 
 
 CREATE TABLE events (
