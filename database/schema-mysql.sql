@@ -43,7 +43,7 @@ CREATE TABLE events (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     INDEX idx_date (event_date),
     INDEX idx_active (is_active),
     INDEX idx_featured (is_featured),
