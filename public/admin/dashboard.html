@@ -2612,7 +2612,7 @@ async function apiCall(endpoint, options = {}, retries = 3, forceRefresh = false
             }
         }
         
-        // Invalidate cache (call after create/update/delete)
+      
         function invalidateCache(section) {
             if (dataCache[section]) {
                 dataCache[section].data = null;
