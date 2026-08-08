@@ -23,6 +23,7 @@ function sanitizeFilename(filename) {
   return basename.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
+
 async function validateFileMagicNumbers(filePath) {
   try {
     const type = await fileType.fromFile(filePath);
