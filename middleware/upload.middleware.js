@@ -201,7 +201,6 @@ function createUploadMiddleware(folder, fieldName = 'image', maxSizeMB = MAX_FIL
             message: 'Invalid file format. File appears to be corrupted or not a valid image.'
           });
         }
-        
      
         const isSanitized = await sanitizeImage(req.file.path);
         
