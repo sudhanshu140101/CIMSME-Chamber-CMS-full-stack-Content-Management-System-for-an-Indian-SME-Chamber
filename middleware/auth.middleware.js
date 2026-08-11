@@ -344,7 +344,7 @@ async function verifyMemberToken(req, res, next) {
     // Validate payload
     validateTokenPayload(decoded, 'member');
     
-    // Additional member field validation
+  
     if (!decoded.memberid) {
       throw new Error('Missing memberid in token');
     }
