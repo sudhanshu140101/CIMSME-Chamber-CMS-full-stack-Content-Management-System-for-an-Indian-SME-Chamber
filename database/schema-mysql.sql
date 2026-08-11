@@ -506,7 +506,7 @@ CREATE TABLE payment_transactions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Payment transaction records';
 
-SELECT '✓ Schema created successfully!' as status;
+
 
 SELECT TABLE_NAME, TABLE_ROWS, ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024, 2) AS 'Size (KB)'
 FROM information_schema.TABLES
