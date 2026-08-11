@@ -404,7 +404,7 @@ async function verifyMemberToken(req, res, next) {
   }
 }
 
-// CLEANUP & UTILITIES
+
 
 async function cleanupExpiredTokens() {
   if (redis) return; 
