@@ -246,7 +246,7 @@ CREATE TABLE positive_talk_videos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Positive Talk Show YouTube videos (promo and full episodes)';
 
--- DRIVE (admin-uploaded PDFs; files live under /public/uploads/pdfs/)
+
 
 CREATE TABLE drive_pdfs (
     id INT AUTO_INCREMENT PRIMARY KEY,
