@@ -8,6 +8,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   process.exit(1);
 }
 
+
 //Redis 
 let redis = null;
 if (process.env.REDIS_HOST && process.env.NODE_ENV === 'production') {
