@@ -430,7 +430,6 @@ async function cleanupExpiredTokens() {
   }
 }
 
-
 if (!redis) {
   setInterval(cleanupExpiredTokens, 60 * 60 * 1000);
 }
