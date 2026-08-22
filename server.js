@@ -17,7 +17,6 @@ const Razorpay = require('razorpay');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 function envTrim(name) {
