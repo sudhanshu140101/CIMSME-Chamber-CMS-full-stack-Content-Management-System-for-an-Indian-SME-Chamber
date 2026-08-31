@@ -8,10 +8,27 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   process.exit(1);
 }
 
-
 //Redis 
 let redis = null;
-
+if (process.env.REDIS_HOST && process.env.NODE_ENV === 'production') {
+  try {
+    const Redis = require('ioredis');
+    redis = new Redis({
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT || 6379,
+      password: process.env.REDIS_PASSWORD,
+      retryStrategy: (times) => {
+        if (times > 3) {
+          console.error('Redis connection failed after 3 attempts');
+          return null; // Stop retrying
+        }
+        return Math.min(times * 50, 2000);
+      }
+    });
+    
+    redis.on('connect', () => {
+      console.log('Redis session storage connected');
+    });
 
 
     
@@ -40,7 +57,6 @@ console.log('Auth middleware initialized');
 
 
 // TOKEN STORAGE 
-
 
 async function storeSession(token, session, type = 'admin') {
   if (redis) {
