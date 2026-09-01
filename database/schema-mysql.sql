@@ -22,7 +22,6 @@ CREATE TABLE hero (
     INDEX idx_active_order (is_active, order_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Homepage hero/carousel slides';
-
 --  EVENTS 
 
 CREATE TABLE events (
