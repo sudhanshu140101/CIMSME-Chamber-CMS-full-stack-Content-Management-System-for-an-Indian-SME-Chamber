@@ -11,10 +11,7 @@ const nodemailer = require('nodemailer');
 const { SendMailClient } = require("zeptomail");
 
 
-const axios = require("axios");
-const crypto = require('crypto');
-const https = require('https');
-const Razorpay = require('razorpay');
+
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
