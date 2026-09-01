@@ -160,7 +160,6 @@ CREATE TABLE event_registrations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Event registration records';
 
-
 --  ADVISORS 
 
 CREATE TABLE advisors (
