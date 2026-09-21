@@ -4387,6 +4387,7 @@ app.post('/api/chapters/create', verifyAdmin, chapterUpload, async (req, res) =>
   }
 });
 
+
 app.put('/api/chapters/update/:id', verifyAdmin, chapterUpload, async (req, res) => {
   try {
     const id = parseChapterId(req.params.id);
