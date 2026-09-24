@@ -8,7 +8,7 @@ const fs = require('fs');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
-const { SendMailClient } = require("zeptomail");
+
 
 const axios = require("axios");
 const crypto = require('crypto');
