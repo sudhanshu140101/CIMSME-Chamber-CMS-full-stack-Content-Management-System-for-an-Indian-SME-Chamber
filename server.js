@@ -304,6 +304,7 @@ async function finalizeSuccessfulPayment(merchantOrderId, payment) {
   return !!completed;
 }
 
+
 async function sendMembershipPaymentConfirmationEmail(orderId) {
   try {
     const order = await Database.getPaymentOrder(orderId);
