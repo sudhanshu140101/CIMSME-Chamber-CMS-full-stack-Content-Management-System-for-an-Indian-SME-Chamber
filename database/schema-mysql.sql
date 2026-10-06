@@ -103,7 +103,6 @@ CREATE TABLE event_photos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Event photo gallery';
 
-
 --  EVENT VIDEOS 
 
 CREATE TABLE event_videos (
@@ -285,7 +284,6 @@ COMMENT='Customer testimonials and reviews';
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20) NOT NULL,
     password VARCHAR(255) COMMENT 'Bcrypt hashed',
-    
     businesstype VARCHAR(100),
     businesscategory VARCHAR(100) COMMENT 'micro, small, medium, listed',
     annualturnover DECIMAL(15,2),
