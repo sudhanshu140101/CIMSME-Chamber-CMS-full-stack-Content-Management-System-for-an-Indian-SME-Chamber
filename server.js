@@ -1518,6 +1518,7 @@ app.get('/api/footer-pdf', async (req, res) => {
     if (!row || !row.pdf_url) {
       return res.json({ success: true, data: null });
     }
+    
     res.json({
       success: true,
       data: {
