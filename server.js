@@ -161,7 +161,6 @@ async function createPaymentSession({
       finalAmount: totals.totalPayable
     }
   });
-
   const rt = refreshRazorpayRuntime();
   if (!rt.client) {
     try {
