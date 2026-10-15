@@ -2692,6 +2692,7 @@ app.post('/api/payment/verify', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing signature' });
         }
 
+
         if (webhookSecret) {
             const expectedSignature = crypto
                 .createHmac('sha256', webhookSecret)
