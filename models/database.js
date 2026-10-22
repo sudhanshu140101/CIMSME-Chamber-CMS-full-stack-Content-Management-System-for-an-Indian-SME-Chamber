@@ -108,7 +108,7 @@ class Database {
 
         
         try {
-          
+            // Check which columns exist
             const columns = await this.query(`
                 SELECT COLUMN_NAME 
                 FROM INFORMATION_SCHEMA.COLUMNS 
@@ -249,27 +249,12 @@ class Database {
         `);     await this.ensureNewsLinkColumns();
 
         await this.query(`
-            CREATE TABLE IF NOT EXISTS tv_interviews (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                title VARCHAR(255) NOT NULL,
-                youtube_url VARCHAR(500) NOT NULL,
-                youtube_video_id VARCHAR(11) NOT NULL,
-                order_index INT DEFAULT 0,
-                is_active BOOLEAN DEFAULT true,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_active (is_active),
-                INDEX idx_order (order_index)
-            )
-        `);
-
-        await this.query(`
             CREATE TABLE IF NOT EXISTS positive_talk_videos (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 title VARCHAR(255) NOT NULL,
                 youtube_url VARCHAR(500) NOT NULL,
                 youtube_video_id VARCHAR(11) NOT NULL,
-                category ENUM('promo', 'full_episode') NOT NULL DEFAULT 'full_episode',
+                category ENUM('india_by_msmes', 'mukesh_podcast', 'tv_shows', 'promo', 'full_episode') NOT NULL DEFAULT 'full_episode',
                 video_date DATE NOT NULL,
                 is_active BOOLEAN DEFAULT true,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -282,6 +267,7 @@ class Database {
         `);
 
         await this.ensurePositiveTalkVideoDateColumn();
+        await this.ensurePositiveTalkCategories();
 
         await this.query(`
             CREATE TABLE IF NOT EXISTS drive_pdfs (
@@ -505,6 +491,7 @@ await this.query(`
     )
 `);
 
+console.log('Payment transactions table ready');
 
 
 
@@ -859,7 +846,7 @@ await this.query(`
 
     static validateTableName(tableName) {
         const ALLOWED_TABLES = [
-            'hero', 'events', 'advisors', 'news', 'tv_interviews', 'positive_talk_videos', 'testimonials', 'coupons', 'newsletter',
+            'hero', 'events', 'advisors', 'news', 'positive_talk_videos', 'testimonials', 'coupons', 'newsletter',
             'submissions', 'loan_helpdesk_cases', 'membership_applications', 'membership_benefits',
             'membership_stories', 'member_services', 'event_registrations',
             'event_agenda', 'event_speakers', 'event_photos', 'event_videos',
@@ -1451,29 +1438,6 @@ static async getEventRegistrationsByEmail(email) {
         return { success: true, is_active: news?.is_active };
     }
 
-    static async getAllTvInterviews() {
-        return await this.getAll('tv_interviews');
-    }
-
-    static async createTvInterview(data) {
-        return await this.create('tv_interviews', data);
-    }
-
-    static async updateTvInterview(id, data) {
-        return await this.update('tv_interviews', id, data);
-    }
-
-    static async deleteTvInterview(id) {
-        return await this.delete('tv_interviews', id);
-    }
-
-    static async toggleTvInterviewActive(id) {
-        const sql = `UPDATE tv_interviews SET is_active = NOT is_active WHERE id = ?`;
-        await this.query(sql, [id]);
-        const item = await this.getById('tv_interviews', id);
-        return { success: true, is_active: item?.is_active };
-    }
-
     static async getAllPositiveTalkVideos() {
         return await this.getAll('positive_talk_videos');
     }
@@ -1511,6 +1475,26 @@ static async getEventRegistrationsByEmail(email) {
             }
         } catch (err) {
             console.warn('Positive Talk video_date migration (non-fatal):', err.message);
+        }
+    }
+
+    static async ensurePositiveTalkCategories() {
+        try {
+            const rows = await this.query(
+                `SELECT COLUMN_TYPE AS column_type FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'positive_talk_videos' AND COLUMN_NAME = 'category'`
+            );
+            const columnType = rows && rows[0] ? String(rows[0].column_type || '') : '';
+            const hasNewCategories = columnType.includes('india_by_msmes')
+                && columnType.includes('mukesh_podcast')
+                && columnType.includes('tv_shows');
+            if (hasNewCategories) return;
+
+            await this.query(`ALTER TABLE positive_talk_videos
+                MODIFY COLUMN category ENUM('india_by_msmes', 'mukesh_podcast', 'tv_shows', 'promo', 'full_episode') NOT NULL DEFAULT 'full_episode'`);
+            console.log('Positive Talk video categories updated');
+        } catch (err) {
+            console.warn('Positive Talk category migration (non-fatal):', err.message);
         }
     }
 
