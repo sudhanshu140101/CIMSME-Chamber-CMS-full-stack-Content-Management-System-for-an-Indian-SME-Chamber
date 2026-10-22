@@ -32,8 +32,6 @@ class Database {
         }
     }
 
-   
-        
       static async initializeTables() {
     try {
        
@@ -55,7 +53,6 @@ class Database {
             )
         `);
 
-      
         await this.query(`
             CREATE TABLE IF NOT EXISTS events (
                 id INT PRIMARY KEY AUTO_INCREMENT,
@@ -82,7 +79,6 @@ class Database {
             )
         `);
 
-        
         await this.query(`
             CREATE TABLE IF NOT EXISTS advisors (
                 id INT PRIMARY KEY AUTO_INCREMENT,
@@ -161,7 +157,6 @@ class Database {
             console.log('Events auto-migration error:', err.message);
         }
 
-        
         try {
             const memberCols = await this.query(`SHOW COLUMNS FROM membership_applications`);
             const memberColumns = memberCols.map(col => col.Field);
