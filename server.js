@@ -15,8 +15,8 @@ const crypto = require('crypto');
 const https = require('https');
 const Razorpay = require('razorpay');
 
-
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -161,6 +161,7 @@ async function createPaymentSession({
       finalAmount: totals.totalPayable
     }
   });
+
   const rt = refreshRazorpayRuntime();
   if (!rt.client) {
     try {
@@ -222,6 +223,7 @@ async function createPaymentSession({
     throw error;
   }
 }
+
 async function fetchRazorpayPaymentsForOrder(razorpayOrderId) {
   const rt = getRazorpayRuntime();
   if (!rt.client) {
@@ -303,7 +305,6 @@ async function finalizeSuccessfulPayment(merchantOrderId, payment) {
   return !!completed;
 }
 
-
 async function sendMembershipPaymentConfirmationEmail(orderId) {
   try {
     const order = await Database.getPaymentOrder(orderId);
@@ -315,7 +316,7 @@ async function sendMembershipPaymentConfirmationEmail(orderId) {
     if (appRows[0]) {
       sendMembershipApplicationEmail(appRows[0], appRows[0].finalamount || appRows[0].membershipfee).catch(() => {});
     }
-  } catch (_) { }
+  } catch (_) { /* non-blocking */ }
 }
 
 //  JWT_SECRET IS 
@@ -634,7 +635,7 @@ const allowedOrigins = allowedOriginsRaw.map(o => (o || '').toString().replace(/
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
- 
+  // YouTube embeds require a referrer; helmet's default "no-referrer" causes Error 153
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 app.use(compression());
@@ -671,6 +672,7 @@ app.use('/api/payment/webhook', express.raw({
         req.rawBody = buf.toString('utf8');
     }
 }));
+
 
 
 app.use(express.json({ limit: '50mb' }));
@@ -785,7 +787,6 @@ const limiter = rateLimit({
       path.startsWith('/api/advisory') ||
       path.startsWith('/api/hero') ||
       path.startsWith('/api/news') ||
-      path.startsWith('/api/tv-interviews') ||
       path.startsWith('/api/drive') ||
       path.includes('/admin/');
     const isPublicApiRoute =
@@ -1517,7 +1518,6 @@ app.get('/api/footer-pdf', async (req, res) => {
     if (!row || !row.pdf_url) {
       return res.json({ success: true, data: null });
     }
-    
     res.json({
       success: true,
       data: {
@@ -2691,7 +2691,6 @@ app.post('/api/payment/verify', async (req, res) => {
             console.error(' Missing x-razorpay-signature header');
             return res.status(400).json({ success: false, message: 'Missing signature' });
         }
-
 
         if (webhookSecret) {
             const expectedSignature = crypto
@@ -4389,7 +4388,6 @@ app.post('/api/chapters/create', verifyAdmin, chapterUpload, async (req, res) =>
   }
 });
 
-
 app.put('/api/chapters/update/:id', verifyAdmin, chapterUpload, async (req, res) => {
   try {
     const id = parseChapterId(req.params.id);
@@ -4614,8 +4612,6 @@ app.patch('/api/news/toggle-active/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// TV INTERVIEWS ROUTES
-
 function extractYouTubeVideoId(url) {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
@@ -4633,146 +4629,14 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
-function parseTvInterviewBody(body, requireUrl = true) {
-  const title = (body.title && typeof body.title === 'string') ? body.title.trim() : '';
-  const youtubeUrl = (body.youtube_url && typeof body.youtube_url === 'string') ? body.youtube_url.trim() : '';
 
-  if (!title) {
-    return { error: 'Title is required' };
-  }
-  if (title.length > 255) {
-    return { error: 'Title must be 255 characters or less' };
-  }
-
-  if (requireUrl && !youtubeUrl) {
-    return { error: 'YouTube URL is required' };
-  }
-
-  let videoId = null;
-  let normalizedUrl = youtubeUrl;
-
-  if (youtubeUrl) {
-    if (youtubeUrl.length > 500) {
-      return { error: 'YouTube URL is too long' };
-    }
-    videoId = extractYouTubeVideoId(youtubeUrl);
-    if (!videoId) {
-      return { error: 'Invalid YouTube URL. Use youtube.com/watch, youtu.be, or youtube.com/shorts links.' };
-    }
-    normalizedUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  }
-
-  const orderIndex = body.order_index !== undefined
-    ? (parseInt(body.order_index, 10) || 0)
-    : 0;
-
-  return {
-    data: {
-      title,
-      youtube_url: normalizedUrl,
-      youtube_video_id: videoId,
-      order_index: orderIndex
-    }
-  };
-}
-
-function sortTvInterviewsByOrder(items) {
-  return [...items].sort((a, b) => (a.order_index || 999) - (b.order_index || 999));
-}
-
-app.get('/api/tv-interviews', async (req, res) => {
-  try {
-    const interviews = await Database.getAllTvInterviews();
-    const active = interviews.filter(i => i.is_active);
-    res.json({ success: true, data: sortTvInterviewsByOrder(active) });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-app.get('/api/tv-interviews/admin/all', verifyAdmin, async (req, res) => {
-  try {
-    const interviews = await Database.getAllTvInterviews();
-    res.json({ success: true, data: sortTvInterviewsByOrder(interviews) });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-app.post('/api/tv-interviews/create', verifyAdmin, async (req, res) => {
-  try {
-    const parsed = parseTvInterviewBody(req.body, true);
-    if (parsed.error) {
-      return res.status(400).json({ success: false, message: parsed.error });
-    }
-
-    const id = await Database.createTvInterview({
-      ...parsed.data,
-      is_active: true
-    });
-
-    res.json({ success: true, message: 'TV Interview created successfully', id });
-  } catch (error) {
-    console.error('Create TV interview error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-app.put('/api/tv-interviews/update/:id', verifyAdmin, async (req, res) => {
-  try {
-    const existing = await Database.getById('tv_interviews', req.params.id);
-    if (!existing) {
-      return res.status(404).json({ success: false, message: 'TV Interview not found' });
-    }
-
-    const hasUrl = req.body.youtube_url !== undefined && String(req.body.youtube_url).trim() !== '';
-    const parsed = parseTvInterviewBody(
-      {
-        title: req.body.title !== undefined ? req.body.title : existing.title,
-        youtube_url: hasUrl ? req.body.youtube_url : existing.youtube_url,
-        order_index: req.body.order_index !== undefined ? req.body.order_index : existing.order_index
-      },
-      hasUrl || false
-    );
-
-    if (parsed.error) {
-      return res.status(400).json({ success: false, message: parsed.error });
-    }
-
-    const data = { title: parsed.data.title, order_index: parsed.data.order_index };
-    if (hasUrl) {
-      data.youtube_url = parsed.data.youtube_url;
-      data.youtube_video_id = parsed.data.youtube_video_id;
-    }
-
-    const success = await Database.updateTvInterview(req.params.id, data);
-    res.json(success
-      ? { success: true, message: 'TV Interview updated' }
-      : { success: false, message: 'TV Interview not found' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-app.delete('/api/tv-interviews/delete/:id', verifyAdmin, async (req, res) => {
-  try {
-    await Database.deleteTvInterview(req.params.id);
-    res.json({ success: true, message: 'TV Interview deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-app.patch('/api/tv-interviews/toggle-active/:id', verifyAdmin, async (req, res) => {
-  try {
-    const result = await Database.toggleTvInterviewActive(req.params.id);
-    res.json({ success: true, message: 'TV Interview status updated', is_active: result.is_active });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-const POSITIVE_TALK_CATEGORIES = new Set(['promo', 'full_episode']);
+const POSITIVE_TALK_CATEGORIES = new Set([
+  'india_by_msmes',
+  'mukesh_podcast',
+  'tv_shows',
+  'promo',
+  'full_episode'
+]);
 
 function parsePositiveTalkVideoDate(value) {
   if (value === undefined || value === null || String(value).trim() === '') {
@@ -4803,7 +4667,7 @@ function parsePositiveTalkBody(body, requireUrl = true) {
     return { error: 'Title must be 255 characters or less' };
   }
   if (!category) {
-    return { error: 'Invalid category. Use promo or full_episode.' };
+    return { error: 'Invalid category. Choose one of the Talk Show sections.' };
   }
   if (videoDateResult.error) {
     return { error: videoDateResult.error };
