@@ -118,7 +118,6 @@ CREATE TABLE event_videos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Event videos gallery';
 
-
 --  EVENT REGISTRATIONS
 
 CREATE TABLE event_registrations (
